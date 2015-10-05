@@ -41,13 +41,14 @@ namespace MultiResolutionRL
             else // if this is a new state, add it to the tree. Create a new level 1 state as necessary
             {
                 firstLevelParents.Add(state, activeLevel1State);
-                activeLevel1StateChildren = (activeLevel1StateChildren+1) % arity;
-                if (activeLevel1StateChildren == 0)
-                    activeLevel1State++;
 
                 if (!firstLevelChildren.ContainsKey(activeLevel1State))
                     firstLevelChildren.Add(activeLevel1State, new List<stateType>());
                 firstLevelChildren[activeLevel1State].Add(state);
+
+                activeLevel1StateChildren = (activeLevel1StateChildren+1) % arity;
+                if (activeLevel1StateChildren == 0)
+                    activeLevel1State++;
             }
         }
 
@@ -56,11 +57,12 @@ namespace MultiResolutionRL
             if (level < 1)
                 return state;
 
-            int level1State = firstLevelParents[state];
+            int highLevelState = (int)(firstLevelParents[state] / Math.Pow(arity, level-1));
+            int level1State = (int)(highLevelState * Math.Pow(arity, level - 1));
             return firstLevelChildren[level1State][0];
         }
 
-        public List<stateType> GetChildren(stateType parentState, int parentLevel)
+        public List<stateType> GetLevel0Children(stateType parentState, int parentLevel) //****************TEST THIS
         {
             int level1Parent = firstLevelParents[parentState];
             List<stateType> children = new List<stateType>();
@@ -68,9 +70,30 @@ namespace MultiResolutionRL
             {
                 children.AddRange(firstLevelChildren[level1Parent]);
                 level1Parent++;
+
+                if (!firstLevelChildren.ContainsKey(level1Parent))
+                    break;
             }
             return children;
         }
+
+        public List<stateType> GetChildren(stateType parentState, int parentLevel)
+        {
+            if (parentLevel == 1)
+                return firstLevelChildren[firstLevelParents[parentState]];
+
+            int lowerLevel = (int)(firstLevelParents[parentState] / Math.Pow(arity, parentLevel-1));
+            List<stateType> children = new List<stateType>();
+
+            for (int i=0; i<arity; i++)
+            {
+                int thisLevel1State = (int)((lowerLevel + i) * Math.Pow(arity, parentLevel - 2));
+                children.Add(firstLevelChildren[thisLevel1State][0]);
+            }
+
+            return children;
+        }
+
     }
     
 

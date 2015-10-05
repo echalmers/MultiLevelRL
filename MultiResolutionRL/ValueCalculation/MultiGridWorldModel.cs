@@ -45,9 +45,9 @@ namespace MultiResolutionRL.ValueCalculation
             availableActions = AvailableActions;
             stateComparer = StateComparer;
             actionComparer = ActionComparer;
-            pathFinder = new PathFinder<int[], int[]>(GetLowerLevelStatesMethod, stateComparer);
             stateTree = new StateTree<int[]>(stateComparer);
             stateTree.AddState(StartState);
+            pathFinder = new PathFinder<int[], int[]>(GetLowerLevelStatesMethod, stateComparer);
 
             for (int i = 0; i < models.Length; i++)
             {

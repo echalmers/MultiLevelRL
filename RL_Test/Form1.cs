@@ -16,7 +16,7 @@ namespace RL_Test
 {
     public partial class Form1 : Form
     {
-        System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\MultiResolutionRL\\Presentation Sept 28\\cumulativeReward.txt");
+        System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Presentation Sept 28\\cumulativeReward.txt");
         World world;
         bool saveImages = false;
         string saveFolder; int numSavedImages = 0;
@@ -169,29 +169,18 @@ namespace RL_Test
 
         private void button1_Click_1(object sender, EventArgs e)
         {
+            char test = 'a';
             StateTree<string> tree = new StateTree<string>(EqualityComparer<string>.Default);
-            tree.AddState("a");
-            tree.AddState("b");
-            tree.AddState("c");
+            for (int i=0; i<26; i++)
+            {
+                char test2 = (char)(test + i);
+                tree.AddState(test2.ToString());
+            }
 
-            tree.AddState("d");
-            tree.AddState("e");
-            tree.AddState("d");
-            tree.AddState("f");
-
-            tree.AddState("g");
-            tree.AddState("h");
-            tree.AddState("f");
-            tree.AddState("i");
-
-            tree.AddState("j");
-            tree.AddState("k");
-            tree.AddState("l");
-
-            MessageBox.Show(tree.GetParentState(textBox1.Text, 0) + "," + tree.GetParentState(textBox1.Text, 1) + "," + tree.GetParentState(textBox1.Text, 2));
-
+            MessageBox.Show(String.Join(",",tree.GetLevel0Children("a", 3)));
+            MessageBox.Show(String.Join(",",tree.GetChildren("a", 3)));
         }
-        
 
+        
     }
 }
