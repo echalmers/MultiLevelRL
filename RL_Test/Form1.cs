@@ -59,24 +59,24 @@ namespace RL_Test
             sw.Stop();
             label1.Text = Math.Round(sw.Elapsed.TotalSeconds,1) + "s";
 
-
-            System.IO.StreamReader r = new System.IO.StreamReader("log.txt");
-            string text = r.ReadLine();
-            if (text==null || (text.IndexOf("null")!=-1))
-                pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
-            else
-            {
-                int start = text.IndexOf("Level ") + 6;
-                string goalLevelString = text.Substring(start, 1);
-                int goalLevel = Convert.ToInt32(goalLevelString);
-                start = text.IndexOf("at ") + 3;
-                string[] goalString = text.Substring(start).Split(',');
-                int[] goal = new int[2];
-                goal[0] = Convert.ToInt32(goalString[0]);
-                goal[1] = Convert.ToInt32(goalString[1]);
-                pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height, true);
-            }
-            r.Close();
+            pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height, true);
+            //System.IO.StreamReader r = new System.IO.StreamReader("log.txt");
+            //string text = r.ReadLine();
+            //if (text==null || (text.IndexOf("null")!=-1))
+            //    pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
+            //else
+            //{
+            //    int start = text.IndexOf("Level ") + 6;
+            //    string goalLevelString = text.Substring(start, 1);
+            //    int goalLevel = Convert.ToInt32(goalLevelString);
+            //    start = text.IndexOf("at ") + 3;
+            //    string[] goalString = text.Substring(start).Split(',');
+            //    int[] goal = new int[2];
+            //    goal[0] = Convert.ToInt32(goalString[0]);
+            //    goal[1] = Convert.ToInt32(goalString[1]);
+            //    pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height, true);
+            //}
+            //r.Close();
 
             // chart cumulative reward
             //chart1.Series.Last().Points.Clear();
@@ -169,16 +169,48 @@ namespace RL_Test
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            char test = 'a';
-            StateTree<string> tree = new StateTree<string>(EqualityComparer<string>.Default);
-            for (int i=0; i<26; i++)
+            MultiResolutionRL.StateManagement.StateTree<int[]> stateTree = new MultiResolutionRL.StateManagement.StateTree<int[]>(new IntArrayComparer(), new int[2] {0,0});
+            int[] x = new int[8];
+            int[] y = new int[8];
+
+            while (x[5] == 0 && y[5] == 0)
             {
-                char test2 = (char)(test + i);
-                tree.AddState(test2.ToString());
+                int thisi = 0, thisj = 0;
+                for (int l = 0; l < 7; l++)
+                {
+                    thisi += x[l] * (int)Math.Pow(2, l);
+                    thisj += y[l] * (int)Math.Pow(2, l);
+                }
+                stateTree.AddState(new int[2] { thisi, thisj });
+
+                x[0]++;
+                for (int l = 0; l < 6; l++)
+                {
+                    if (x[l] == 2)
+                    {
+                        x[l] = 0;
+                        y[l]++;
+                    }
+                    if (y[l] == 2)
+                    {
+                        y[l] = 0;
+                        x[l + 1]++;
+                    }
+                }
             }
 
-            MessageBox.Show(String.Join(",",tree.GetLevel0Children("a", 3)));
-            MessageBox.Show(String.Join(",",tree.GetChildren("a", 3)));
+            string[] inp = textBox1.Text.Split(',');
+            int[] state = new int[2] {Convert.ToInt32(inp[0]), Convert.ToInt32(inp[1])};
+            List<int[]> children = stateTree.GetChildren(state, Convert.ToInt32(inp[2]));
+            string childrenString = "";
+            string parentString = "";
+            foreach(int[] c in children)
+            {
+                parentString += (String.Join(",", stateTree.GetParentState(c, Convert.ToInt32(inp[2]))) + Environment.NewLine);
+                childrenString += (String.Join(",", c) + Environment.NewLine);
+            }
+            MessageBox.Show(childrenString);
+            MessageBox.Show(parentString);
         }
 
         

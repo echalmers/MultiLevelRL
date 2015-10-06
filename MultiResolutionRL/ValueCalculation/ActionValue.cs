@@ -14,6 +14,7 @@ namespace MultiResolutionRL
             abstract public double[] value(stateType state, List<actionType> actions);
             abstract public void update(StateTransition<stateType, actionType> transition);
             abstract public stateType PredictNextState(stateType state, actionType action);
+            abstract public stateType PredictBestNextState(stateType state, actionType action);
             abstract public Dictionary<stateType, double> PredictNextStates(stateType state, actionType action);
             abstract public double PredictReward(stateType state, actionType action, stateType newState);
         }

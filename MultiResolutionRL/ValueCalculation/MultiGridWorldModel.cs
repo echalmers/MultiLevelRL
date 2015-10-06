@@ -16,24 +16,26 @@ namespace MultiResolutionRL.ValueCalculation
         public List<Goal<int[], int[]>>[] subgoals;
         List<int[]> availableActions;
         PathFinder<int[], int[]> pathFinder;
-        StateTree<int[]> stateTree;
+        StateManagement.StateTree<int[]> stateTree;
 
         Random rnd = new Random(1);
 
         IEqualityComparer<int[]> stateComparer;
         IEqualityComparer<int[]> actionComparer;
 
-        Func<int[], List<int[]>> GetLowerLevelStatesMethod = (highLevelState) =>
-            {
-                List<int[]> lowLevelStates = new List<int[]>();
-                lowLevelStates.Add(new int[2] { highLevelState[0] << 1, highLevelState[1] << 1 });
-                lowLevelStates.Add(new int[2] { (highLevelState[0] << 1) + 1, highLevelState[1] << 1 });
-                lowLevelStates.Add(new int[2] { highLevelState[0] << 1, (highLevelState[1] << 1) + 1 });
-                lowLevelStates.Add(new int[2] { (highLevelState[0] << 1) + 1, (highLevelState[1] << 1) + 1 });
-                return lowLevelStates;
-            };
+        int steps = 0;
 
-        System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\MultiResolutionRL\\Presentation Sept 28\\multiModelUpdates.txt");
+        //Func<int[], List<int[]>> GetLowerLevelStatesMethod = (highLevelState) =>
+        //    {
+        //        List<int[]> lowLevelStates = new List<int[]>();
+        //        lowLevelStates.Add(new int[2] { highLevelState[0] << 1, highLevelState[1] << 1 });
+        //        lowLevelStates.Add(new int[2] { (highLevelState[0] << 1) + 1, highLevelState[1] << 1 });
+        //        lowLevelStates.Add(new int[2] { highLevelState[0] << 1, (highLevelState[1] << 1) + 1 });
+        //        lowLevelStates.Add(new int[2] { (highLevelState[0] << 1) + 1, (highLevelState[1] << 1) + 1 });
+        //        return lowLevelStates;
+        //    };
+
+        System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\MultiResolutionRL\\multiModelUpdates.txt");
 
         public MultiGridWorldModel(IEqualityComparer<int[]> StateComparer, IEqualityComparer<int[]> ActionComparer, List<int[]> AvailableActions, int[] StartState, params int[] numLayers)
             : base(StateComparer, ActionComparer, AvailableActions, StartState, numLayers)
@@ -45,9 +47,40 @@ namespace MultiResolutionRL.ValueCalculation
             availableActions = AvailableActions;
             stateComparer = StateComparer;
             actionComparer = ActionComparer;
-            stateTree = new StateTree<int[]>(stateComparer);
-            stateTree.AddState(StartState);
-            pathFinder = new PathFinder<int[], int[]>(GetLowerLevelStatesMethod, stateComparer);
+            stateTree = new StateManagement.StateTree<int[]>(stateComparer, StartState);
+            //stateTree = new intStateTree(stateComparer);
+            
+            //int[] x = new int[8];
+            //int[] y = new int[8];
+
+            //while (x[5]==0 && y[5]==0)
+            //{
+            //    int thisi = 0, thisj = 0;
+            //    for (int l = 0; l<7; l++)
+            //    {
+            //        thisi += x[l] * (int)Math.Pow(2,l);
+            //        thisj += y[l] * (int)Math.Pow(2,l);
+            //    }
+            //    stateTree.AddState(new int[2] { thisi, thisj });
+
+            //    x[0]++;
+            //    for (int l = 0; l < 6; l++)
+            //    {
+            //        if (x[l]==2)
+            //        {
+            //            x[l] = 0;
+            //            y[l]++;
+            //        }
+            //        if (y[l]==2)
+            //        {
+            //            y[l] = 0;
+            //            x[l + 1]++;
+            //        }
+            //    }
+            //}
+
+
+                pathFinder = new PathFinder<int[], int[]>(stateComparer);
 
             for (int i = 0; i < models.Length; i++)
             {
@@ -55,7 +88,7 @@ namespace MultiResolutionRL.ValueCalculation
                 { 
                     writer = writer, 
                     maxUpdates = 10, 
-                    defaultQ = i==0 ? 10 : 0,
+                    defaultQ = i==0 ? 1 : 0,
                     gamma = i==0 ? 0.9 : 0.5
                 };
                 //models[i] = new WorldMemoryModel<int[], int[]>(StateComparer, ActionComparer, AvailableActions)
@@ -101,7 +134,7 @@ namespace MultiResolutionRL.ValueCalculation
             {
                 if (values[0][i] > newGoal.value || newGoal == null)
                 {
-                    int[] goalState = models[0].PredictNextState(state, availableActions.ElementAt(i));
+                    int[] goalState = models[0].PredictBestNextState(state, availableActions.ElementAt(i)); ///***************************** might need to find best possible next state instead
                     newGoal = new Goal<int[],int[]>(0, state, availableActions.ElementAt(i), goalState, values[0][i], stateComparer, actionComparer);
                 }
             }
@@ -109,12 +142,12 @@ namespace MultiResolutionRL.ValueCalculation
             // find the best action at any allowed level
             for (int l = 1; l <= maxLevel; l++)
             {
+                int[] thisState = stateTree.GetParentState(state, l);
                 for (int i = 0; i < availableActions.Count(); i++)
                 {
-                    int[] thisGoal = models[l].PredictNextState(stateTree.GetParentState(state, l), availableActions.ElementAt(i));
+                    int[] thisGoal = models[l].PredictNextState(thisState, availableActions.ElementAt(i));
                     if (thisGoal == null)
                         continue;
-                    int[] thisState = stateTree.GetParentState(state, l);
                     Goal<int[],int[]> candidateGoal = new Goal<int[],int[]>(l, thisState, availableActions.ElementAt(i), thisGoal, values[l][i], stateComparer, actionComparer);
 
                     // check if the goal is allowed
@@ -159,20 +192,23 @@ namespace MultiResolutionRL.ValueCalculation
 
             }
 
-            System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
-            //w.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState));
-
             for (int l = currentGoal.level - 1; l >= 0; l--)
             {
                 if (subgoals[l].Count == 0)
                 {
                     // plan the route to the goal
-                    List<Tuple<int[], int[], double>> path = pathFinder.AStar(stateTree.GetParentState(state, l), subgoals[l + 1][0].goalState, models[l], actions);
+                    List<int[]> goalStates = stateTree.GetChildren(subgoals[l + 1][0].goalState, l + 1);
+                    int[] startState = stateTree.GetParentState(state, l);
+                    List<Tuple<int[], int[], double>> path = pathFinder.AStar(startState, goalStates, models[l], actions, l!=0);
                     subgoals[l] = path2subgoals(path, l, models[l]);
 
                     if (subgoals[l].Count == 0) // if no path is known, pass control to lowest level
                     {
+                        goalStates = stateTree.GetChildren(subgoals[l + 1][0].goalState, l + 1);
+                        int[] currentGoalLevelState = stateTree.GetParentState(state, currentGoal.level);
                         Console.WriteLine("couldn't find a path to level " + currentGoal.level + ": " + currentGoal.goalState[0] + "," + currentGoal.goalState[1] + " at level " + l);
+                        goalStates = stateTree.GetChildren(subgoals[l + 1][0].goalState, l + 1);
+                        path = pathFinder.AStar(startState, goalStates, models[l], actions, l != 0);
 
                         //models[0].ForgetBoundaries();
                         currentGoal.goalState = null;
@@ -217,18 +253,29 @@ namespace MultiResolutionRL.ValueCalculation
                         int[] thisOldState = subgoals[l+1][0].startState; 
                         int[] thisAction = subgoals[l + 1][0].action; 
                         int[] thisNewState = subgoals[l + 1][0].goalState;
-                        StateTransition<int[], int[]> t = new StateTransition<int[], int[]>(thisOldState, thisAction, -10, thisNewState); //*********************** size of negative reward?
+                        StateTransition<int[], int[]> t = new StateTransition<int[], int[]>(thisOldState, thisAction, -1, thisNewState); //*********************** size of negative reward?
                         models[l + 1].update(t);
                     }
                 }
 
-                foreach (Goal<int[],int[]> step in subgoals[Math.Max(0, l)])
+                System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
+                //w.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState));
+                for (int k = 0; k <= currentGoal.level; k++)
                 {
-                    if (step.goalState != null)
-                        w.WriteLine("Goal: Level " + Math.Max(0, l) + ", at " + String.Join(",", step.goalState));
+                    foreach (Goal<int[], int[]> step in subgoals[k])
+                    {
+                        if (step.goalState != null)
+                        {
+                            foreach (int[] s in stateTree.GetLevel0Children(step.goalState, k))
+                            {
+                                w.WriteLine(string.Join(",", s) + "," + (k==currentGoal.level ? "g": "p"));
+                            }
+                            //w.WriteLine("Goal: Level " + Math.Max(0, l) + ", at " + String.Join(",", step.goalState));
+                        }
+                    }
                 }
+                w.Flush(); w.Close();
             }
-            w.Flush(); w.Close();
 
             double[] response = new double[actions.Count()];
             for (int i = 0; i < availableActions.Count; i++)
@@ -255,6 +302,11 @@ namespace MultiResolutionRL.ValueCalculation
             throw new NotImplementedException();
         }
 
+        public override int[] PredictBestNextState(int[] state, int[] action)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Dictionary<int[], double> PredictNextStates(int[] state, int[] action)
         {
             throw new NotImplementedException();
@@ -267,6 +319,41 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override void update(StateTransition<int[], int[]> transition)
         {
+            steps++;
+            if (steps % 3000 == 0)
+            {
+                for (int i = 1; i < 7; i++)
+                {
+                    Dictionary<int[], System.Drawing.Color> colors = new Dictionary<int[], System.Drawing.Color>(new IntArrayComparer());
+                    System.Drawing.Bitmap map = new System.Drawing.Bitmap(21, 21);
+                    for (int row = 0; row < 21; row++)
+                    {
+                        for (int col = 0; col < 21; col++)
+                        {
+                            try
+                            {
+                                int[] thisState = stateTree.GetParentState(new int[2] { row, col }, i);
+                                if (!colors.ContainsKey(thisState))
+                                    colors.Add(thisState, System.Drawing.Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256)));
+                                map.SetPixel(row, col, colors[thisState]);
+                            }
+                            catch (Exception ex)
+                            { }
+                        }
+                    }
+
+                    System.Drawing.Bitmap resized = new System.Drawing.Bitmap(500, 500);
+                    using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(resized))
+                    {
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                        g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                        g.DrawImage(map, 0, 0, 500, 500);
+                    }
+                    resized.Save("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\MultiResolutionRL\\level" + i + ".bmp");
+                }
+            }
+
+
             ////System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt",false);
             if (currentGoal.goalState == null)
             {

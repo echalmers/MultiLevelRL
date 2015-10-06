@@ -79,6 +79,11 @@ namespace MultiResolutionRL.ValueCalculation
             throw new NotImplementedException();
         }
 
+        public override stateType PredictBestNextState(stateType state, actionType action)
+        {
+            throw new NotImplementedException();
+        }
+
         public override double PredictReward(stateType state, actionType action, stateType newState)
         {
             throw new NotImplementedException();

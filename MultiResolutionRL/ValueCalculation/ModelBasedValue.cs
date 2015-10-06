@@ -8,7 +8,7 @@ namespace MultiResolutionRL.ValueCalculation
 {
     public class ModelBasedValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
-        public double defaultQ = 10, gamma = 0.9;
+        public double defaultQ = 1, gamma = 0.9;
         int c = 1;
         int accesses = 0;
         public int maxUpdates = 1000;
@@ -73,6 +73,22 @@ namespace MultiResolutionRL.ValueCalculation
             return next;
         }
 
+        public override stateType PredictBestNextState(stateType state, actionType action)
+        {
+            double bestReward = double.NegativeInfinity;
+            stateType bestState = default(stateType);
+            foreach(stateType s2 in T.GetStateValueTable(state, action).Keys)
+            {
+                double thisR = R.Get(state, action, s2);
+                if (thisR > bestReward)
+                {
+                    bestReward = thisR;
+                    bestState = s2;
+                }
+            }
+            return bestState;
+        }
+
         public override double PredictReward(stateType state, actionType action, stateType newState)
         {
             accesses++;
@@ -112,7 +128,7 @@ namespace MultiResolutionRL.ValueCalculation
         public override void update(StateTransition<stateType, actionType> transition)
         {
             if (writer==null)
-                writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\MultiResolutionRL\\Presentation Sept 28\\modelBasedUpdates.txt");
+                writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\MultiResolutionRL\\modelBasedUpdates.txt");
 
             // retrieve current count and reward values
             int thisCount = T.Get(transition.oldState, transition.action, transition.newState);

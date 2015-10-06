@@ -9,20 +9,18 @@ namespace MultiResolutionRL
 {
     public class PathFinder<stateType, actionType>
     {
-        Func<stateType, List<stateType>> getLowerLevelStatesMethod;
         IEqualityComparer<stateType> stateComparer;
 
-        public PathFinder(Func<stateType, List<stateType>> GetLowerLevelStatesMethod, IEqualityComparer<stateType> StateComparer)
+        public PathFinder(IEqualityComparer<stateType> StateComparer)
         {
-            getLowerLevelStatesMethod = GetLowerLevelStatesMethod;
             stateComparer = StateComparer;
         }
 
         // Assumes deterministic transitions
-        public List<Tuple<stateType, actionType, double>> AStar(stateType lowerLevelState, stateType higherLevelGoal, ActionValue<stateType, actionType> lowerLevelModel, List<actionType> availableActions)
+        public List<Tuple<stateType, actionType, double>> AStar(stateType lowerLevelState, List<stateType> goals, ActionValue<stateType, actionType> lowerLevelModel, List<actionType> availableActions, bool stochasticity)
         {
             // from the higher level goal state, generate the list of goal states at this level
-            List<stateType> goals = getLowerLevelStatesMethod(higherLevelGoal);
+            //List<stateType> goals = getLowerLevelStatesMethod(higherLevelGoal);
             //goals.Add(new int[2] { higherLevelGoal[0] << 1, higherLevelGoal[1] << 1 });
             //goals.Add(new int[2] { (higherLevelGoal[0] << 1) + 1, higherLevelGoal[1] << 1 });
             //goals.Add(new int[2] { higherLevelGoal[0] << 1, (higherLevelGoal[1] << 1) + 1 });
@@ -63,11 +61,14 @@ namespace MultiResolutionRL
 
                 closed.Add(candidate);
 
-                // identify all possible neighbors (allowing for one action to result in more than one possible neighbors - stochasticity at higher levels)
+                // identify all possible neighbors 
                 List<stateType> neighbors = new List<stateType>();
                 foreach (actionType act in availableActions)
                 {
-                    neighbors.AddRange(lowerLevelModel.PredictNextStates(candidate, act).Keys);
+                    if (stochasticity)
+                        neighbors.AddRange(lowerLevelModel.PredictNextStates(candidate, act).Keys);
+                    else
+                        neighbors.Add(lowerLevelModel.PredictNextState(candidate, act));
 
                     // evaluate each neighbor
                     foreach (stateType neighbor in neighbors)

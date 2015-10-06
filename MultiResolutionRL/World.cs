@@ -107,7 +107,7 @@ namespace MultiResolutionRL
                     break;
                 case 3: // goal
                     newState = new int[2] {startState[0], startState[1]};
-                    reward = 10;
+                    reward = 1;
                     absorbingStateReached = true;
                     break;
             }
@@ -144,33 +144,16 @@ namespace MultiResolutionRL
                 string text;
                 while ((text = reader.ReadLine()) != null)
                 {
-                    if (text.IndexOf("null") != -1)
+                    string[] s = text.Split(',');
+                    int x = Convert.ToInt32(s[0]);
+                    int y = Convert.ToInt32(s[1]);
+                    if (x >= mapBmp.Width || y >= mapBmp.Height)
                         continue;
-                    int start = text.IndexOf("Level ") + 6;
-                    string goalLevelString = text.Substring(start, 1);
-                    int goalLevel = Convert.ToInt32(goalLevelString);
-                    start = text.IndexOf("at ") + 3;
-                    string[] goalString = text.Substring(start).Split(',');
-                    int[] goal = new int[2];
-                    goal[0] = Convert.ToInt32(goalString[0]);
-                    goal[1] = Convert.ToInt32(goalString[1]);
-
-                    for (int i = 0; i < (1 << goalLevel); i++)
-                    {
-                        for (int j = 0; j < (1 << goalLevel); j++)
-                        {
-                            int x = i + (goal[0] << goalLevel);
-                            int y = j + (goal[1] << goalLevel);
-                            if ((x < modMap.Width) && (x >= 0) && (y < modMap.Height) && (y >= 0))
-                            {
-                                int r = Math.Min(mapBmp.GetPixel(x, y).R + 50, 255);
-                                int g = Math.Max(mapBmp.GetPixel(x, y).G - 50, 0);
-                                int b = Math.Max(mapBmp.GetPixel(x, y).B - 50, 0);
-                                Color c = Color.FromArgb(r, g, b);
-                                modMap.SetPixel(x, y, c);
-                            }
-                        }
-                    }
+                    int r = s[2] == "p" ? 255 : 0;// Math.Min(mapBmp.GetPixel(x, y).R + 50, 255);
+                    int g = s[2] == "g" ? 255 : 0;//Math.Max(mapBmp.GetPixel(x, y).G - 50, 0);
+                    int b = 0;// Math.Max(mapBmp.GetPixel(x, y).B - 50, 0);
+                    Color c = Color.FromArgb(r, g, b);
+                    modMap.SetPixel(x, y, c);
                 }
                 reader.Close();
             }
