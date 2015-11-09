@@ -8,11 +8,13 @@ namespace MultiResolutionRL.ValueCalculation
 {
     public class ModelFreeValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
-        double alpha = 0.9, gamma = 0.9;
+        double alpha = 0.2;
+        public double gamma = 0.9;
         double defaultQ = 0;
         Dictionary<stateType, Dictionary<actionType, double>> table;
         IEqualityComparer<actionType> actionComparer;
         List<actionType> availableActions;
+        PerformanceStats stats = new PerformanceStats();
 
         public ModelFreeValue(IEqualityComparer<stateType> stateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params int[] parameters)
             : base(stateComparer, ActionComparer, AvailableActions, StartState, parameters)
@@ -55,6 +57,8 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override void update(StateTransition<stateType, actionType> transition)
         {
+            stats.cumulativeReward += transition.reward;
+
             double q_s_a = value(transition.oldState, transition.action);
 
             if (!table.ContainsKey(transition.newState))
@@ -92,6 +96,11 @@ namespace MultiResolutionRL.ValueCalculation
         public override Dictionary<stateType, double> PredictNextStates(stateType state, actionType action)
         {
             throw new NotImplementedException();
+        }
+
+        public override PerformanceStats getStats()
+        {
+            return stats;
         }
     }
 

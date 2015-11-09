@@ -10,9 +10,11 @@ namespace MultiResolutionRL
     {
         public abstract class ActionValue<stateType, actionType>
         {
-            protected ActionValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params int[] parameters) { }
+            protected ActionValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters) { }
             abstract public double[] value(stateType state, List<actionType> actions);
             abstract public void update(StateTransition<stateType, actionType> transition);
+            abstract public PerformanceStats getStats();
+
             abstract public stateType PredictNextState(stateType state, actionType action);
             abstract public stateType PredictBestNextState(stateType state, actionType action);
             abstract public Dictionary<stateType, double> PredictNextStates(stateType state, actionType action);

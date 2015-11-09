@@ -29,8 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.imageContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -43,6 +44,7 @@
             this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.chartContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportAsCSVToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadMapButton = new System.Windows.Forms.Button();
             this.worldModelButton = new System.Windows.Forms.Button();
             this.multiModelButton = new System.Windows.Forms.Button();
@@ -50,17 +52,27 @@
             this.oneLayerButton = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
+            this.actionTextBox = new System.Windows.Forms.TextBox();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.chart2 = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.chart3 = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.steps2goalContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.button2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.imageContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.stepsUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             this.chartContextMenu.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chart2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.chart3)).BeginInit();
+            this.steps2goalContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // pictureBox1
             // 
             this.pictureBox1.ContextMenuStrip = this.imageContextMenu;
-            this.pictureBox1.Location = new System.Drawing.Point(38, 24);
+            this.pictureBox1.Location = new System.Drawing.Point(12, 12);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(200, 200);
             this.pictureBox1.TabIndex = 0;
@@ -91,7 +103,7 @@
             // 
             // RunButton
             // 
-            this.RunButton.Location = new System.Drawing.Point(319, 199);
+            this.RunButton.Location = new System.Drawing.Point(293, 187);
             this.RunButton.Name = "RunButton";
             this.RunButton.Size = new System.Drawing.Size(75, 23);
             this.RunButton.TabIndex = 1;
@@ -102,7 +114,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(244, 211);
+            this.label1.Location = new System.Drawing.Point(218, 199);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(35, 13);
             this.label1.TabIndex = 3;
@@ -115,7 +127,7 @@
             0,
             0,
             0});
-            this.stepsUpDown.Location = new System.Drawing.Point(352, 150);
+            this.stepsUpDown.Location = new System.Drawing.Point(326, 138);
             this.stepsUpDown.Maximum = new decimal(new int[] {
             1000000,
             0,
@@ -133,7 +145,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(258, 152);
+            this.label2.Location = new System.Drawing.Point(232, 140);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(86, 13);
             this.label2.TabIndex = 5;
@@ -143,7 +155,7 @@
             // 
             this.displayCheckBox.AutoSize = true;
             this.displayCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.displayCheckBox.Location = new System.Drawing.Point(261, 176);
+            this.displayCheckBox.Location = new System.Drawing.Point(235, 164);
             this.displayCheckBox.Name = "displayCheckBox";
             this.displayCheckBox.Size = new System.Drawing.Size(133, 17);
             this.displayCheckBox.TabIndex = 6;
@@ -153,39 +165,43 @@
             // 
             // chart1
             // 
-            this.chart1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.chart1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea1.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea1);
+            chartArea4.AxisY.Title = "Reward";
+            chartArea4.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea4);
             this.chart1.ContextMenuStrip = this.chartContextMenu;
-            this.chart1.Location = new System.Drawing.Point(38, 230);
+            this.chart1.Location = new System.Drawing.Point(12, 218);
             this.chart1.Name = "chart1";
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Name = "Series1";
-            this.chart1.Series.Add(series1);
-            this.chart1.Size = new System.Drawing.Size(434, 122);
+            this.chart1.Size = new System.Drawing.Size(463, 122);
             this.chart1.TabIndex = 7;
             this.chart1.Text = "chart1";
             // 
             // chartContextMenu
             // 
             this.chartContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.exportToolStripMenuItem});
+            this.exportToolStripMenuItem,
+            this.exportAsCSVToolStripMenuItem});
             this.chartContextMenu.Name = "chartContextMenu";
-            this.chartContextMenu.Size = new System.Drawing.Size(108, 26);
+            this.chartContextMenu.Size = new System.Drawing.Size(158, 48);
             // 
             // exportToolStripMenuItem
             // 
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
-            this.exportToolStripMenuItem.Text = "Export";
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.exportToolStripMenuItem.Text = "Export as Image";
             this.exportToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
+            // 
+            // exportAsCSVToolStripMenuItem
+            // 
+            this.exportAsCSVToolStripMenuItem.Name = "exportAsCSVToolStripMenuItem";
+            this.exportAsCSVToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.exportAsCSVToolStripMenuItem.Text = "Export as CSV";
+            this.exportAsCSVToolStripMenuItem.Click += new System.EventHandler(this.exportAsCSVToolStripMenuItem_Click);
             // 
             // loadMapButton
             // 
-            this.loadMapButton.Location = new System.Drawing.Point(247, 24);
+            this.loadMapButton.Location = new System.Drawing.Point(221, 41);
             this.loadMapButton.Name = "loadMapButton";
             this.loadMapButton.Size = new System.Drawing.Size(75, 23);
             this.loadMapButton.TabIndex = 8;
@@ -195,9 +211,9 @@
             // 
             // worldModelButton
             // 
-            this.worldModelButton.Location = new System.Drawing.Point(387, 53);
+            this.worldModelButton.Location = new System.Drawing.Point(361, 41);
             this.worldModelButton.Name = "worldModelButton";
-            this.worldModelButton.Size = new System.Drawing.Size(85, 23);
+            this.worldModelButton.Size = new System.Drawing.Size(113, 23);
             this.worldModelButton.TabIndex = 9;
             this.worldModelButton.Text = "Model-Based";
             this.worldModelButton.UseVisualStyleBackColor = true;
@@ -205,19 +221,19 @@
             // 
             // multiModelButton
             // 
-            this.multiModelButton.Location = new System.Drawing.Point(387, 111);
+            this.multiModelButton.Location = new System.Drawing.Point(361, 99);
             this.multiModelButton.Name = "multiModelButton";
-            this.multiModelButton.Size = new System.Drawing.Size(85, 23);
+            this.multiModelButton.Size = new System.Drawing.Size(113, 23);
             this.multiModelButton.TabIndex = 10;
-            this.multiModelButton.Text = "n-layer memory";
+            this.multiModelButton.Text = "MultiLayer MBRL";
             this.multiModelButton.UseVisualStyleBackColor = true;
             this.multiModelButton.Click += new System.EventHandler(this.multiModelButton_Click);
             // 
             // QLearnButton
             // 
-            this.QLearnButton.Location = new System.Drawing.Point(387, 24);
+            this.QLearnButton.Location = new System.Drawing.Point(361, 12);
             this.QLearnButton.Name = "QLearnButton";
-            this.QLearnButton.Size = new System.Drawing.Size(85, 23);
+            this.QLearnButton.Size = new System.Drawing.Size(113, 23);
             this.QLearnButton.TabIndex = 11;
             this.QLearnButton.Text = "Q-Learning";
             this.QLearnButton.UseVisualStyleBackColor = true;
@@ -225,17 +241,17 @@
             // 
             // oneLayerButton
             // 
-            this.oneLayerButton.Location = new System.Drawing.Point(387, 82);
+            this.oneLayerButton.Location = new System.Drawing.Point(361, 70);
             this.oneLayerButton.Name = "oneLayerButton";
-            this.oneLayerButton.Size = new System.Drawing.Size(85, 23);
+            this.oneLayerButton.Size = new System.Drawing.Size(113, 23);
             this.oneLayerButton.TabIndex = 12;
-            this.oneLayerButton.Text = "1-layer memory";
+            this.oneLayerButton.Text = "Reduced Multilayer";
             this.oneLayerButton.UseVisualStyleBackColor = true;
             this.oneLayerButton.Click += new System.EventHandler(this.oneLayerButton_Click);
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(269, 95);
+            this.button1.Location = new System.Drawing.Point(218, 70);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 13;
@@ -245,16 +261,95 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(269, 125);
+            this.textBox1.Location = new System.Drawing.Point(307, 73);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
+            this.textBox1.Size = new System.Drawing.Size(48, 20);
             this.textBox1.TabIndex = 14;
+            this.textBox1.Text = "8,4";
+            // 
+            // actionTextBox
+            // 
+            this.actionTextBox.Location = new System.Drawing.Point(375, 187);
+            this.actionTextBox.Name = "actionTextBox";
+            this.actionTextBox.Size = new System.Drawing.Size(71, 20);
+            this.actionTextBox.TabIndex = 15;
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Items.AddRange(new object[] {
+            "GridWorld",
+            "Mountain Car",
+            "Taxi"});
+            this.comboBox1.Location = new System.Drawing.Point(221, 14);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(75, 21);
+            this.comboBox1.TabIndex = 16;
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            // 
+            // chart2
+            // 
+            this.chart2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            chartArea1.AxisY.Title = "Model Use";
+            chartArea1.Name = "ChartArea1";
+            this.chart2.ChartAreas.Add(chartArea1);
+            this.chart2.ContextMenuStrip = this.chartContextMenu;
+            this.chart2.Location = new System.Drawing.Point(12, 338);
+            this.chart2.Name = "chart2";
+            this.chart2.Size = new System.Drawing.Size(463, 122);
+            this.chart2.TabIndex = 17;
+            this.chart2.Text = "chart2";
+            // 
+            // chart3
+            // 
+            this.chart3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            chartArea2.AxisY.IsLogarithmic = true;
+            chartArea2.AxisY.Title = "Steps to Goal";
+            chartArea2.Name = "ChartArea1";
+            this.chart3.ChartAreas.Add(chartArea2);
+            this.chart3.ContextMenuStrip = this.steps2goalContextMenu;
+            this.chart3.Location = new System.Drawing.Point(12, 460);
+            this.chart3.Name = "chart3";
+            this.chart3.Size = new System.Drawing.Size(463, 122);
+            this.chart3.TabIndex = 18;
+            this.chart3.Text = "chart3";
+            // 
+            // steps2goalContextMenu
+            // 
+            this.steps2goalContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem1});
+            this.steps2goalContextMenu.Name = "steps2goalContextMenu";
+            this.steps2goalContextMenu.Size = new System.Drawing.Size(146, 26);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItem1.Text = "Export to CSV";
+            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(218, 99);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 19;
+            this.button2.Text = "button2";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 359);
+            this.ClientSize = new System.Drawing.Size(486, 597);
+            this.Controls.Add(this.button2);
+            this.Controls.Add(this.chart3);
+            this.Controls.Add(this.chart2);
+            this.Controls.Add(this.comboBox1);
+            this.Controls.Add(this.actionTextBox);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.oneLayerButton);
@@ -271,12 +366,14 @@
             this.Controls.Add(this.pictureBox1);
             this.Name = "Form1";
             this.Text = "Form1";
-            this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.imageContextMenu.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.stepsUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).EndInit();
             this.chartContextMenu.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.chart2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.chart3)).EndInit();
+            this.steps2goalContextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -303,6 +400,14 @@
         private System.Windows.Forms.Button oneLayerButton;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox actionTextBox;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chart2;
+        private System.Windows.Forms.ToolStripMenuItem exportAsCSVToolStripMenuItem;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chart3;
+        private System.Windows.Forms.ContextMenuStrip steps2goalContextMenu;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.Button button2;
     }
 }
 

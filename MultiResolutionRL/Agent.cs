@@ -14,8 +14,7 @@ namespace MultiResolutionRL
         public ActionValue<stateType, actionType> _actionValue;
         public List<actionType> _possibleActions;
         //Queue<StateTransition<stateType, actionType>> history = new Queue<StateTransition<stateType, actionType>>();
-        public List<double> cumulativeReward = new List<double>();
-        
+                
 
         public Agent(stateType State, Policy<stateType, actionType> policy, ActionValue<stateType, actionType> actionValue, List<actionType> possibleActions)
         {
@@ -23,7 +22,6 @@ namespace MultiResolutionRL
             _policy = policy;
             _actionValue = actionValue;
             _possibleActions = possibleActions;
-            cumulativeReward.Add(0);
         }
 
         public actionType selectAction()
@@ -37,9 +35,12 @@ namespace MultiResolutionRL
         public void logEvent(StateTransition<stateType, actionType> transition)
         {
             state = transition.newState;
-            //history.Enqueue(transition);
-            cumulativeReward.Add(cumulativeReward.Last() + transition.reward);
             _actionValue.update(transition);
+        }
+
+        public PerformanceStats getStats()
+        {
+            return _actionValue.getStats();
         }
 
     }

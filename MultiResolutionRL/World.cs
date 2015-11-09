@@ -11,8 +11,8 @@ namespace MultiResolutionRL
 {
     public interface World
     {
-        void addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters);
-        double stepAgent();
+        object addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters);
+        PerformanceStats stepAgent(string userAction="");
         void Load(string filename);
         Bitmap showState(int width, int height, bool showPath = false);
     }
@@ -78,7 +78,7 @@ namespace MultiResolutionRL
             agent.state = startState;
         }
                 
-        public double stepAgent()
+        public PerformanceStats stepAgent(string userAction="")
         {
             int[] state = agent.state;
             if (!visitedStates.Contains(agent.state,new IntArrayComparer()))
@@ -107,16 +107,17 @@ namespace MultiResolutionRL
                     break;
                 case 3: // goal
                     newState = new int[2] {startState[0], startState[1]};
-                    reward = 1;
+                    reward = 20;
                     absorbingStateReached = true;
                     break;
             }
             
             agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
-            return agent.cumulativeReward.Last();
+            agent.getStats().TallyStepsToGoal(reward > 0);
+            return agent.getStats();
         }
 
-        public void addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters)
+        public object addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters)
         {
             policyType = policyType.MakeGenericType(typeof(int[]), typeof(int[]));
             Policy<int[], int[]> newPolicy = (Policy<int[],int[]>)Activator.CreateInstance(policyType);
@@ -125,6 +126,7 @@ namespace MultiResolutionRL
             ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
             
             agent = new Agent<int[], int[]>(startState, newPolicy, newActionValue, availableActions);
+            return agent;
         }
 
 
@@ -170,4 +172,366 @@ namespace MultiResolutionRL
         }
     }
 
+    public class MountainCar : World
+    {
+        public Agent<int[], int> agent;
+        double g = -0.0025;
+        List<int> availableActions = new List<int>();
+        double _position;
+        double _velocity;
+        Random rnd = new Random(0);
+        Bitmap hill = new Bitmap(18, 101);
+
+        public MountainCar()
+        {
+            availableActions.Add(-1);
+            //availableActions.Add(0);
+            availableActions.Add(1);
+            rndStartState(out _position, out _velocity);
+
+            // set the default agent
+            Policy<int[], int> policy = new EGreedyPolicy<int[], int>();
+            ActionValue<int[], int> value = new ModelFreeValue<int[], int>(new IntArrayComparer(), EqualityComparer<int>.Default, availableActions, discretizeState(_position, _velocity));
+            agent = new Agent<int[], int>(discretizeState(_position, _velocity), policy, value, availableActions);
+
+            // create the hill bitmap
+            for (int i=0; i<17; i++)
+            {
+                double position = (0.5 + 1.2) / (18 - 1) * i - 1.2;
+                double amplitude = Math.Sin(3 * position);
+                amplitude = amplitude*50+50;
+                hill.SetPixel(i, (int)(100-amplitude), Color.ForestGreen);
+            }
+        }
+
+        public void Load(string bmpFilename)
+        { }
+
+        void rndStartState(out double position, out double velocity)
+        {
+            position = rnd.NextDouble() * 1.7 - 1.2;
+            velocity = rnd.NextDouble() * 0.14 - 0.07;
+        }
+
+        int[] discretizeState(double position, double velocity)
+        {
+            int[] discretized = new int[2];
+            discretized[0] = (int)(Math.Round(position+1.2, 1)*10);
+            discretized[1] = (int)(Math.Round(velocity+0.07, 2)*100);
+            return discretized;
+        }
+
+        public object addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters)
+        {
+            policyType = policyType.MakeGenericType(typeof(int[]), typeof(int));
+            Policy<int[], int> newPolicy = (Policy<int[], int>)Activator.CreateInstance(policyType);
+
+            actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int));
+            ActionValue<int[], int> newActionValue = (ActionValue<int[], int>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), EqualityComparer<int>.Default, availableActions, discretizeState(_position, _velocity), actionValueParameters);
+
+            agent = new Agent<int[], int>(discretizeState(_position, _velocity), newPolicy, newActionValue, availableActions);
+            return agent;
+        }
+
+        public PerformanceStats stepAgent(string userAction="")
+        {
+            int action;
+            if (userAction == "")
+                action = agent.selectAction();
+            else
+                action = Convert.ToInt32(userAction);
+
+            _velocity += 0.001 * (double)action + g * Math.Cos(3*_position);
+            _velocity = Math.Min(0.07, Math.Max(_velocity, -0.07));
+            _position += _velocity;
+            if (_position > 0.5 || _position < -1.2)
+            {
+                _position = Math.Max(-1.2, Math.Min(_position, 0.5));
+                _velocity = 0;
+            }
+
+
+            bool absorbingStateReached;
+            double reward;
+            if (_position >= 0.5)
+            {
+                reward = 20;
+                rndStartState(out _position, out _velocity);
+                absorbingStateReached = true;
+            }
+            else
+            {
+                reward = -0.01;
+                absorbingStateReached = false;
+            }
+
+            agent.logEvent(new StateTransition<int[], int>(agent.state, action, reward, discretizeState(_position, _velocity), absorbingStateReached));
+
+            Console.WriteLine(action + ": " + String.Join(",", discretizeState(_position, _velocity)));
+
+            return agent.getStats();
+        }
+        
+        public Bitmap showState(int width, int height, bool showPath = false)
+        {
+            int position = agent.state[0];
+
+            double positionDouble = (0.5 + 1.2) / (18 - 1) * position - 1.2;
+            double amplitude = Math.Sin(3 * positionDouble);
+            amplitude = amplitude * 49 + 50;
+            Bitmap map = new Bitmap(hill);
+            map.SetPixel(position, (int)(100-amplitude), Color.Firebrick);
+            map.SetPixel(position, (int)(101 - amplitude), Color.Firebrick);
+            map.SetPixel(position, (int)(99 - amplitude), Color.Firebrick);
+
+            Bitmap resized = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(resized))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                g.DrawImage(map, 0, 0, width, height);
+            }
+            return resized;
+        }
+    }
+
+    public class Taxi : World
+    {
+        public Bitmap mapBmp;
+        private int[,] map;
+        private int[] startLocation = new int[2];
+        public Agent<int[], int> agent;
+        List<int> availableActions = new List<int>();
+        List<int[]> dropSites = new List<int[]>();
+        IEqualityComparer<int[]> stateComparer = new IntArrayComparer();
+        Random rnd = new Random(0);
+
+        double pickupReward = 0;
+        double dropReward = 40;
+
+        public Taxi()
+        {
+            dropSites.Add(null);
+
+            availableActions.Add(1);//left
+            availableActions.Add(2);//up
+            availableActions.Add(3);//right
+            availableActions.Add(4);//down
+            availableActions.Add(5);//pickup
+            availableActions.Add(6);//drop
+
+            // set the default agent
+            Policy<int[], int> policy = new EGreedyPolicy<int[], int>();
+            ActionValue<int[], int> value = new ModelFreeValue<int[], int>(new IntArrayComparer(), EqualityComparer<int>.Default, availableActions, new int[4] { 1, 2, 1, 10 });
+            agent = new Agent<int[], int>(new int[4] { 1, 2, 10, 1}, policy, value, availableActions);
+        }
+
+        int[] rndStartState()
+        {
+            int[] state = new int[4] { startLocation[0], startLocation[1], rnd.Next(5, 10), rnd.Next(1, dropSites.Count)};
+            //state[2] = 10; //********************
+            return state;
+        }
+
+        public object addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters)
+        {
+            int[] startState = rndStartState();
+
+            policyType = policyType.MakeGenericType(typeof(int[]), typeof(int));
+            Policy<int[], int> newPolicy = (Policy<int[], int>)Activator.CreateInstance(policyType);
+
+            actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int));
+            ActionValue<int[], int> newActionValue = (ActionValue<int[], int>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), EqualityComparer<int>.Default, availableActions, startState, actionValueParameters);
+
+            agent = new Agent<int[], int>(startState, newPolicy, newActionValue, availableActions);
+            return agent;
+        }
+
+        public PerformanceStats stepAgent(string userAction = "")
+        {
+            int[] state = agent.state;
+
+            int action;
+            if (userAction == "")
+                action = agent.selectAction();
+            else
+                action = Convert.ToInt32(userAction);
+
+            int[] newState = new int[4];
+            Array.Copy(state, newState, state.Length);
+            double reward=0;
+            bool absorbingStateReached = false;
+
+            if (action>0 && action <5)// perform navigation
+            {
+                absorbingStateReached = performNavigation(action, state, out newState, out reward);
+            }
+            else if (action == 5) // pickup
+            {
+                if (state[3] < 0)// if a drop is currently required
+                {
+                    reward = -10;
+                }
+                else
+                {
+                    int[] currentLocation = new int[2] { state[0], state[1] };
+                    if (stateComparer.Equals(currentLocation, dropSites[state[3]]))
+                    {
+                        reward = pickupReward;
+                        newState[3] = -rnd.Next(1, dropSites.Count);
+                    }
+                    else
+                        reward = -10;
+                }
+            }
+            else if (action == 6) // drop
+            {
+                if (state[3] > 0)// if a pickup is currently required
+                {
+                    reward = -10;
+                }
+                else
+                {
+                    int[] currentLocation = new int[2] { state[0], state[1] };
+                    if (stateComparer.Equals(currentLocation, dropSites[-state[3]]))
+                    {
+                        reward = dropReward;
+                        newState = rndStartState();
+                        absorbingStateReached = true;
+                    }
+                    else
+                        reward = -10;
+                }
+            }
+
+            //newState[2] = 10; //*****************
+
+            agent.logEvent(new StateTransition<int[], int>(state, action, reward, newState, absorbingStateReached));
+
+            return agent.getStats();
+        }
+
+        public bool performNavigation(int action, int[] state, out int[] newState, out double reward)
+        {
+            newState = new int[4]; Array.Copy(state, newState, state.Length);
+            reward = -1;
+
+            switch(action)
+            {
+                case 1:
+                    newState[0] = state[0] - 1; break;
+                case 2:
+                    newState[1] = state[1] - 1; break;
+                case 3:
+                    newState[0] = state[0] + 1; break;
+                case 4:
+                    newState[1] = state[1] + 1; break;
+            }
+
+            // get the type of the new location
+            int newStateType = map[newState[0], newState[1]];
+            switch (newStateType)
+            {
+                case 0: // open space
+                    newState[2] -= 1;
+                    break;
+                case 1: // wall
+                    newState[2] -= 1;
+                    newState[0] = state[0]; newState[1] = state[1];
+                    break;
+                case 4: // gas station
+                    newState[0] = state[0]; newState[1] = state[1];
+                    newState[2] = 10;
+                    break;
+            }
+
+            if (newState[2] < 0)
+            {
+                reward = -20;
+                newState = rndStartState();
+                return true;
+            }
+            else
+                return false;
+        }
+
+        public void Load(string bmpFilename)
+        {
+            if (bmpFilename.IndexOf("modReward") != -1)
+            {
+                dropReward = 20; pickupReward = 20;
+            }
+            else
+            {
+                dropReward = 40; pickupReward = 0;
+            }
+
+            dropSites.Clear();
+            dropSites.Add(null);
+
+            mapBmp = new Bitmap(bmpFilename);
+            map = new int[mapBmp.Width, mapBmp.Height];
+
+            for (int i = 0; i < mapBmp.Width; i++)
+            {
+                for (int j = 0; j < mapBmp.Height; j++)
+                {
+                    Color thisPixel = mapBmp.GetPixel(i, j);
+                    if (thisPixel == Color.FromArgb(0, 0, 0))
+                    {
+                        startLocation[0] = i; startLocation[1] = j;
+                        mapBmp.SetPixel(i, j, Color.White);
+                    }
+
+                    if (thisPixel == Color.FromArgb(0, 0, 255))
+                        map[i, j] = 1;
+                    else if (thisPixel == Color.FromArgb(255, 0, 0))
+                        map[i, j] = 2;
+                    else if (thisPixel == Color.FromArgb(0, 255, 0))
+                    {
+                        map[i, j] = 3;
+                        dropSites.Add(new int[2] { i, j });
+                        mapBmp.SetPixel(i, j, Color.White);
+                    }
+                    else if (thisPixel == Color.FromArgb(255, 255, 0))
+                        map[i, j] = 4;
+                    else
+                        map[i, j] = 0;
+                }
+            }
+
+            agent.state = rndStartState();
+        }
+
+        public Bitmap showState(int width, int height, bool showPath = false)
+        {
+            double fuel = (double)(agent.state[2])/10;
+            Color fuelColor = Color.FromArgb((int)((1 - fuel) * 255), (int)(fuel * 255), 50);
+
+            Bitmap modMap = new Bitmap(mapBmp);
+            
+            modMap.SetPixel(agent.state[0], agent.state[1], fuelColor);
+            int pickupStatus = agent.state[3];
+            if (pickupStatus>0) // pickup required
+            {
+                modMap.SetPixel(dropSites[pickupStatus][0], dropSites[pickupStatus][1], Color.Green);
+            }
+            else if (pickupStatus<0) // drop required
+            {
+                modMap.SetPixel(dropSites[-pickupStatus][0], dropSites[-pickupStatus][1], Color.Red);
+            }
+
+            Bitmap resized = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(resized))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                g.DrawImage(modMap, 0, 0, width, height);
+            }
+            return resized;
+        }
+    }
+
+
+    
 }

@@ -8,207 +8,138 @@ namespace MultiResolutionRL
 {
     namespace StateManagement
     {
-        public class StateTree<stateType>
+        public interface StateTree<stateType>
         {
-            int arity = 4;
-            StateTreeNode<stateType> root;
-            IEqualityComparer<stateType> stateComparer;
+            void AddState(stateType state);
+            stateType GetParentState(stateType state, int level);
+            List<stateType> GetLevel0Children(stateType parentState, int parentLevel);
+            List<stateType> GetChildren(stateType parentState, int parentLevel);
+        }
 
-            public StateTree(IEqualityComparer<stateType> StateComparer, stateType startState)
+        public class intStateTree : StateTree<int[]>
+        {        
+            public void AddState(int[] state)
+            { }
+
+            public int[] GetParentState(int[] state, int level)
             {
-                stateComparer = StateComparer;
-                root = new StateTreeNode<stateType>(arity, 1, startState, stateComparer);
-                AddState(startState);
-            }
-
-            public void AddState(stateType level0State)
-            {
-                if (root.Contains(level0State, 0, true))
-                    return;
-
-                if (root.AddState(level0State)==false)
+                int[] parent = new int[state.Length];
+                for (int i = 0; i < parent.Length; i++)
                 {
-                    StateTreeNode<stateType> newRoot = new StateTreeNode<stateType>(arity, root.level + 1, level0State, stateComparer);
-                    newRoot.AddChildNode(root);
-                    root = newRoot;
-                    root.AddState(level0State);
+                    parent[i] = (int)(state[i] / Math.Pow(2, level));
                 }
-            }
-
-            public stateType GetParentState(stateType level0State, int parentLevel)
-            {
-                if (parentLevel == 0)
-                    return level0State;
-
-                stateType parent;
-                if (root.GetParent(level0State, parentLevel, out parent) == false)
-                    throw new ArgumentException();
                 return parent;
             }
 
-            public List<stateType> GetLevel0Children(stateType parentState, int parentLevel)
+            public List<int[]> GetLevel0Children(int[] parentState, int parentLevel)
             {
-                return root.GetAllChildren();
+                List<int[]> highLevel = new List<int[]>();
+                highLevel.Add(parentState);
+                List<int[]> lowLevel = new List<int[]>();
+
+                for (int i = parentLevel; i > 0; i--)
+                {
+                    foreach (int[] s in highLevel)
+                    {
+                        lowLevel.AddRange(GetChildren(s, i));
+                    }
+                    highLevel = new List<int[]>(lowLevel);
+                    lowLevel.Clear();
+                }
+                return highLevel;
             }
 
-            public List<stateType> GetChildren(stateType parentState, int parentLevel)
+            public List<int[]> GetChildren(int[] parentState, int parentLevel)
             {
-                return root.GetImmediateChildren(parentState, parentLevel);
+                int totalChildren = 1 << parentState.Length;
+                List<int[]> children = new List<int[]>();
+
+                for (int childNum = 0; childNum < totalChildren; childNum++ )
+                {
+                    int[] thisChild = new int[parentState.Length];
+                    for (int i=0; i<parentState.Length; i++)
+                    {
+                        thisChild[i] = (parentState[i] << 1) + ((childNum >> i) & 1) ;
+                    }
+                    children.Add(thisChild);
+                }
+
+                return children;
             }
         }
 
-        class StateTreeNode<stateType>
+        public class taxiStateTree : StateTree<int[]>
         {
-            int arity;
-            public int level;
-            stateType name;
-            List<StateTreeNode<stateType>> children = new List<StateTreeNode<stateType>>();
-            IEqualityComparer<stateType> stateComparer;
-            int activeChild = 0;
+            public void AddState(int[] state)
+            { }
 
-            public StateTreeNode(int Arity, int Level, stateType Name, IEqualityComparer<stateType> StateComparer)
+            public int[] GetParentState(int[] state, int level)
             {
-                arity = Arity;
-                level = Level;
-                name = Name;
-                stateComparer = StateComparer;
+                if (level == 0)
+                    return state;
+
+                int[] parent = new int[state.Length];
+                for (int i = 0; i < parent.Length-1; i++)
+                {
+                    parent[i] = (int)(state[i] / Math.Pow(2, level));
+                }
+                parent[parent.Length - 1] = Math.Abs(state[state.Length - 1]);
+                return parent;
             }
 
-            public bool AddState(stateType level0State)
+            public List<int[]> GetLevel0Children(int[] parentState, int parentLevel)
             {
-                if (level == 1)
+                List<int[]> highLevel = new List<int[]>();
+                highLevel.Add(parentState);
+                List<int[]> lowLevel = new List<int[]>();
+
+                for (int i = parentLevel; i > 0; i--)
                 {
-                    if (children.Count >= arity)
-                        return false;
-
-                    else
+                    foreach (int[] s in highLevel)
                     {
-                        children.Add(new StateTreeNode<stateType>(arity, 0, level0State, stateComparer));
-                        activeChild = children.Count - 1;
-                        return true;
+                        lowLevel.AddRange(GetChildren(s, i));
                     }
+                    highLevel = new List<int[]>(lowLevel);
+                    lowLevel.Clear();
                 }
-
-                else
-                {
-                    // must add if the children list is still empty
-                    if (children.Count == 0)
-                        children.Add(new StateTreeNode<stateType>(arity, level - 1, level0State, stateComparer));
-                    //
-
-                    if (children[activeChild].AddState(level0State) == false)
-                    {
-                        if (children.Count >= arity)
-                            return false;
-
-                        children.Add(new StateTreeNode<stateType>(arity, level - 1, level0State, stateComparer));
-                        activeChild = children.Count - 1;
-                        children[activeChild].AddState(level0State);
-                        return true;
-                    }
-                    else
-                        return true;
-                }
+                return highLevel;
             }
 
-            public void AddChildNode(StateTreeNode<stateType> node)
+            public List<int[]> GetChildren(int[] parentState, int parentLevel)
             {
-                children.Add(node);
-                activeChild = children.Count - 1;
-            }
-
-            public bool Contains(stateType state, int atLevel, bool setActive)
-            {
-                if (level == atLevel)
+                int numOuterLoops = 1 << (parentState.Length-1);
+                List<int[]> children = new List<int[]>();
+                if (parentLevel == 0)
                 {
-                    return stateComparer.Equals(name, state);
+                    children.Add(parentState);
+                    return children;
                 }
 
-                for (int i=0; i<children.Count; i++)
+
+                for (int childNum = 0; childNum < numOuterLoops; childNum++)
                 {
-                    if (children[i].Contains(state, atLevel, setActive))
+                    int[] thisChildBase = new int[parentState.Length];
+                    for (int i = 0; i < thisChildBase.Length-1; i++)
                     {
-                        if (setActive)
-                            activeChild = i;
-                        return true;
+                        thisChildBase[i] = (parentState[i] << 1) + ((childNum >> i) & 1);
                     }
-                }
-                return false;
-            }
 
-            public bool GetParent(stateType level0State, int parentLevel, out stateType parentName)
-            {
-                if (level == parentLevel)
-                {
-                    if (this.Contains(level0State, 0, false))
+                    thisChildBase[thisChildBase.Length - 1] = parentState[parentState.Length - 1];
+                    children.Add(thisChildBase);
+
+                    if (parentLevel==1)
                     {
-                        parentName = name;
-                        return true;
-                    }
-                    else
-                    {
-                        parentName = default(stateType);
-                        return false;
+                        children.Add(new int[thisChildBase.Length]);
+                        Array.Copy(thisChildBase, children.Last(), thisChildBase.Length);
+                        children.Last()[thisChildBase.Length - 1] *= -1;
                     }
                 }
 
-                if (level > parentLevel)
-                {
-                    foreach (StateTreeNode<stateType> child in children)
-                    {
-                        if (child.GetParent(level0State, parentLevel, out parentName))
-                            return true;
-                    }
-                }
-
-                parentName = default(stateType);
-                return false;
-            }
-
-            public List<stateType> GetAllChildren()
-            {
-                List<stateType> allChildren = new List<stateType>();
-
-                if (level==1)
-                {
-                    foreach(StateTreeNode<stateType> child in children)
-                    {
-                        allChildren.Add(child.name);
-                    }
-                }
-                else
-                {
-                    foreach (StateTreeNode<stateType> child in children)
-                    {
-                        allChildren.AddRange(child.GetAllChildren());
-                    }
-                }
-                return allChildren;
-            }
-
-            public List<stateType> GetImmediateChildren(stateType parentState, int parentLevel)
-            {
-                List<stateType> immediateChildren = new List<stateType>();
-                
-                if (level == parentLevel && stateComparer.Equals(name, parentState))
-                {   
-                    foreach(StateTreeNode<stateType> child in children)
-                    {
-                        immediateChildren.Add(child.name);
-                    }
-                }
-
-                else
-                {
-                    foreach (StateTreeNode<stateType> child in children)
-                    {
-                        immediateChildren.AddRange(child.GetImmediateChildren(parentState, parentLevel));
-                    }
-                }
-                return immediateChildren;
+                if (children.Count > 16)
+                    children = children;
+                return children;
             }
         }
-
     }
 }
         
@@ -304,51 +235,7 @@ namespace MultiResolutionRL
 
     //}
 
-//    public class intStateTree : StateTree<int[]>
-//    {
-//        public intStateTree(IEqualityComparer<int[]> StateComparer)
-//            : base(StateComparer)
-//        { }
 
-//        new public void AddState(int[] state)
-//        { }
-
-//        new public int[] GetParentState(int[] state, int level)
-//        {
-//            int[] parent = new int[2];
-//            parent[0] = (int)(state[0] / Math.Pow(2, level));
-//            parent[1] = (int)(state[1] / Math.Pow(2, level));
-//            return parent;
-//        }
-
-//        new public List<int[]> GetLevel0Children(int[] parentState, int parentLevel)
-//        {
-//            List<int[]> highLevel = new List<int[]>();
-//            highLevel.Add(parentState);
-//            List<int[]> lowLevel = new List<int[]>();
-
-//            for (int i = parentLevel; i > 0; i--)
-//            {
-//                foreach (int[] s in highLevel)
-//                {
-//                    lowLevel.AddRange(GetChildren(s, i));
-//                }
-//                highLevel = new List<int[]>(lowLevel);
-//                lowLevel.Clear();
-//            }
-//            return highLevel;
-//        }
-
-//        new public List<int[]> GetChildren(int[] parentState, int parentLevel)
-//        {
-//            List<int[]> children = new List<int[]>();
-//            children.Add(new int[2] { parentState[0] << 1, parentState[1] << 1 });
-//            children.Add(new int[2] { (parentState[0] << 1) + 1, parentState[1] << 1 });
-//            children.Add(new int[2] { parentState[0] << 1, (parentState[1] << 1) + 1 });
-//            children.Add(new int[2] { (parentState[0] << 1) + 1, (parentState[1] << 1) + 1 });
-//            return children;
-//        }
-//    }
 
     
     

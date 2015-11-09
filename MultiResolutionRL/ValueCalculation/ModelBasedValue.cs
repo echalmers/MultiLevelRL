@@ -10,11 +10,10 @@ namespace MultiResolutionRL.ValueCalculation
     {
         public double defaultQ = 1, gamma = 0.9;
         int c = 1;
-        int accesses = 0;
-        public int maxUpdates = 1000;
+        public int maxUpdates = 500;
         SAStable<stateType, actionType, int> T;
         SAStable<stateType, actionType, double> R;
-        Dictionary<stateType, Dictionary<actionType, double>> Qtable;
+        public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
         public Func<stateType, IEnumerable<stateType>> stateUpdateSelector = null;
@@ -22,8 +21,8 @@ namespace MultiResolutionRL.ValueCalculation
         Dictionary<stateType, Dictionary<stateType, List<actionType>>> predecessors;
         Dictionary<stateType, double> priority;
 
-        public System.IO.StreamWriter writer;
-
+        PerformanceStats stats = new PerformanceStats();
+        
         Random rnd = new Random(1);
 
         List<actionType> availableActions;
@@ -45,7 +44,7 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override Dictionary<stateType, double> PredictNextStates(stateType state, actionType action)
         {
-            accesses++;
+            stats.modelAccesses++;
 
             Dictionary<stateType, double> response = new Dictionary<stateType, double>(stateComparer);
             Dictionary<stateType, int> transitionCounts = T.GetStateValueTable(state, action);
@@ -59,7 +58,7 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override stateType PredictNextState(stateType state, actionType action)
         {
-            accesses++;
+            stats.modelAccesses++;
 
             stateType next = default(stateType); int counts = -1;
             foreach (stateType s in T.GetStateValueTable(state, action).Keys)
@@ -91,7 +90,7 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override double PredictReward(stateType state, actionType action, stateType newState)
         {
-            accesses++;
+            stats.modelAccesses++;
             return R.Get(state, action, newState);
         }
         
@@ -127,8 +126,7 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override void update(StateTransition<stateType, actionType> transition)
         {
-            if (writer==null)
-                writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\MultiResolutionRL\\modelBasedUpdates.txt");
+            stats.cumulativeReward += transition.reward;
 
             // retrieve current count and reward values
             int thisCount = T.Get(transition.oldState, transition.action, transition.newState);
@@ -145,26 +143,7 @@ namespace MultiResolutionRL.ValueCalculation
                 predecessors[transition.newState].Add(transition.oldState, new List<actionType>());
             predecessors[transition.newState][transition.oldState].Add(transition.action);
 
-            int totalUpdates = 0;
-            if (maxUpdates < 0)
-            {
-                List<stateType> statesToUpdate = new List<stateType>();
-                if (predecessors.ContainsKey(transition.oldState))
-                    statesToUpdate.AddRange(predecessors[transition.oldState].Keys);
-                if (!statesToUpdate.Contains(transition.oldState,stateComparer))
-                    statesToUpdate.Add(transition.oldState);
-
-                foreach (stateType s in statesToUpdate)
-                {
-                    foreach (actionType a in availableActions)
-                    {
-                        updateQ(s, a);
-                        totalUpdates++;
-                    }
-                }
-            }
-            else
-            {
+            
                 // set this transition to a high priority
                 if (!priority.ContainsKey(transition.oldState))
                     priority.Add(transition.oldState, double.PositiveInfinity);
@@ -193,7 +172,7 @@ namespace MultiResolutionRL.ValueCalculation
                     foreach (actionType a in availableActions)
                     {
                         updateQ(priorityS, a);
-                        totalUpdates++;
+                        stats.modelUpdates++;
                     }
                     double newValue = value(priorityS, availableActions).Max();
                     double valueChange = Math.Abs(oldValue - newValue);
@@ -209,7 +188,6 @@ namespace MultiResolutionRL.ValueCalculation
                             priority[predState] = Math.Max(priority[predState], valueChange * T.Get(predState, predAct, priorityS));
                         }
                     }
-                }
             }
 
 
@@ -251,10 +229,7 @@ namespace MultiResolutionRL.ValueCalculation
             //        }
             //    }
             //}
-            writer.WriteLine("total updates:," + totalUpdates);
-            writer.WriteLine("total accesses:," + accesses);
-            writer.Flush();
-            accesses = 0;
+            
         }
 
         private void updateQ(stateType state, actionType action)
@@ -299,6 +274,11 @@ namespace MultiResolutionRL.ValueCalculation
             }
 
             Qtable[state][action] = newQ;
+        }
+
+        public override PerformanceStats getStats()
+        {
+            return stats;
         }
 
     }

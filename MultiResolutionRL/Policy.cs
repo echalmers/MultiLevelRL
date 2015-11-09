@@ -13,14 +13,16 @@ namespace MultiResolutionRL
 
     public class SoftmaxPolicy<stateType, actionType> : Policy<stateType, actionType>
     {
+        public double T = 0.33;
+
         Random rnd = new Random();
         public actionType selectAction(List<actionType> availableActions, List<double> values)
         {
             double[] p = new double[values.Count];
-            p[0] = Math.Exp(values[0]);
+            p[0] = Math.Exp(values[0]/T);
             for (int i=1; i<values.Count; i++)
             {
-                p[i] = p[i-1] + Math.Exp(values[i]);
+                p[i] = p[i-1] + Math.Exp(values[i]/T);
             }
 
             double threshold = rnd.NextDouble() * p.Last();
@@ -35,7 +37,7 @@ namespace MultiResolutionRL
 
     public class EGreedyPolicy<stateType, actionType> : Policy<stateType, actionType>
     {
-        double e = 0.8;//double.PositiveInfinity;
+        double e = double.PositiveInfinity;
         Random rnd = new Random();
         
         public actionType selectAction(List<actionType> availableActions, List<double> values)
