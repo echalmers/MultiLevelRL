@@ -37,7 +37,7 @@ namespace MultiResolutionRL
 
     public class EGreedyPolicy<stateType, actionType> : Policy<stateType, actionType>
     {
-        double e = double.PositiveInfinity;
+        double e = 0.9;//double.PositiveInfinity;
         Random rnd = new Random();
         
         public actionType selectAction(List<actionType> availableActions, List<double> values)

@@ -8,9 +8,9 @@ namespace MultiResolutionRL.ValueCalculation
 {
     public class ModelBasedValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
-        public double defaultQ = 1, gamma = 0.9;
+        public double defaultQ = 15, gamma = 0.9;
         int c = 1;
-        public int maxUpdates = 500;
+        public int maxUpdates = 120;//1000;
         SAStable<stateType, actionType, int> T;
         SAStable<stateType, actionType, double> R;
         public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
@@ -54,6 +54,11 @@ namespace MultiResolutionRL.ValueCalculation
                 response.Add(s, ((double)transitionCounts[s]) / total);
             }
             return response;
+        }
+
+        public void printT()
+        {
+            T.print();
         }
 
         public override stateType PredictNextState(stateType state, actionType action)
@@ -189,46 +194,6 @@ namespace MultiResolutionRL.ValueCalculation
                         }
                     }
             }
-
-
-                // update the current Q value
-                //updateQ(transition.oldState, transition.action);
-
-                // update several of the Q values
-                //stateType[] allStates = T.GetKnownStates();
-                //for (int i = 0; i < numUpdates; i++)
-                //{
-                //    stateType randState = allStates[rnd.Next(allStates.Length)];
-                //    actionType randAct = availableActions[rnd.Next(availableActions.Count)];
-                //    updateQ(randState, randAct);
-                //}
-                //foreach (stateType s in T.GetKnownStates())
-                //{
-                //    foreach (actionType a in availableActions)
-                //    {
-                //        updateQ(s, a);
-                //    }
-                //}
-
-            //IEnumerable<stateType> statesToUpdate = stateUpdateSelector == null ? R.GetKnownStates() : stateUpdateSelector(transition.oldState);
-            //double maxDif = double.PositiveInfinity;
-            //int totalUpdates = 0;
-            //while (maxDif > 0.01)
-            //{
-            //    maxDif = double.NegativeInfinity;
-            //    foreach (stateType s in statesToUpdate)
-            //    {
-            //        foreach (actionType a in availableActions)
-            //        {
-            //            double oldValue = value(s, a);
-            //            updateQ(s, a);
-            //            totalUpdates++;
-            //            double thisDiff = Math.Abs(oldValue - value(s, a));
-            //            if (thisDiff > maxDif)
-            //                maxDif = thisDiff;
-            //        }
-            //    }
-            //}
             
         }
 
@@ -255,13 +220,6 @@ namespace MultiResolutionRL.ValueCalculation
 
                 newQ += T.Get(state, action, s2) / P * (R.Get(state, action, s2) + gamma * maxQ);
 
-                T_s_a_s2 = T.Get(state, action, s2);
-                double temp = R.Get(state, action, s2);
-                //if (newQ > 1000)
-                //{
-                //    double thiscount = T.Get(state, action, s2);
-                //    double avgreward = R.Get(state, action, s2);
-                //}
             }
 
             if (!Qtable.ContainsKey(state))
@@ -344,6 +302,27 @@ namespace MultiResolutionRL.ValueCalculation
             {
                 table[oldState][action].Add(newState, defaultValue);
             }
+        }
+
+        public void print()
+        {
+            System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\T.csv");
+            foreach (stateType s1 in table.Keys)
+            {
+                foreach (actionType a in table[s1].Keys)
+                {
+                    foreach (stateType s2 in table[s1][a].Keys)
+                    {
+                        int[] s1int = (int[])(object)s1;
+                        int[] aint = (int[])(object)a;
+                        int[] s2int = (int[])(object)s2;
+                        writer.WriteLine(string.Join(",", s1int) + "," + string.Join(",", aint) + "," + string.Join(",", s2int) + "," + table[s1][a][s2].ToString());
+                    }
+                }
+            }
+            writer.Flush();
+            writer.Close();
+
         }
     }
     
