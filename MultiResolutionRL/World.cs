@@ -107,13 +107,19 @@ namespace MultiResolutionRL
                     break;
                 case 3: // goal
                     newState = new int[2] {startState[0], startState[1]};
-                    reward = 20;
+                    reward = 10;
                     absorbingStateReached = true;
                     break;
             }
             
-            agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
             agent.getStats().TallyStepsToGoal(reward > 0);
+            if (agent.getStats().stepsToGoal.Last() > 5000)
+            {
+                agent.getStats().TallyStepsToGoal(true);
+                newState = new int[2] { startState[0], startState[1] };
+                absorbingStateReached = true;
+            }
+            agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
             return agent.getStats();
         }
 
@@ -132,6 +138,7 @@ namespace MultiResolutionRL
 
         public Bitmap showState(int width, int height, bool showPath = false)
         {
+            width = 144; height = 48;
             Bitmap modMap = new Bitmap(mapBmp);
 
             foreach (int[] state in visitedStates)
@@ -151,9 +158,20 @@ namespace MultiResolutionRL
                     int y = Convert.ToInt32(s[1]);
                     if (x >= mapBmp.Width || y >= mapBmp.Height)
                         continue;
-                    int r = s[2] == "p" ? 255 : 0;// Math.Min(mapBmp.GetPixel(x, y).R + 50, 255);
-                    int g = s[2] == "g" ? 255 : 0;//Math.Max(mapBmp.GetPixel(x, y).G - 50, 0);
-                    int b = 0;// Math.Max(mapBmp.GetPixel(x, y).B - 50, 0);
+
+                    int r = mapBmp.GetPixel(x,y).R;
+                    int b = mapBmp.GetPixel(x,y).B;
+                    int g = mapBmp.GetPixel(x,y).G;
+                    if (s[2] == "p")
+                    {
+                        b = Math.Max(0, b - 50);
+                        g = Math.Max(0, g - 50);
+                    }
+                    else if (s[2] == "g")
+                    {
+                        b = Math.Max(0, b - 100);
+                        g = Math.Max(0, g - 100);
+                    }
                     Color c = Color.FromArgb(r, g, b);
                     modMap.SetPixel(x, y, c);
                 }
@@ -169,6 +187,101 @@ namespace MultiResolutionRL
                 g.DrawImage(modMap, 0, 0, width, height);
             }
             return resized;
+        }
+
+        public void ExportGradients()
+        {
+            MultiResValue<int[], int[]> av = (MultiResValue<int[], int[]>)agent._actionValue;
+            StateManagement.intStateTree tree = new StateManagement.intStateTree();
+
+
+            System.IO.StreamWriter xWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsX.csv");
+            System.IO.StreamWriter yWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsY.csv");
+            System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
+            for (int i=0; i< map.GetLength(0); i++)
+            {
+                double[] thisXLine = new double[map.GetLength(1)];
+                double[] thisYLine = new double[map.GetLength(1)];
+                double[] thisValLine = new double[map.GetLength(1)];
+                for (int j = 0; j < map.GetLength(1); j++)
+                {
+                    int[] thisState = tree.GetParentState(new int[2] { i, j }, 5);
+                    double[] actionVals = av.models[5].value(thisState, availableActions);
+                    thisXLine[j] = actionVals[2] - actionVals[0];
+                    thisYLine[j] = actionVals[3] - actionVals[1];
+                    thisValLine[j] = actionVals.Max();
+                }
+                xWriter.WriteLine(string.Join(",", thisXLine));
+                yWriter.WriteLine(string.Join(",", thisYLine));
+                valWriter.WriteLine(string.Join(",", thisValLine));
+            }
+            xWriter.Flush(); xWriter.Close();
+            yWriter.Flush(); yWriter.Close();
+            valWriter.Flush(); valWriter.Close();
+        }
+
+        public void ExportDistances()
+        {
+            System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distances.csv");
+            ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
+            PathFinder<int[], int[]> pathfinder = new PathFinder<int[], int[]>(new IntArrayComparer());
+
+            
+
+            for (int i=1; i<map.GetLength(0)-1; i++)
+            {
+                for (int j=0; j<map.GetLength(1)-1; j++)
+                {
+                    Dictionary<int[], double> dists = pathfinder.DijkstraDistances(new int[2] { i, j }, model, availableActions);
+                    foreach (int[] s in dists.Keys)
+                    {
+                        writer.WriteLine(i + "," + j + "," + s[0] + "," + s[1] + "," + dists[s]);
+                    }
+                }
+            } 
+            
+            writer.Flush();
+            writer.Close();
+
+            //System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distances.csv");
+            //ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
+
+            //PathFinder<int[], int[]> pathfinder = new PathFinder<int[], int[]>(new IntArrayComparer());
+
+            //int total = sub2ind(new int[2] { map.GetLength(0), map.GetLength(1) });
+            //double[][] dists = new double[total][];
+            //for (int i=0; i<dists.Length; i++)
+            //{
+            //    dists[i] = new double[total];
+            //}
+
+            //for (int i=0; i< map.GetLength(0); i++)
+            //{
+            //    for (int j = 0; j < map.GetLength(1); j++)
+            //    {
+            //        int[] startPt = new int[2] {i, j};
+            //        Dictionary<int[], double> thisDists = pathfinder.DijkstraDistances(startPt, model, availableActions);
+            //        foreach(int[] destination in thisDists.Keys)
+            //        {
+            //            int s1 = sub2ind(destination);
+            //            int s2 = sub2ind(startPt);
+            //            dists[s1][s2] = thisDists[destination];
+            //            dists[s2][s1] = thisDists[destination];
+            //        }
+            //    }
+            //}
+
+            //for (int i=0; i<dists.Length; i++)
+            //{
+            //    writer.WriteLine(string.Join(",", dists[i]));
+            //}
+            //writer.Flush();
+            //writer.Close();
+        }
+
+        private int sub2ind(int[] sub)
+        {
+            return (sub[0] + 1 + sub[1]*map.GetLength(0))-1;
         }
     }
 

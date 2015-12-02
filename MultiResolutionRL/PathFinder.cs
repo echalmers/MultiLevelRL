@@ -62,9 +62,9 @@ namespace MultiResolutionRL
                 closed.Add(candidate);
 
                 // identify all possible neighbors 
-                List<stateType> neighbors = new List<stateType>();
                 foreach (actionType act in availableActions)
                 {
+                    List<stateType> neighbors = new List<stateType>();
                     if (stochasticity)
                         neighbors.AddRange(lowerLevelModel.PredictNextStates(candidate, act).Keys);
                     else
@@ -104,6 +104,60 @@ namespace MultiResolutionRL
                 }
             }
             return new List<Tuple<stateType, actionType, double>>();
+        }
+
+        public Dictionary<stateType, double> DijkstraDistances(stateType startState, ActionValue<stateType, actionType> model, List<actionType> availableActions)
+        {
+            Dictionary<stateType, double> dist = new Dictionary<stateType, double>(stateComparer);
+            dist.Add(startState, 0);
+            Dictionary<stateType, stateType> route = new Dictionary<stateType,stateType>(stateComparer);
+            List<stateType> open = new List<stateType>();
+            open.Add(startState);
+            List<stateType> closed = new List<stateType>();
+
+            while (open.Count > 0)
+            {
+                // remove the lowest-cost entry from the Q list
+                stateType n = open.First();
+                for (int i = 1; i < open.Count; i++)
+                {
+                    if (dist[n] < dist[open[i]])
+                        n = open[i];
+                }
+                open.Remove(n);
+                closed.Add(n);
+
+                // identify all neighbors 
+                
+                foreach (actionType act in availableActions)
+                {
+                    List<stateType> neighbors = new List<stateType>();
+                    //if (stochasticity)
+                    //    neighbors.AddRange(lowerLevelModel.PredictNextStates(candidate, act).Keys);
+                    //else
+                    neighbors.Add(model.PredictNextState(n, act));
+
+                    // evaluate each neighbor
+                    foreach (stateType neighbor in neighbors)
+                    {
+                        if (neighbor == null) // if there is no knowledge of what this action does
+                            continue;
+
+                        if (!dist.ContainsKey(neighbor))
+                            dist.Add(neighbor, double.PositiveInfinity);
+
+                        if ((dist[n] + 1) < dist[neighbor])
+                        {
+                            dist[neighbor] = dist[n] + 1;
+                            route[neighbor] = n;
+                        }
+
+                        if (!open.Contains(neighbor, stateComparer) && !closed.Contains(neighbor, stateComparer))
+                            open.Add(neighbor);
+                    }
+                }
+            }
+            return dist;
         }
 
         private static double heuristic(stateType state, ActionValue<stateType, actionType> model, List<actionType> availableActions)

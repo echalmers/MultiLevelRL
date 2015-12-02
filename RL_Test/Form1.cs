@@ -112,7 +112,7 @@ namespace RL_Test
             System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
             w.Close();
 
-            world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
             chart1.Series.Add("Model-based" + chart1.Series.Count);
             chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             chart2.Series.Add("Model-based" + chart2.Series.Count);
@@ -123,7 +123,7 @@ namespace RL_Test
 
         private void multiModelButton_Click(object sender, EventArgs e)
         {
-            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiGridWorldModel<,>), 8);
+            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 8);
             chart1.Series.Add("Multi-layer" + chart1.Series.Count);
             chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             chart2.Series.Add("Multi-layer" + chart2.Series.Count);
@@ -181,7 +181,7 @@ namespace RL_Test
         private void oneLayerButton_Click(object sender, EventArgs e)
         {
             string[] total_min = textBox1.Text.Split(',');
-            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiGridWorldModel<,>), Convert.ToInt32(total_min[0]), Convert.ToInt32(total_min[1]));
+            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), Convert.ToInt32(total_min[0]), Convert.ToInt32(total_min[1]));
             chart1.Series.Add("1-layer" + chart1.Series.Count);
             chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             chart2.Series.Add("1-layer" + chart2.Series.Count);
@@ -192,67 +192,9 @@ namespace RL_Test
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            List<double> vals = new List<double>(new double[3]{1,0.2,0});
-            List<int> actions = new List<int>(new int[3]{0,1,2});
-            int[] counts = new int[vals.Count];
-
-            SoftmaxPolicy<int, int> softmax = new SoftmaxPolicy<int, int>();
-            for (int i=0; i<100000; i++)
-            {
-                counts[softmax.selectAction(actions, vals)]++;
-            }
-
-            Console.WriteLine(String.Join(",", counts));
-
-            //MultiResolutionRL.StateManagement.taxiStateTree st = new MultiResolutionRL.StateManagement.taxiStateTree();
-            //int[] i = new int[4] { 3, 4, 8, -3};
-            //int[] p = st.GetParentState(i, 1);
-            ////p = st.GetParentState(i, 2);
-            //List<int[]> children = st.GetChildren(i, 2);
-            //children = st.GetLevel0Children(p, 1);
-
-            //MultiResolutionRL.StateManagement.StateTree<int[]> stateTree = new MultiResolutionRL.StateManagement.StateTree<int[]>(new IntArrayComparer(), new int[2] {0,0});
-            //int[] x = new int[8];
-            //int[] y = new int[8];
-
-            //while (x[5] == 0 && y[5] == 0)
-            //{
-            //    int thisi = 0, thisj = 0;
-            //    for (int l = 0; l < 7; l++)
-            //    {
-            //        thisi += x[l] * (int)Math.Pow(2, l);
-            //        thisj += y[l] * (int)Math.Pow(2, l);
-            //    }
-            //    stateTree.AddState(new int[2] { thisi, thisj });
-
-            //    x[0]++;
-            //    for (int l = 0; l < 6; l++)
-            //    {
-            //        if (x[l] == 2)
-            //        {
-            //            x[l] = 0;
-            //            y[l]++;
-            //        }
-            //        if (y[l] == 2)
-            //        {
-            //            y[l] = 0;
-            //            x[l + 1]++;
-            //        }
-            //    }
-            //}
-
-            //string[] inp = textBox1.Text.Split(',');
-            //int[] state = new int[2] {Convert.ToInt32(inp[0]), Convert.ToInt32(inp[1])};
-            //List<int[]> children = stateTree.GetChildren(state, Convert.ToInt32(inp[2]));
-            //string childrenString = "";
-            //string parentString = "";
-            //foreach(int[] c in children)
-            //{
-            //    parentString += (String.Join(",", stateTree.GetParentState(c, Convert.ToInt32(inp[2]))) + Environment.NewLine);
-            //    childrenString += (String.Join(",", c) + Environment.NewLine);
-            //}
-            //MessageBox.Show(childrenString);
-            //MessageBox.Show(parentString);
+            GridWorld w = (GridWorld)world;
+            //w.ExportGradients();
+            w.ExportDistances();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -344,9 +286,11 @@ namespace RL_Test
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Agent<int[], int[]> a = (Agent<int[], int[]>)agent;
-            MultiGridWorldModel<int[], int[]> model = (MultiGridWorldModel<int[], int[]>)a._actionValue;
-            model.LesionVH(1);
+            //Agent<int[], int[]> a = (Agent<int[], int[]>)agent;
+            //ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)a._actionValue;
+            //model.printT();
+
+            
         }
 
         
