@@ -11,6 +11,7 @@ using MultiResolutionRL;
 using MultiResolutionRL.ValueCalculation;
 using System.Threading;
 using System.Collections;
+using feudalRL_Library;
 
 namespace RL_Test
 {
@@ -192,9 +193,21 @@ namespace RL_Test
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            GridWorld w = (GridWorld)world;
-            //w.ExportGradients();
-            w.ExportDistances();
+            int wS = 48;    //WorldSize p[0]
+            bool RL = true;    //RLMethod p[1];  'F' for QL, 'T' For MB
+            double a = 0.1; //alpha p[2];
+            double g = 0.8; //Gamma p[3];
+            int tO = wS;     //timeOut p[4];
+            double mR = 10; //Manager Rewards p[5];
+            Policy<int[], int[]> cP = new EGreedyPolicy<int[], int[]>(); //chosen Policy p[6]
+
+            world.addAgent(typeof(EGreedyPolicy<,>), typeof(feudalRL_Library.Boss<,>), wS, RL, a, g, tO, mR, cP);
+            chart1.Series.Add("Feudal" + chart1.Series.Count);
+            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart2.Series.Add("Feudal" + chart2.Series.Count);
+            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart3.Series.Add("Feudal" + chart3.Series.Count);
+            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -286,13 +299,21 @@ namespace RL_Test
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //Agent<int[], int[]> a = (Agent<int[], int[]>)agent;
-            //ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)a._actionValue;
-            //model.printT();
-
-            
+            world.addAgent(typeof(OptimalPolicy<,>), typeof(FeudalValue<,>));
+            chart1.Series.Add("Feudal" + chart1.Series.Count);
+            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart2.Series.Add("Feudal" + chart2.Series.Count);
+            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart3.Series.Add("Feudal" + chart3.Series.Count);
+            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
         }
 
-        
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            world = new GridWorld();
+            loadMapButton.Enabled = true;
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map16.bmp");
+            pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace MultiResolutionRL
 {
     public interface World
     {
-        object addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters);
+        object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters);
         PerformanceStats stepAgent(string userAction="");
         void Load(string filename);
         Bitmap showState(int width, int height, bool showPath = false);
@@ -83,7 +83,16 @@ namespace MultiResolutionRL
             int[] state = agent.state;
             if (!visitedStates.Contains(agent.state,new IntArrayComparer()))
                 visitedStates.Add(agent.state);
-            int[] action = agent.selectAction();
+            int[] action;
+            if (userAction=="")
+                action = agent.selectAction();
+            else
+            {
+                string[] act = userAction.Split(',');
+                action = new int[2];
+                action[0] = Convert.ToInt32(act[0]);
+                action[1] = Convert.ToInt32(act[1]);
+            }
 
             int[] newState = new int[2];
             double reward = 0;
@@ -113,17 +122,17 @@ namespace MultiResolutionRL
             }
             
             agent.getStats().TallyStepsToGoal(reward > 0);
-            if (agent.getStats().stepsToGoal.Last() > 5000)
-            {
-                agent.getStats().TallyStepsToGoal(true);
-                newState = new int[2] { startState[0], startState[1] };
-                absorbingStateReached = true;
-            }
+            //if (agent.getStats().stepsToGoal.Last() > 5000)
+            //{
+            //    agent.getStats().TallyStepsToGoal(true);
+            //    newState = new int[2] { startState[0], startState[1] };
+            //    absorbingStateReached = true;
+            //}
             agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
             return agent.getStats();
         }
 
-        public object addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters)
+        public object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters)
         {
             policyType = policyType.MakeGenericType(typeof(int[]), typeof(int[]));
             Policy<int[], int[]> newPolicy = (Policy<int[],int[]>)Activator.CreateInstance(policyType);
@@ -220,69 +229,100 @@ namespace MultiResolutionRL
             valWriter.Flush(); valWriter.Close();
         }
 
+        public void ExportAdjacencies()
+        {
+            System.IO.StreamWriter writerStates = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\allStates.csv");
+            System.IO.StreamWriter writerAdj = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Adjacencies.csv");
+            ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
+            IEqualityComparer<int[]> comparer = new IntArrayComparer();
+
+            List<int[]> allStates = model.Qtable.Keys.ToList();
+            int[,] adj = new int[allStates.Count, allStates.Count];
+
+            for (int i = 0; i < allStates.Count; i++)
+            {
+                writerStates.WriteLine(string.Join(",", allStates[i]));
+
+                foreach (int[] action in availableActions)
+                {
+                    int[] neighbor = model.PredictNextState(allStates[i], action);
+                    int neighborIndex = allStates.FindIndex((element) => comparer.Equals(element, neighbor));
+                    adj[i, neighborIndex] = 1;
+                }
+            }
+
+            for (int i = 0; i < adj.GetLength(0); i++)
+            {
+                for (int j = 0; j < adj.GetLength(0); j++)
+                {
+                    writerAdj.Write(adj[i, j] + ",");
+                }
+                writerAdj.Write(Environment.NewLine);
+            }
+            writerAdj.Flush(); writerAdj.Close();
+            writerStates.Flush(); writerStates.Close();
+        }
+
         public void ExportDistances()
         {
             System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distances.csv");
             ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
             PathFinder<int[], int[]> pathfinder = new PathFinder<int[], int[]>(new IntArrayComparer());
 
-            
+            double[,] distances = new double[model.Qtable.Keys.Count, model.Qtable.Keys.Count];
+            List<int[]> allStates = model.Qtable.Keys.ToList();
 
-            for (int i=1; i<map.GetLength(0)-1; i++)
+            //for (int i=1; i<map.GetLength(0)-1; i++)
+            //{
+            //    for (int j=0; j<map.GetLength(1)-1; j++)
+            //    {
+            for (int i=0; i<allStates.Count; i++)
             {
-                for (int j=0; j<map.GetLength(1)-1; j++)
+                int index1 = allStates.IndexOf(allStates[i]);
+                Dictionary<int[], double> dists = pathfinder.DijkstraDistances(allStates[i]/*new int[2] { i, j }*/, model, availableActions);
+
+                foreach (int[] s in dists.Keys)
                 {
-                    Dictionary<int[], double> dists = pathfinder.DijkstraDistances(new int[2] { i, j }, model, availableActions);
-                    foreach (int[] s in dists.Keys)
-                    {
-                        writer.WriteLine(i + "," + j + "," + s[0] + "," + s[1] + "," + dists[s]);
-                    }
+                    //writer.WriteLine(i + "," + j + "," + s[0] + "," + s[1] + "," + dists[s]);
+                    writer.WriteLine(allStates[i][0] + "," + allStates[i][1] + "," + s[0] + "," + s[1] + "," + dists[s]);
                 }
-            } 
+
+                for (int j=0; j<allStates.Count; j++)
+                {
+                    distances[i, j] = dists[allStates[j]];
+                    distances[j, i] = dists[allStates[j]];
+                }
+
+            }
+            //    }
+            //} 
             
             writer.Flush();
             writer.Close();
 
-            //System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distances.csv");
-            //ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
+            writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distancesMat.csv");
+            for (int i = 0; i < allStates.Count; i++)
+            {
+                for (int j = 0; j < allStates.Count; j++)
+                {
+                    writer.Write(distances[i,j] + ",");
+                }
+                writer.Write(Environment.NewLine);
+            }
+            writer.Flush();
+            writer.Close();
 
-            //PathFinder<int[], int[]> pathfinder = new PathFinder<int[], int[]>(new IntArrayComparer());
-
-            //int total = sub2ind(new int[2] { map.GetLength(0), map.GetLength(1) });
-            //double[][] dists = new double[total][];
-            //for (int i=0; i<dists.Length; i++)
-            //{
-            //    dists[i] = new double[total];
-            //}
-
-            //for (int i=0; i< map.GetLength(0); i++)
-            //{
-            //    for (int j = 0; j < map.GetLength(1); j++)
-            //    {
-            //        int[] startPt = new int[2] {i, j};
-            //        Dictionary<int[], double> thisDists = pathfinder.DijkstraDistances(startPt, model, availableActions);
-            //        foreach(int[] destination in thisDists.Keys)
-            //        {
-            //            int s1 = sub2ind(destination);
-            //            int s2 = sub2ind(startPt);
-            //            dists[s1][s2] = thisDists[destination];
-            //            dists[s2][s1] = thisDists[destination];
-            //        }
-            //    }
-            //}
-
-            //for (int i=0; i<dists.Length; i++)
-            //{
-            //    writer.WriteLine(string.Join(",", dists[i]));
-            //}
-            //writer.Flush();
-            //writer.Close();
+            writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distancesClusters.csv");
+            StateManagement.SelfAbstractingStateTree<int[]> tree = new StateManagement.SelfAbstractingStateTree<int[]>();
+            List<int[]> clusters = tree.PerformAbstraction(distances, allStates, new IntArrayComparer());
+            for (int i= 0; i < clusters.Count; i++)
+            {
+                writer.WriteLine(string.Join(",", allStates[i]) + "," + string.Join(",", clusters[i]));
+            }
+            writer.Flush();
+            writer.Close();
         }
-
-        private int sub2ind(int[] sub)
-        {
-            return (sub[0] + 1 + sub[1]*map.GetLength(0))-1;
-        }
+        
     }
 
     public class MountainCar : World
@@ -334,7 +374,7 @@ namespace MultiResolutionRL
             return discretized;
         }
 
-        public object addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters)
+        public object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters)
         {
             policyType = policyType.MakeGenericType(typeof(int[]), typeof(int));
             Policy<int[], int> newPolicy = (Policy<int[], int>)Activator.CreateInstance(policyType);
@@ -446,7 +486,7 @@ namespace MultiResolutionRL
             return state;
         }
 
-        public object addAgent(Type policyType, Type actionValueType, params int[] actionValueParameters)
+        public object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters)
         {
             int[] startState = rndStartState();
 

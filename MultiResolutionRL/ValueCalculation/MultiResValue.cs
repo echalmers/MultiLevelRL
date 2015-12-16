@@ -16,7 +16,7 @@ namespace MultiResolutionRL.ValueCalculation
         public List<Goal<int[], actionType>>[] subgoals;
         List<actionType> availableActions;
         PathFinder<int[], actionType> pathFinder;
-        intStateTree stateTree;
+        StateTree<int[]> stateTree;
         //taxiStateTree stateTree;
         PerformanceStats combinedStats = new PerformanceStats();
 
@@ -29,13 +29,13 @@ namespace MultiResolutionRL.ValueCalculation
         
         
         
-        public MultiResValue(IEqualityComparer<int[]> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, int[] StartState, params int[] numLevels_minLevel)
+        public MultiResValue(IEqualityComparer<int[]> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, int[] StartState, params object[] numLevels_minLevel)
             : base(StateComparer, ActionComparer, AvailableActions, StartState, numLevels_minLevel)
         {
-            minLevel = numLevels_minLevel.Length >= 2 ? numLevels_minLevel[1] : 0;
-            models = new ActionValue<int[], actionType>[numLevels_minLevel[0]];
-            transitions = new StateTransition<int[], actionType>[numLevels_minLevel[0]];
-            subgoals = new List<Goal<int[], actionType>>[numLevels_minLevel[0]];
+            minLevel = numLevels_minLevel.Length >= 2 ? (int)numLevels_minLevel[1] : 0;
+            models = new ActionValue<int[], actionType>[(int)numLevels_minLevel[0]];
+            transitions = new StateTransition<int[], actionType>[(int)numLevels_minLevel[0]];
+            subgoals = new List<Goal<int[], actionType>>[(int)numLevels_minLevel[0]];
 
             availableActions = AvailableActions;
             stateComparer = StateComparer;
@@ -226,12 +226,7 @@ namespace MultiResolutionRL.ValueCalculation
         {
             throw new NotImplementedException();
         }
-
-        public override int[] PredictBestNextState(int[] state, actionType action)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public override Dictionary<int[], double> PredictNextStates(int[] state, actionType action)
         {
             throw new NotImplementedException();
@@ -242,7 +237,7 @@ namespace MultiResolutionRL.ValueCalculation
             throw new NotImplementedException();
         }
 
-        public override void update(StateTransition<int[], actionType> transition)
+        public override double update(StateTransition<int[], actionType> transition)
         {            
             if (currentGoal.goalState == null)
             {
@@ -253,13 +248,13 @@ namespace MultiResolutionRL.ValueCalculation
                 Console.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState) + ", value: " + currentGoal.value);
             }
             Console.WriteLine("   current state: " + String.Join(",", transition.newState) + " / " + String.Join(",", stateTree.GetParentState(transition.newState, currentGoal.level)));
-            
 
+            
             // update the stateTree
             stateTree.AddState(transition.newState);
 
             // perform model updates
-            models[0].update(transition);
+            double returnValue = models[0].update(transition);
 
 
             if (transition.absorbingStateReached) // if this was the end of the simulation // ****** do we need this?
@@ -279,7 +274,7 @@ namespace MultiResolutionRL.ValueCalculation
                 {
                     subgoals[i].Clear();
                 }
-                return;
+                return returnValue;
             }
             else
             {
@@ -310,7 +305,7 @@ namespace MultiResolutionRL.ValueCalculation
 
 
             if (currentGoal.goalState == null)
-                return;
+                return returnValue;
 
             if (stateComparer.Equals(stateTree.GetParentState(transition.newState, currentGoal.level), currentGoal.goalState)) // if the current goal has been reached
             {
@@ -366,7 +361,7 @@ namespace MultiResolutionRL.ValueCalculation
                     //subgoals[currentGoal.level].Add(currentGoal);
                 }
             }
-            
+            return returnValue;
         }
 
         public override PerformanceStats getStats()

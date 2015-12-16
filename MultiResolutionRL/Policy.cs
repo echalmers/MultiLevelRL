@@ -65,4 +65,22 @@ namespace MultiResolutionRL
             }
         }
     }
+
+    public class OptimalPolicy<stateType, actionType> : Policy<stateType, actionType>
+    {
+        public actionType selectAction(List<actionType> availableActions, List<double> values)
+        {
+            actionType bestAction = availableActions[0];
+            double expectedReward = double.NegativeInfinity;
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (values[i] > expectedReward)
+                {
+                    expectedReward = values[i];
+                    bestAction = availableActions[i];
+                }
+            }
+            return bestAction;
+        }
+    }
 }

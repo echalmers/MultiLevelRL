@@ -27,7 +27,7 @@ namespace MultiResolutionRL.ValueCalculation
 
         List<actionType> availableActions;
 
-        public ModelBasedValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params int[] parameters)
+        public ModelBasedValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters)
             : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
         {
             stateComparer = StateComparer;
@@ -76,23 +76,7 @@ namespace MultiResolutionRL.ValueCalculation
             }
             return next;
         }
-
-        public override stateType PredictBestNextState(stateType state, actionType action)
-        {
-            double bestReward = double.NegativeInfinity;
-            stateType bestState = default(stateType);
-            foreach(stateType s2 in T.GetStateValueTable(state, action).Keys)
-            {
-                double thisR = R.Get(state, action, s2);
-                if (thisR > bestReward)
-                {
-                    bestReward = thisR;
-                    bestState = s2;
-                }
-            }
-            return bestState;
-        }
-
+        
         public override double PredictReward(stateType state, actionType action, stateType newState)
         {
             stats.modelAccesses++;
@@ -129,8 +113,10 @@ namespace MultiResolutionRL.ValueCalculation
             return response;
         }
 
-        public override void update(StateTransition<stateType, actionType> transition)
+        public override double update(StateTransition<stateType, actionType> transition)
         {
+            double maxChange = double.NegativeInfinity;
+
             stats.cumulativeReward += transition.reward;
 
             // retrieve current count and reward values
@@ -155,8 +141,9 @@ namespace MultiResolutionRL.ValueCalculation
                 else
                     priority[transition.oldState] = double.PositiveInfinity;
 
+            int i = 0;
                 // perform prioritized sweeping
-                for (int i = 0; i < maxUpdates; i++)//while (true)
+                for (i = 0; i < maxUpdates; i++)//while (true)
                 {
                     // find the highest priority state
                     double max = double.NegativeInfinity;
@@ -181,6 +168,7 @@ namespace MultiResolutionRL.ValueCalculation
                     }
                     double newValue = value(priorityS, availableActions).Max();
                     double valueChange = Math.Abs(oldValue - newValue);
+                    maxChange = Math.Max(maxChange, valueChange);
 
                     // update priorities
                     priority[priorityS] = 0;
@@ -194,7 +182,7 @@ namespace MultiResolutionRL.ValueCalculation
                         }
                     }
             }
-            
+            return i;
         }
 
         private void updateQ(stateType state, actionType action)

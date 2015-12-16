@@ -8,15 +8,15 @@ namespace MultiResolutionRL.ValueCalculation
 {
     public class ModelFreeValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
-        double alpha = 0.2;
+        double alpha = 0.5;
         public double gamma = 0.9;
-        double defaultQ = 0;
+        double defaultQ = 5;
         Dictionary<stateType, Dictionary<actionType, double>> table;
         IEqualityComparer<actionType> actionComparer;
         List<actionType> availableActions;
         PerformanceStats stats = new PerformanceStats();
 
-        public ModelFreeValue(IEqualityComparer<stateType> stateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params int[] parameters)
+        public ModelFreeValue(IEqualityComparer<stateType> stateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters)
             : base(stateComparer, ActionComparer, AvailableActions, StartState, parameters)
         {
             table = new Dictionary<stateType, Dictionary<actionType, double>>(stateComparer);
@@ -55,8 +55,12 @@ namespace MultiResolutionRL.ValueCalculation
             return value(state, dummy)[0];
         }
 
-        public override void update(StateTransition<stateType, actionType> transition)
+        public override double update(StateTransition<stateType, actionType> transition)
         {
+            double oldVal = defaultQ;
+            if (table.ContainsKey(transition.oldState) && table[transition.oldState].ContainsKey(transition.action))
+                oldVal = table[transition.oldState][transition.action];
+
             stats.cumulativeReward += transition.reward;
 
             double q_s_a = value(transition.oldState, transition.action);
@@ -76,18 +80,15 @@ namespace MultiResolutionRL.ValueCalculation
                 table.Add(transition.oldState, new Dictionary<actionType, double>(actionComparer));
 
             table[transition.oldState][transition.action] = q_s_a + alpha * (transition.reward + gamma * maxNewQ - q_s_a);
+            double newVal = table[transition.oldState][transition.action];
+            return Math.Abs(newVal - oldVal);
         }
 
         public override stateType PredictNextState(stateType state, actionType action)
         {
             throw new NotImplementedException();
         }
-
-        public override stateType PredictBestNextState(stateType state, actionType action)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public override double PredictReward(stateType state, actionType action, stateType newState)
         {
             throw new NotImplementedException();

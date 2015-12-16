@@ -52,9 +52,10 @@
     <Compile Include="StateTree.cs" />
     <Compile Include="ValueCalculation\ActionValue.cs" />
     <Compile Include="StateTransition.cs" />
+    <Compile Include="ValueCalculation\FeudalValue.cs" />
     <Compile Include="ValueCalculation\ModelBasedValue.cs" />
     <Compile Include="ValueCalculation\ModelFreeValue.cs" />
-    <Compile Include="ValueCalculation\MultiGridWorldModel.cs" />
+    <Compile Include="ValueCalculation\MultiResValue.cs" />
     <Compile Include="World.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

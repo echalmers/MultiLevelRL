@@ -19,7 +19,7 @@ namespace ConsoleApplication1
             throw new NotImplementedException();
         }
 
-        public override void update(StateTransition<string, int> transition)
+        public override double update(StateTransition<string, int> transition)
         {
             throw new NotImplementedException();
         }
@@ -114,12 +114,7 @@ namespace ConsoleApplication1
             }
             return "Error";
         }
-
-        public override string PredictBestNextState(string state, int action)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public override Dictionary<string, double> PredictNextStates(string state, int action)
         {
             throw new NotImplementedException();

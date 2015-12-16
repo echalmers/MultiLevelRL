@@ -16,6 +16,109 @@ namespace MultiResolutionRL
             List<stateType> GetChildren(stateType parentState, int parentLevel);
         }
 
+        public class SelfAbstractingStateTree<stateType> : StateTree<stateType>
+        {
+            List<Dictionary<stateType, stateType>> parents = new List<Dictionary<stateType, stateType>>();
+            List<Dictionary<stateType, List<stateType>>> children = new List<Dictionary<stateType, List<stateType>>>();
+
+            public void AddState(stateType state)
+            {
+                //throw new NotImplementedException();
+            }
+
+            public List<stateType> GetChildren(stateType parentState, int parentLevel)
+            {
+                if ((children[parentLevel] != null) && (children[parentLevel].ContainsKey(parentState)))
+                    return children[parentLevel][parentState];
+                else
+                    return new List<stateType>();
+            }
+
+            public List<stateType> GetLevel0Children(stateType parentState, int parentLevel)
+            {
+                List<stateType> highLevel = new List<stateType>();
+                highLevel.Add(parentState);
+                List<stateType> lowLevel = new List<stateType>();
+
+                for (int i = parentLevel; i > 0; i--)
+                {
+                    foreach (stateType s in highLevel)
+                    {
+                        lowLevel.AddRange(GetChildren(s, i));
+                    }
+                    highLevel = new List<stateType>(lowLevel);
+                    lowLevel.Clear();
+                }
+                return highLevel;
+            }
+
+            public stateType GetParentState(stateType state, int level)
+            {
+                if (level == 0)
+                    return state;
+                
+                stateType parent = state;
+                for (int i=0; i< level; i++)
+                {
+                    parent = parents[i][parent];
+                }
+                return parent;
+            }
+
+            public List<stateType> PerformAbstraction(double[,] distances, List<stateType> stateList, IEqualityComparer<stateType> stateComparer)
+            {
+                int numClus = 10;
+                List<stateType> clusters = new List<stateType>(stateList);
+
+                for (int i = 0; i < stateList.Count - numClus; i++)
+                {
+                    // find min distance
+                    int[] coords = findMinDist(distances);
+
+                    // create distance info for the new cluster
+                    for (int e=0; e<distances.GetLength(0); e++)
+                    {
+                        distances[coords[0], e] = Math.Max(distances[coords[0], e], distances[coords[1], e]);
+                        distances[e, coords[0]] = distances[coords[0], e];
+
+                        distances[coords[1], e] = double.PositiveInfinity;
+                        distances[e, coords[1]] = double.PositiveInfinity;
+
+                        if (stateComparer.Equals(clusters[e], clusters[coords[1]]))
+                            clusters[e] = clusters[coords[0]];
+                    }
+                    
+                }
+
+                return clusters;
+            }
+
+            private int[] findMinDist(double[,] distances)
+            {
+                double minVal = double.PositiveInfinity;
+                int[] coords = new int[2];
+
+                for (int i=1; i<distances.GetLength(0); i++)
+                {
+                    for (int j=0; j<i; j++)
+                    {
+                        if (distances[i,j] < minVal)
+                        {
+                            minVal = distances[i, j];
+                            coords[0] = i;
+                            coords[1] = j;
+                        }
+                    }
+                }
+                return coords;
+            }
+
+            private void assignParent(stateType child, int childLevel, stateType parent)
+            {
+
+            }
+        }
+
         public class intStateTree : StateTree<int[]>
         {        
             public void AddState(int[] state)
