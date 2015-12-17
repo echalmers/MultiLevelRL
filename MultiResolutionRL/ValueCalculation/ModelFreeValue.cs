@@ -8,9 +8,9 @@ namespace MultiResolutionRL.ValueCalculation
 {
     public class ModelFreeValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
-        double alpha = 0.5;
+        double alpha = 0.9;
         public double gamma = 0.9;
-        double defaultQ = 5;
+        double defaultQ = 10;
         Dictionary<stateType, Dictionary<actionType, double>> table;
         IEqualityComparer<actionType> actionComparer;
         List<actionType> availableActions;
@@ -57,10 +57,6 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override double update(StateTransition<stateType, actionType> transition)
         {
-            double oldVal = defaultQ;
-            if (table.ContainsKey(transition.oldState) && table[transition.oldState].ContainsKey(transition.action))
-                oldVal = table[transition.oldState][transition.action];
-
             stats.cumulativeReward += transition.reward;
 
             double q_s_a = value(transition.oldState, transition.action);
@@ -73,15 +69,19 @@ namespace MultiResolutionRL.ValueCalculation
                     table[transition.newState].Add(act, defaultQ);
                 }
             }
-            double maxNewQ = table[transition.newState].Values.Max();
-
-            // add a new (blank) table of action values if appropriate
             if (!table.ContainsKey(transition.oldState))
+            {
                 table.Add(transition.oldState, new Dictionary<actionType, double>(actionComparer));
-
+                foreach (actionType act in availableActions)
+                {
+                    table[transition.oldState].Add(act, defaultQ);
+                }
+            }
+            double maxNewQ = table[transition.newState].Values.Max();
+            
             table[transition.oldState][transition.action] = q_s_a + alpha * (transition.reward + gamma * maxNewQ - q_s_a);
             double newVal = table[transition.oldState][transition.action];
-            return Math.Abs(newVal - oldVal);
+            return Math.Abs(newVal - q_s_a);
         }
 
         public override stateType PredictNextState(stateType state, actionType action)

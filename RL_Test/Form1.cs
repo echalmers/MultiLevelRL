@@ -143,7 +143,7 @@ namespace RL_Test
             System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
             w.Close();
 
-            world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
+            world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelFreeValue<,>));
             chart1.Series.Add("Model-free" + chart1.Series.Count);
             chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             chart2.Series.Add("Model-free" + chart2.Series.Count);
