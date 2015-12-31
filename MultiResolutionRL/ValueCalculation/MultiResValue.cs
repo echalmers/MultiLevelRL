@@ -11,7 +11,7 @@ namespace MultiResolutionRL.ValueCalculation
     {
         public Goal<int[], actionType> currentGoal;
 
-        public ActionValue<int[], actionType>[] models;
+        public ModelBasedValue<int[], actionType>[] models;
         StateTransition<int[], actionType>[] transitions;
         public List<Goal<int[], actionType>>[] subgoals;
         List<actionType> availableActions;
@@ -42,6 +42,7 @@ namespace MultiResolutionRL.ValueCalculation
             actionComparer = ActionComparer;
             stateTree = new intStateTree();
             //stateTree = new taxiStateTree();
+            //stateTree = new learnedStateTree();
             
             pathFinder = new PathFinder<int[], actionType>(stateComparer);
 

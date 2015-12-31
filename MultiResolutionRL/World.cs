@@ -231,97 +231,82 @@ namespace MultiResolutionRL
 
         public void ExportAdjacencies()
         {
-            System.IO.StreamWriter writerStates = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\allStates.csv");
             System.IO.StreamWriter writerAdj = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Adjacencies.csv");
             ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
             IEqualityComparer<int[]> comparer = new IntArrayComparer();
 
             List<int[]> allStates = model.Qtable.Keys.ToList();
-            int[,] adj = new int[allStates.Count, allStates.Count];
 
-            for (int i = 0; i < allStates.Count; i++)
+            foreach (int[] state in allStates)
             {
-                writerStates.WriteLine(string.Join(",", allStates[i]));
-
                 foreach (int[] action in availableActions)
                 {
-                    int[] neighbor = model.PredictNextState(allStates[i], action);
-                    int neighborIndex = allStates.FindIndex((element) => comparer.Equals(element, neighbor));
-                    adj[i, neighborIndex] = 1;
+                    int[] neighbor = model.PredictNextState(state, action);
+                    writerAdj.WriteLine(string.Join(",", state) + "," + string.Join(",", neighbor));
                 }
-            }
-
-            for (int i = 0; i < adj.GetLength(0); i++)
-            {
-                for (int j = 0; j < adj.GetLength(0); j++)
-                {
-                    writerAdj.Write(adj[i, j] + ",");
-                }
-                writerAdj.Write(Environment.NewLine);
             }
             writerAdj.Flush(); writerAdj.Close();
-            writerStates.Flush(); writerStates.Close();
         }
 
-        public void ExportDistances()
-        {
-            System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distances.csv");
-            ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
-            PathFinder<int[], int[]> pathfinder = new PathFinder<int[], int[]>(new IntArrayComparer());
+        //public void ExportDistances()
+        //{
+        //    System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distances.csv");
+        //    ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
+        //    PathFinder<int[], int[]> pathfinder = new PathFinder<int[], int[]>(new IntArrayComparer());
 
-            double[,] distances = new double[model.Qtable.Keys.Count, model.Qtable.Keys.Count];
-            List<int[]> allStates = model.Qtable.Keys.ToList();
+        //    double[,] distances = new double[model.Qtable.Keys.Count, model.Qtable.Keys.Count];
+        //    List<int[]> allStates = model.Qtable.Keys.ToList();
 
-            //for (int i=1; i<map.GetLength(0)-1; i++)
-            //{
-            //    for (int j=0; j<map.GetLength(1)-1; j++)
-            //    {
-            for (int i=0; i<allStates.Count; i++)
-            {
-                int index1 = allStates.IndexOf(allStates[i]);
-                Dictionary<int[], double> dists = pathfinder.DijkstraDistances(allStates[i]/*new int[2] { i, j }*/, model, availableActions);
+        //    //for (int i=1; i<map.GetLength(0)-1; i++)
+        //    //{
+        //    //    for (int j=0; j<map.GetLength(1)-1; j++)
+        //    //    {
+        //    for (int i=0; i<allStates.Count; i++)
+        //    {
+        //        int index1 = allStates.IndexOf(allStates[i]);
+        //        Dictionary<int[], double> dists = pathfinder.DijkstraDistances(allStates[i]/*new int[2] { i, j }*/, model, availableActions);
 
-                foreach (int[] s in dists.Keys)
-                {
-                    //writer.WriteLine(i + "," + j + "," + s[0] + "," + s[1] + "," + dists[s]);
-                    writer.WriteLine(allStates[i][0] + "," + allStates[i][1] + "," + s[0] + "," + s[1] + "," + dists[s]);
-                }
+        //        foreach (int[] s in dists.Keys)
+        //        {
+        //            //writer.WriteLine(i + "," + j + "," + s[0] + "," + s[1] + "," + dists[s]);
+        //            writer.WriteLine(allStates[i][0] + "," + allStates[i][1] + "," + s[0] + "," + s[1] + "," + dists[s]);
+        //        }
 
-                for (int j=0; j<allStates.Count; j++)
-                {
-                    distances[i, j] = dists[allStates[j]];
-                    distances[j, i] = dists[allStates[j]];
-                }
+        //        for (int j=0; j<allStates.Count; j++)
+        //        {
+        //            distances[i, j] = dists[allStates[j]];
+        //            distances[j, i] = dists[allStates[j]];
+        //        }
 
-            }
-            //    }
-            //} 
+        //    }
+        //    //    }
+        //    //} 
             
-            writer.Flush();
-            writer.Close();
+        //    writer.Flush();
+        //    writer.Close();
 
-            writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distancesMat.csv");
-            for (int i = 0; i < allStates.Count; i++)
-            {
-                for (int j = 0; j < allStates.Count; j++)
-                {
-                    writer.Write(distances[i,j] + ",");
-                }
-                writer.Write(Environment.NewLine);
-            }
-            writer.Flush();
-            writer.Close();
+        //    writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distancesMat.csv");
+        //    for (int i = 0; i < allStates.Count; i++)
+        //    {
+        //        for (int j = 0; j < allStates.Count; j++)
+        //        {
+        //            writer.Write(distances[i,j] + ",");
+        //        }
+        //        writer.Write(Environment.NewLine);
+        //    }
+        //    writer.Flush();
+        //    writer.Close();
 
-            writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distancesClusters.csv");
-            StateManagement.SelfAbstractingStateTree<int[]> tree = new StateManagement.SelfAbstractingStateTree<int[]>();
-            List<int[]> clusters = tree.PerformAbstraction(distances, allStates, new IntArrayComparer());
-            for (int i= 0; i < clusters.Count; i++)
-            {
-                writer.WriteLine(string.Join(",", allStates[i]) + "," + string.Join(",", clusters[i]));
-            }
-            writer.Flush();
-            writer.Close();
-        }
+        //    writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distancesClusters.csv");
+        //    StateManagement.SelfAbstractingStateTree<int[]> tree = new StateManagement.SelfAbstractingStateTree<int[]>();
+        //    List<int[]> clusters = tree.PerformAbstraction(distances, allStates, new IntArrayComparer());
+        //    for (int i= 0; i < clusters.Count; i++)
+        //    {
+        //        writer.WriteLine(string.Join(",", allStates[i]) + "," + string.Join(",", clusters[i]));
+        //    }
+        //    writer.Flush();
+        //    writer.Close();
+        //}
         
     }
 

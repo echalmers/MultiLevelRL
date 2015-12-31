@@ -76,6 +76,23 @@ namespace MultiResolutionRL.ValueCalculation
             }
             return next;
         }
+
+        public stateType PredictNextStateOptimistic(stateType state, actionType action)
+        {
+            stats.modelAccesses++;
+
+            stateType next = default(stateType); double reward = double.NegativeInfinity;
+
+            foreach (stateType s in R.GetStateValueTable(state, action).Keys)
+            {
+                if (R.Get(state, action, s) > reward)
+                {
+                    reward = R.Get(state, action, s);
+                    next = s;
+                }
+            }
+            return next;
+        }
         
         public override double PredictReward(stateType state, actionType action, stateType newState)
         {

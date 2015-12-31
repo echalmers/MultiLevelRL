@@ -13,7 +13,7 @@ namespace MultiResolutionRL
 
     public class SoftmaxPolicy<stateType, actionType> : Policy<stateType, actionType>
     {
-        public double T = 1;
+        public double T = 0.1;
 
         Random rnd = new Random();
         public actionType selectAction(List<actionType> availableActions, List<double> values)

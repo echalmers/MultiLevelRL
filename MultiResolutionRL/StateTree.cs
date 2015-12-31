@@ -16,106 +16,84 @@ namespace MultiResolutionRL
             List<stateType> GetChildren(stateType parentState, int parentLevel);
         }
 
-        public class SelfAbstractingStateTree<stateType> : StateTree<stateType>
+        public class learnedStateTree : StateTree<int[]>
         {
-            List<Dictionary<stateType, stateType>> parents = new List<Dictionary<stateType, stateType>>();
-            List<Dictionary<stateType, List<stateType>>> children = new List<Dictionary<stateType, List<stateType>>>();
+            Dictionary<int[], int[]>[] parents;
+            Dictionary<int[], List<int[]>>[] children;
 
-            public void AddState(stateType state)
+            public learnedStateTree()
             {
-                //throw new NotImplementedException();
+                parents = new Dictionary<int[], int[]>[5];
+                children = new Dictionary<int[], List<int[]>>[5];
+                MultiResolutionRL.ValueCalculation.IntArrayComparer comparer = new ValueCalculation.IntArrayComparer();
+                for (int i=0; i<parents.Length; i++)
+                {
+                    parents[i] = new Dictionary<int[], int[]>(comparer);
+                    children[i] = new Dictionary<int[], List<int[]>>(comparer);
+                }
+
+                for (int i = 1; i <= 4; i++)
+                {
+                    System.IO.StreamReader rdr = new System.IO.StreamReader("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Fuzzy Place Field Test\\parents" + i + ".csv");
+                    rdr.ReadLine();
+                    string line;
+                    while ((line = rdr.ReadLine()) != null)
+                    {
+                        string[] elements = line.Split(',');
+                        int[] thisState = new int[2] { Convert.ToInt32(elements[0]), Convert.ToInt32(elements[1]) };
+                        int[] thisParent = new int[2] { Convert.ToInt32(elements[2]), Convert.ToInt32(elements[3]) };
+
+                        if (parents[i-1].ContainsKey(thisState))
+                            continue;
+
+                        parents[i-1][thisState] = thisParent;
+
+                        if (!children[i].ContainsKey(thisParent))
+                        {
+                            children[i].Add(thisParent, new List<int[]>());
+                        }
+                        children[i][thisParent].Add(thisState);
+                    }
+                    rdr.Close();
+                }
             }
 
-            public List<stateType> GetChildren(stateType parentState, int parentLevel)
+            void StateTree<int[]>.AddState(int[] state)
             {
-                if ((children[parentLevel] != null) && (children[parentLevel].ContainsKey(parentState)))
-                    return children[parentLevel][parentState];
-                else
-                    return new List<stateType>();
+                
             }
 
-            public List<stateType> GetLevel0Children(stateType parentState, int parentLevel)
+            public List<int[]> GetChildren(int[] parentState, int parentLevel)
             {
-                List<stateType> highLevel = new List<stateType>();
+                return children[parentLevel][parentState];
+            }
+
+            List<int[]> StateTree<int[]>.GetLevel0Children(int[] parentState, int parentLevel)
+            {
+                List<int[]> highLevel = new List<int[]>();
                 highLevel.Add(parentState);
-                List<stateType> lowLevel = new List<stateType>();
+                List<int[]> lowLevel = new List<int[]>();
 
                 for (int i = parentLevel; i > 0; i--)
                 {
-                    foreach (stateType s in highLevel)
+                    foreach (int[] s in highLevel)
                     {
                         lowLevel.AddRange(GetChildren(s, i));
                     }
-                    highLevel = new List<stateType>(lowLevel);
+                    highLevel = new List<int[]>(lowLevel);
                     lowLevel.Clear();
                 }
                 return highLevel;
             }
 
-            public stateType GetParentState(stateType state, int level)
+            int[] StateTree<int[]>.GetParentState(int[] state, int level)
             {
-                if (level == 0)
-                    return state;
-                
-                stateType parent = state;
+                int[] parent = new int[2] { state[0], state[1] };
                 for (int i=0; i< level; i++)
                 {
                     parent = parents[i][parent];
                 }
                 return parent;
-            }
-
-            public List<stateType> PerformAbstraction(double[,] distances, List<stateType> stateList, IEqualityComparer<stateType> stateComparer)
-            {
-                int numClus = 10;
-                List<stateType> clusters = new List<stateType>(stateList);
-
-                for (int i = 0; i < stateList.Count - numClus; i++)
-                {
-                    // find min distance
-                    int[] coords = findMinDist(distances);
-
-                    // create distance info for the new cluster
-                    for (int e=0; e<distances.GetLength(0); e++)
-                    {
-                        distances[coords[0], e] = Math.Max(distances[coords[0], e], distances[coords[1], e]);
-                        distances[e, coords[0]] = distances[coords[0], e];
-
-                        distances[coords[1], e] = double.PositiveInfinity;
-                        distances[e, coords[1]] = double.PositiveInfinity;
-
-                        if (stateComparer.Equals(clusters[e], clusters[coords[1]]))
-                            clusters[e] = clusters[coords[0]];
-                    }
-                    
-                }
-
-                return clusters;
-            }
-
-            private int[] findMinDist(double[,] distances)
-            {
-                double minVal = double.PositiveInfinity;
-                int[] coords = new int[2];
-
-                for (int i=1; i<distances.GetLength(0); i++)
-                {
-                    for (int j=0; j<i; j++)
-                    {
-                        if (distances[i,j] < minVal)
-                        {
-                            minVal = distances[i, j];
-                            coords[0] = i;
-                            coords[1] = j;
-                        }
-                    }
-                }
-                return coords;
-            }
-
-            private void assignParent(stateType child, int childLevel, stateType parent)
-            {
-
             }
         }
 

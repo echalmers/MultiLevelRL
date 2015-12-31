@@ -15,7 +15,7 @@ namespace MultiResolutionRL.ValueCalculation
         List<int[]> allActions;
 
         StateManagement.intStateTree stateTree = new StateManagement.intStateTree();
-        Policy<int[], int[]> managerPolicy = new EGreedyPolicy<int[], int[]>();
+        Policy<int[], int[]> managerPolicy = new SoftmaxPolicy<int[], int[]>();
 
         int numManagers;
         ActionValue<int[], int[]>[] managers;
@@ -23,7 +23,7 @@ namespace MultiResolutionRL.ValueCalculation
         int[] startTimes;
 
         int timerCnt = 0;
-        int timeout = 2;
+        int timeout = 10;
 
         public FeudalValue(IEqualityComparer<int[]> StateComparer, IEqualityComparer<int[]> ActionComparer, List<int[]> AvailableActions, int[] StartState, params object[] parameters)
             : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
@@ -155,7 +155,7 @@ namespace MultiResolutionRL.ValueCalculation
             int[] lowestLevNewStateCmd = new int[4] { transition.newState[0], transition.newState[1], commands[1][0], commands[1][1] };
             StateTransition<int[], int[]> thisLevel0Transition = new StateTransition<int[], int[]>(lowestLevOldStateCmd, transition.action, transition.reward, lowestLevNewStateCmd);
             managers[0].update(thisLevel0Transition);
-
+            
             //goal reward
             if (transition.reward > 1)
             {
@@ -165,8 +165,8 @@ namespace MultiResolutionRL.ValueCalculation
                     {
                         int[] thisLevelOldState = stateTree.GetParentState(transition.oldState, i);
                         int[] thisLevelNewState = stateTree.GetParentState(transition.newState, i);
-                        int[] thisLevelOldStateCmd = new int[4] { thisLevelOldState[0], thisLevelOldState[1], oldCommands[i+1][0], oldCommands[i+1][1] };
-                        int[] thisLevelNewStateCmd = new int[4] { thisLevelNewState[0], thisLevelNewState[1], commands[i+1][0], commands[i+1][1] };
+                        int[] thisLevelOldStateCmd = new int[4] { thisLevelOldState[0], thisLevelOldState[1], oldCommands[i + 1][0], oldCommands[i + 1][1] };
+                        int[] thisLevelNewStateCmd = new int[4] { thisLevelNewState[0], thisLevelNewState[1], commands[i + 1][0], commands[i + 1][1] };
                         StateTransition<int[], int[]> thisTransition = new StateTransition<int[], int[]>(thisLevelOldStateCmd, oldCommands[i], transition.reward, thisLevelNewStateCmd);
                         Console.WriteLine("environmental reward " + i + " " + thisTransition.reward);
                         managers[i].update(thisTransition);
