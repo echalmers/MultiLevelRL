@@ -16,7 +16,7 @@ namespace MultiResolutionRL.ValueCalculation
         public List<Goal<int[], actionType>>[] subgoals;
         List<actionType> availableActions;
         PathFinder<int[], actionType> pathFinder;
-        StateTree<int[]> stateTree;
+        public StateTree<int[]> stateTree;
         //taxiStateTree stateTree;
         PerformanceStats combinedStats = new PerformanceStats();
 
@@ -33,7 +33,7 @@ namespace MultiResolutionRL.ValueCalculation
             : base(StateComparer, ActionComparer, AvailableActions, StartState, numLevels_minLevel)
         {
             minLevel = numLevels_minLevel.Length >= 2 ? (int)numLevels_minLevel[1] : 0;
-            models = new ActionValue<int[], actionType>[(int)numLevels_minLevel[0]];
+            models = new ModelBasedValue<int[], actionType>[(int)numLevels_minLevel[0]];
             transitions = new StateTransition<int[], actionType>[(int)numLevels_minLevel[0]];
             subgoals = new List<Goal<int[], actionType>>[(int)numLevels_minLevel[0]];
 
@@ -137,7 +137,7 @@ namespace MultiResolutionRL.ValueCalculation
                     // plan the route to the goal
                     List<int[]> goalStates = stateTree.GetChildren(subgoals[l + 1][0].goalState, l + 1);
                     int[] startState = stateTree.GetParentState(state, l);
-                    List<Tuple<int[], actionType, double>> path = pathFinder.AStar(startState, goalStates, models[l], actions, false);//l != 0);
+                    List<Tuple<int[], actionType, double>> path = pathFinder.AStar(startState, goalStates, models[l], actions, false);// l!=0);
                     subgoals[l] = path2subgoals(path, l, models[l]);
 
                     if (subgoals[l].Count == 0) // if no path is known, pass control to lowest level
@@ -170,23 +170,23 @@ namespace MultiResolutionRL.ValueCalculation
                     }
                 }
 
-                System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
-                //w.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState));
-                for (int k = 0; k <= currentGoal.level; k++)
-                {
-                    foreach (Goal<int[], actionType> step in subgoals[k])
-                    {
-                        if (step.goalState != null)
-                        {
-                            foreach (int[] s in stateTree.GetLevel0Children(step.goalState, k))
-                            {
-                                w.WriteLine(string.Join(",", s) + "," + (k == currentGoal.level ? "g" : "p"));
-                            }
-                            //w.WriteLine("Goal: Level " + Math.Max(0, l) + ", at " + String.Join(",", step.goalState));
-                        }
-                    }
-                }
-                w.Flush(); w.Close();
+                //System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
+                ////w.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState));
+                //for (int k = 0; k <= currentGoal.level; k++)
+                //{
+                //    foreach (Goal<int[], actionType> step in subgoals[k])
+                //    {
+                //        if (step.goalState != null)
+                //        {
+                //            foreach (int[] s in stateTree.GetLevel0Children(step.goalState, k))
+                //            {
+                //                w.WriteLine(string.Join(",", s) + "," + (k == currentGoal.level ? "g" : "p"));
+                //            }
+                //            //w.WriteLine("Goal: Level " + Math.Max(0, l) + ", at " + String.Join(",", step.goalState));
+                //        }
+                //    }
+                //}
+                //w.Flush(); w.Close();
             }
 
             if (minLevel > 0) // for simulating dH lesion

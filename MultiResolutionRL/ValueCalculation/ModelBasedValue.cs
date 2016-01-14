@@ -8,7 +8,7 @@ namespace MultiResolutionRL.ValueCalculation
 {
     public class ModelBasedValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
-        public double defaultQ = 15, gamma = 0.9;
+        public double defaultQ = 10, gamma = 0.9;
         int c = 1;
         public int maxUpdates = 120;//1000;
         SAStable<stateType, actionType, int> T;
@@ -18,7 +18,7 @@ namespace MultiResolutionRL.ValueCalculation
         IEqualityComparer<stateType> stateComparer;
         public Func<stateType, IEnumerable<stateType>> stateUpdateSelector = null;
 
-        Dictionary<stateType, Dictionary<stateType, List<actionType>>> predecessors;
+        Dictionary<stateType, Dictionary<stateType, HashSet<actionType>>> predecessors;
         Dictionary<stateType, double> priority;
 
         PerformanceStats stats = new PerformanceStats();
@@ -37,7 +37,7 @@ namespace MultiResolutionRL.ValueCalculation
             R = new SAStable<stateType, actionType, double>(stateComparer, actionComparer, availableActions, defaultQ);
             Qtable = new Dictionary<stateType, Dictionary<actionType, double>>(stateComparer);
 
-            predecessors = new Dictionary<stateType, Dictionary<stateType, List<actionType>>>(stateComparer);
+            predecessors = new Dictionary<stateType, Dictionary<stateType, HashSet<actionType>>>(stateComparer);
             priority = new Dictionary<stateType, double>(stateComparer);
         }
 
@@ -146,9 +146,9 @@ namespace MultiResolutionRL.ValueCalculation
 
             // update predecessors list
             if (!predecessors.ContainsKey(transition.newState))
-                predecessors.Add(transition.newState, new Dictionary<stateType, List<actionType>>(stateComparer));
+                predecessors.Add(transition.newState, new Dictionary<stateType, HashSet<actionType>>(stateComparer));
             if (!predecessors[transition.newState].ContainsKey(transition.oldState))
-                predecessors[transition.newState].Add(transition.oldState, new List<actionType>());
+                predecessors[transition.newState].Add(transition.oldState, new HashSet<actionType>(actionComparer));
             predecessors[transition.newState][transition.oldState].Add(transition.action);
 
             
@@ -178,7 +178,7 @@ namespace MultiResolutionRL.ValueCalculation
 
                     // perform update
                     double oldValue = value(priorityS, availableActions).Max();
-                    foreach (actionType a in availableActions)
+                    foreach (actionType a in availableActions) 
                     {
                         updateQ(priorityS, a);
                         stats.modelUpdates++;

@@ -53,6 +53,8 @@
     <Compile Include="ValueCalculation\ActionValue.cs" />
     <Compile Include="StateTransition.cs" />
     <Compile Include="ValueCalculation\FeudalValue.cs" />
+    <Compile Include="ValueCalculation\FilteredValue.cs" />
+    <Compile Include="ValueCalculation\ModelBasedAvgRwdValue.cs" />
     <Compile Include="ValueCalculation\ModelBasedValue.cs" />
     <Compile Include="ValueCalculation\ModelFreeValue.cs" />
     <Compile Include="ValueCalculation\MultiResValue.cs" />

@@ -32,8 +32,9 @@ namespace MultiResolutionRL
                     children[i] = new Dictionary<int[], List<int[]>>(comparer);
                 }
 
-                for (int i = 1; i <= 4; i++)
+                for (int i = 1; i <= 3; i++)
                 {
+                    
                     System.IO.StreamReader rdr = new System.IO.StreamReader("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Fuzzy Place Field Test\\parents" + i + ".csv");
                     rdr.ReadLine();
                     string line;
@@ -58,17 +59,19 @@ namespace MultiResolutionRL
                 }
             }
 
-            void StateTree<int[]>.AddState(int[] state)
+            public void AddState(int[] state)
             {
                 
             }
 
             public List<int[]> GetChildren(int[] parentState, int parentLevel)
             {
+                if (!children[parentLevel].ContainsKey(parentState))
+                    return new List<int[]>();
                 return children[parentLevel][parentState];
             }
 
-            List<int[]> StateTree<int[]>.GetLevel0Children(int[] parentState, int parentLevel)
+            public List<int[]> GetLevel0Children(int[] parentState, int parentLevel)
             {
                 List<int[]> highLevel = new List<int[]>();
                 highLevel.Add(parentState);
@@ -86,7 +89,7 @@ namespace MultiResolutionRL
                 return highLevel;
             }
 
-            int[] StateTree<int[]>.GetParentState(int[] state, int level)
+            public int[] GetParentState(int[] state, int level)
             {
                 int[] parent = new int[2] { state[0], state[1] };
                 for (int i=0; i< level; i++)

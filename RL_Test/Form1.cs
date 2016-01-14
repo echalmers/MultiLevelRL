@@ -18,6 +18,7 @@ namespace RL_Test
     public partial class Form1 : Form
     {
         System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Presentation Sept 28\\cumulativeReward.txt");
+        System.IO.StreamWriter trajWriter;
         World world;
         bool saveImages = false;
         string saveFolder; int numSavedImages = 0;
@@ -36,6 +37,9 @@ namespace RL_Test
             for (int i=0; i<(int)stepsUpDown.Value; i++)
             {
                 stats = world.stepAgent(actionTextBox.Text);
+
+                //trajWriter.WriteLine(string.Join(",", ((Agent<int[], int[]>)agent).state));
+
                 label1.Text = i.ToString();
                 label1.Refresh();
 
@@ -106,6 +110,11 @@ namespace RL_Test
                 world.Load(of.FileName);
                 pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
             }
+            if (trajWriter!=null && trajWriter.BaseStream != null)
+            {
+                trajWriter.Flush(); trajWriter.Close();
+            }
+            trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\trajectory" + of.SafeFileName + ".csv");
         }
 
         private void worldModelButton_Click(object sender, EventArgs e)
@@ -124,7 +133,7 @@ namespace RL_Test
 
         private void multiModelButton_Click(object sender, EventArgs e)
         {
-            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 4);
+            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 8);
             chart1.Series.Add("Multi-layer" + chart1.Series.Count);
             chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             chart2.Series.Add("Multi-layer" + chart2.Series.Count);
@@ -193,7 +202,7 @@ namespace RL_Test
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            ((GridWorld)world).ExportAdjacencies();
+            ((GridWorld)world).ExportGradients();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -211,6 +220,11 @@ namespace RL_Test
                     break;
                 case "Taxi":
                     world = new Taxi();
+                    loadMapButton.Enabled = true;
+                    loadMapButton.PerformClick();
+                    break;
+                case "Stochastic":
+                    world = new stochasticRewardGridworld();
                     loadMapButton.Enabled = true;
                     loadMapButton.PerformClick();
                     break;
@@ -314,8 +328,33 @@ namespace RL_Test
         {
             world = new GridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map16.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10b.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
+        }
+
+        private void exportButton_Click(object sender, EventArgs e)
+        {
+            ((GridWorld)world).ExportAdjacencies();
+        }
+
+        private void fromMdlButton_Click(object sender, EventArgs e)
+        {
+            ModelBasedValue<int[], int[]> singleModel = (ModelBasedValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue;
+            multiModelButton.PerformClick();
+            MultiResValue<int[],int[]> multiModel = (MultiResValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue;
+            multiModel.models[0] = singleModel;
+            multiModel.stateTree = new MultiResolutionRL.StateManagement.learnedStateTree();
+        }
+
+        private void avgRbutton_Click(object sender, EventArgs e)
+        {
+            world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelBasedAvgRwdValue<,>));
+            chart1.Series.Add("AvgRwd" + chart1.Series.Count);
+            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart2.Series.Add("AvgRwd" + chart2.Series.Count);
+            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart3.Series.Add("AvgRwd" + chart3.Series.Count);
+            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
         }
     }
 }

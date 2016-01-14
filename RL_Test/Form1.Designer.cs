@@ -59,6 +59,9 @@
             this.steps2goalContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.button2 = new System.Windows.Forms.Button();
+            this.exportButton = new System.Windows.Forms.Button();
+            this.fromMdlButton = new System.Windows.Forms.Button();
+            this.avgRbutton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.imageContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.stepsUpDown)).BeginInit();
@@ -173,7 +176,7 @@
             this.chart1.ContextMenuStrip = this.chartContextMenu;
             this.chart1.Location = new System.Drawing.Point(12, 218);
             this.chart1.Name = "chart1";
-            this.chart1.Size = new System.Drawing.Size(463, 122);
+            this.chart1.Size = new System.Drawing.Size(543, 122);
             this.chart1.TabIndex = 7;
             this.chart1.Text = "chart1";
             // 
@@ -280,7 +283,8 @@
             this.comboBox1.Items.AddRange(new object[] {
             "GridWorld",
             "Mountain Car",
-            "Taxi"});
+            "Taxi",
+            "Stochastic"});
             this.comboBox1.Location = new System.Drawing.Point(221, 14);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(75, 21);
@@ -297,7 +301,7 @@
             this.chart2.ContextMenuStrip = this.chartContextMenu;
             this.chart2.Location = new System.Drawing.Point(12, 338);
             this.chart2.Name = "chart2";
-            this.chart2.Size = new System.Drawing.Size(463, 122);
+            this.chart2.Size = new System.Drawing.Size(543, 122);
             this.chart2.TabIndex = 17;
             this.chart2.Text = "chart2";
             // 
@@ -312,7 +316,7 @@
             this.chart3.ContextMenuStrip = this.steps2goalContextMenu;
             this.chart3.Location = new System.Drawing.Point(12, 460);
             this.chart3.Name = "chart3";
-            this.chart3.Size = new System.Drawing.Size(463, 122);
+            this.chart3.Size = new System.Drawing.Size(543, 122);
             this.chart3.TabIndex = 18;
             this.chart3.Text = "chart3";
             // 
@@ -340,11 +344,44 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
+            // exportButton
+            // 
+            this.exportButton.Location = new System.Drawing.Point(481, 40);
+            this.exportButton.Name = "exportButton";
+            this.exportButton.Size = new System.Drawing.Size(75, 23);
+            this.exportButton.TabIndex = 20;
+            this.exportButton.Text = "Export";
+            this.exportButton.UseVisualStyleBackColor = true;
+            this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
+            // 
+            // fromMdlButton
+            // 
+            this.fromMdlButton.Location = new System.Drawing.Point(481, 99);
+            this.fromMdlButton.Name = "fromMdlButton";
+            this.fromMdlButton.Size = new System.Drawing.Size(75, 23);
+            this.fromMdlButton.TabIndex = 21;
+            this.fromMdlButton.Text = "From Model";
+            this.fromMdlButton.UseVisualStyleBackColor = true;
+            this.fromMdlButton.Click += new System.EventHandler(this.fromMdlButton_Click);
+            // 
+            // avgRbutton
+            // 
+            this.avgRbutton.Location = new System.Drawing.Point(481, 13);
+            this.avgRbutton.Name = "avgRbutton";
+            this.avgRbutton.Size = new System.Drawing.Size(75, 23);
+            this.avgRbutton.TabIndex = 22;
+            this.avgRbutton.Text = "AvgR";
+            this.avgRbutton.UseVisualStyleBackColor = true;
+            this.avgRbutton.Click += new System.EventHandler(this.avgRbutton_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(486, 597);
+            this.ClientSize = new System.Drawing.Size(566, 597);
+            this.Controls.Add(this.avgRbutton);
+            this.Controls.Add(this.fromMdlButton);
+            this.Controls.Add(this.exportButton);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.chart3);
             this.Controls.Add(this.chart2);
@@ -409,6 +446,9 @@
         private System.Windows.Forms.ContextMenuStrip steps2goalContextMenu;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button exportButton;
+        private System.Windows.Forms.Button fromMdlButton;
+        private System.Windows.Forms.Button avgRbutton;
     }
 }
 

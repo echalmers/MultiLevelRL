@@ -17,6 +17,159 @@ namespace MultiResolutionRL
         Bitmap showState(int width, int height, bool showPath = false);
     }
 
+    public class stochasticRewardGridworld : World
+    {
+        public Bitmap mapBmp;
+        private int[,] map;
+        private int[] startState;
+        public Agent<int[], int[]> agent;
+        List<int[]> availableActions;
+        int[] currentRewardSite;
+        Random rnd = new Random();
+        IntArrayComparer comparer = new IntArrayComparer();
+        HashSet<int[]> rewardSites;
+
+        public stochasticRewardGridworld()
+        {
+            availableActions = new List<int[]>();
+            availableActions.Add(new int[2] { -1, 0 });
+            availableActions.Add(new int[2] { 0, -1 });
+            availableActions.Add(new int[2] { 1, 0 });
+            availableActions.Add(new int[2] { 0, 1 });
+
+            rewardSites = new HashSet<int[]>(comparer);
+
+            // set the default agent
+            startState = new int[2] { 1, 1 };
+
+            Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
+            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
+            agent = new Agent<int[], int[]>(startState, policy, value, availableActions);
+        }
+
+        public object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters)
+        {
+            policyType = policyType.MakeGenericType(typeof(int[]), typeof(int[]));
+            Policy<int[], int[]> newPolicy = (Policy<int[], int[]>)Activator.CreateInstance(policyType);
+
+            actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int[]));
+            ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
+
+            agent = new Agent<int[], int[]>(startState, newPolicy, newActionValue, availableActions);
+            return agent;
+        }
+
+        public void Load(string filename)
+        {
+            mapBmp = new Bitmap(filename);
+            map = new int[mapBmp.Width, mapBmp.Height];
+
+            for (int i = 0; i < mapBmp.Width; i++)
+            {
+                for (int j = 0; j < mapBmp.Height; j++)
+                {
+                    Color thisPixel = mapBmp.GetPixel(i, j);
+                    if (thisPixel == Color.FromArgb(0, 0, 0))
+                    {
+                        startState = new int[2] { i, j };
+                        mapBmp.SetPixel(i, j, Color.Yellow);
+                    }
+
+                    if (thisPixel == Color.FromArgb(0, 0, 255))
+                        map[i, j] = 1;
+                    else if (thisPixel == Color.FromArgb(255, 0, 0))
+                        map[i, j] = 2;
+                    else if (thisPixel == Color.FromArgb(255, 0, 255))
+                    {
+                        map[i, j] = 3;
+                        rewardSites.Add(new int[2] { i, j });
+                        mapBmp.SetPixel(i, j, Color.White);
+                    }
+                    else
+                        map[i, j] = 0;
+                }
+            }
+            
+            agent.state = startState;
+            currentRewardSite = rewardSites.ElementAt(rnd.Next(rewardSites.Count - 1));
+        }
+
+        public Bitmap showState(int width, int height, bool showPath = false)
+        {
+            width = 100; height = 100;
+            Bitmap modMap = new Bitmap(mapBmp);
+            
+            modMap.SetPixel(agent.state[0], agent.state[1], Color.Black);
+            modMap.SetPixel(currentRewardSite[0], currentRewardSite[1], Color.Green);
+
+            Bitmap resized = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(resized))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                g.DrawImage(modMap, 0, 0, width, height);
+            }
+            return resized;
+        }
+
+        public PerformanceStats stepAgent(string userAction = "")
+        {
+            int[] state = agent.state;
+            int[] action;
+            if (userAction == "")
+                action = agent.selectAction();
+            else
+            {
+                string[] act = userAction.Split(',');
+                action = new int[2];
+                action[0] = Convert.ToInt32(act[0]);
+                action[1] = Convert.ToInt32(act[1]);
+            }
+
+            int[] newState = new int[2];
+            double reward = 0;
+            bool absorbingStateReached = false;
+
+            // get the type of the new location
+            int[] potentialNewState = new int[2] { state[0] + action[0], state[1] + action[1] };
+            int newStateType = map[potentialNewState[0], potentialNewState[1]];
+            switch (newStateType)
+            {
+                case 0: // open space
+                    newState = new int[2] { state[0] + action[0], state[1] + action[1] };
+                    reward = -0.01;
+                    break;
+                case 1: // wall
+                    newState = new int[2] { state[0], state[1] };
+                    reward = -0.1;
+                    break;
+                case 2: // lava
+                    newState = new int[2] { state[0] + action[0], state[1] + action[1] };
+                    reward = -0.5;
+                    break;
+                case 3: // reward site
+                    if (comparer.Equals(currentRewardSite, potentialNewState))
+                    {
+                        newState = new int[2] { startState[0], startState[1] };
+                        currentRewardSite = rewardSites.ElementAt(rnd.Next(rewardSites.Count));
+                        reward = 10;
+                        absorbingStateReached = true;
+                    }
+                    else
+                    {
+                        newState = new int[2] { state[0] + action[0], state[1] + action[1] };
+                        reward = -0.01;
+                    }
+                    break;
+            }
+
+            agent.getStats().TallyStepsToGoal(reward > 0);
+            
+            agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
+            return agent.getStats();
+        }
+    }
+
     public class GridWorld : World
     {
         public Bitmap mapBmp;
@@ -214,8 +367,8 @@ namespace MultiResolutionRL
                 double[] thisValLine = new double[map.GetLength(1)];
                 for (int j = 0; j < map.GetLength(1); j++)
                 {
-                    int[] thisState = tree.GetParentState(new int[2] { i, j }, 5);
-                    double[] actionVals = av.models[5].value(thisState, availableActions);
+                    int[] thisState = tree.GetParentState(new int[2] { i, j }, 0);
+                    double[] actionVals = av.models[0].value(thisState, availableActions);
                     thisXLine[j] = actionVals[2] - actionVals[0];
                     thisYLine[j] = actionVals[3] - actionVals[1];
                     thisValLine[j] = actionVals.Max();
@@ -231,7 +384,7 @@ namespace MultiResolutionRL
 
         public void ExportAdjacencies()
         {
-            System.IO.StreamWriter writerAdj = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Adjacencies.csv");
+            System.IO.StreamWriter writerAdj = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Fuzzy Place Field Test\\Adjacencies.csv");
             ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
             IEqualityComparer<int[]> comparer = new IntArrayComparer();
 
