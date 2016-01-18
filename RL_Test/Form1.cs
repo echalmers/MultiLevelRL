@@ -367,5 +367,28 @@ namespace RL_Test
             chart3.Series.Add("AvgRwd" + chart3.Series.Count);
             chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>));
+            chart1.Series.Add("AvgRwd" + chart1.Series.Count);
+            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart2.Series.Add("AvgRwd" + chart2.Series.Count);
+            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart3.Series.Add("AvgRwd" + chart3.Series.Count);
+            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Agent<int[], int[]> a = (Agent<int[], int[]>)agent;
+            ((ContextSwitchValue<int[], int[]>)a._actionValue).selectModel(0);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            Agent<int[], int[]> a = (Agent<int[], int[]>)agent;
+            ((ContextSwitchValue<int[], int[]>)a._actionValue).selectModel(1);
+        }
     }
 }
