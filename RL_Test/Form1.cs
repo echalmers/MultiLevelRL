@@ -152,7 +152,7 @@ namespace RL_Test
             System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
             w.Close();
 
-            world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelFreeValue<,>));
+            world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
             chart1.Series.Add("Model-free" + chart1.Series.Count);
             chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             chart2.Series.Add("Model-free" + chart2.Series.Count);
@@ -202,7 +202,7 @@ namespace RL_Test
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            ((GridWorld)world).ExportGradients();
+            ((stochasticRewardGridworld)world).ExportGradients();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -326,9 +326,9 @@ namespace RL_Test
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            world = new GridWorld();
+            world = new stochasticRewardGridworld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10b.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\stochastic2.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
@@ -349,6 +349,17 @@ namespace RL_Test
         private void avgRbutton_Click(object sender, EventArgs e)
         {
             world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelBasedAvgRwdValue<,>));
+            chart1.Series.Add("AvgRwd" + chart1.Series.Count);
+            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart2.Series.Add("AvgRwd" + chart2.Series.Count);
+            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart3.Series.Add("AvgRwd" + chart3.Series.Count);
+            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+        }
+
+        private void LSWSbutton_Click(object sender, EventArgs e)
+        {
+            world.addAgent(typeof(OptimalPolicy<,>), typeof(LSValue<,>));
             chart1.Series.Add("AvgRwd" + chart1.Series.Count);
             chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             chart2.Series.Add("AvgRwd" + chart2.Series.Count);

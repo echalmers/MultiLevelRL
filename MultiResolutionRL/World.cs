@@ -51,7 +51,7 @@ namespace MultiResolutionRL
         {
             policyType = policyType.MakeGenericType(typeof(int[]), typeof(int[]));
             Policy<int[], int[]> newPolicy = (Policy<int[], int[]>)Activator.CreateInstance(policyType);
-
+            
             actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int[]));
             ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
 
@@ -79,7 +79,7 @@ namespace MultiResolutionRL
                         map[i, j] = 1;
                     else if (thisPixel == Color.FromArgb(255, 0, 0))
                         map[i, j] = 2;
-                    else if (thisPixel == Color.FromArgb(255, 0, 255))
+                    else if (thisPixel == Color.FromArgb(255, 0, 255) || thisPixel == Color.FromArgb(0,255,0))
                     {
                         map[i, j] = 3;
                         rewardSites.Add(new int[2] { i, j });
@@ -137,11 +137,11 @@ namespace MultiResolutionRL
             {
                 case 0: // open space
                     newState = new int[2] { state[0] + action[0], state[1] + action[1] };
-                    reward = -0.01;
+                    reward = 0;
                     break;
                 case 1: // wall
                     newState = new int[2] { state[0], state[1] };
-                    reward = -0.1;
+                    reward = 0;
                     break;
                 case 2: // lava
                     newState = new int[2] { state[0] + action[0], state[1] + action[1] };
@@ -150,23 +150,55 @@ namespace MultiResolutionRL
                 case 3: // reward site
                     if (comparer.Equals(currentRewardSite, potentialNewState))
                     {
-                        newState = new int[2] { startState[0], startState[1] };
                         currentRewardSite = rewardSites.ElementAt(rnd.Next(rewardSites.Count));
                         reward = 10;
                         absorbingStateReached = true;
                     }
                     else
                     {
-                        newState = new int[2] { state[0] + action[0], state[1] + action[1] };
+                        //newState = new int[2] { state[0] + action[0], state[1] + action[1] };
                         reward = -0.01;
                     }
+                    newState = new int[2] { startState[0], startState[1] };
                     break;
             }
+
+            //LSValue<int[], int[]> av = (LSValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue;
+            //Console.Write(Math.Round(av.value(new int[2] { 1, 2 }, new int[2] { 0, -1 }), 2) + ",  ");
+            //Console.Write(Math.Round(av.PredictReward(new int[2] { 1, 2 }, new int[2] { 0, -1 }, new int[2] { 5, 5 }), 2) + ",   ");
+            //Console.Write(Math.Round(av.PredictReward(new int[2] { 1, 2 }, new int[2] { 0, -1 }, new int[2] { 1, 1 }), 2));
+
+            //Console.Write("    |    " + Math.Round(av.value(new int[2] { 9, 8 }, new int[2] { 0, 1 }), 2) + ",  ");
+            //Console.Write(Math.Round(av.PredictReward(new int[2] { 9, 8 }, new int[2] { 0, 1 }, new int[2] { 5, 5 }), 2) + ",   ");
+            //Console.WriteLine(Math.Round(av.PredictReward(new int[2] { 9, 8 }, new int[2] { 0, 1 }, new int[2] { 9, 9 }), 2));
 
             agent.getStats().TallyStepsToGoal(reward > 0);
             
             agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
             return agent.getStats();
+        }
+
+        public void ExportGradients()
+        {
+            /*FilteredValue<int[], int[]>*/ ActionValue<int[],int[]> av = /*(FilteredValue<int[], int[]>)*/agent._actionValue;
+            StateManagement.intStateTree tree = new StateManagement.intStateTree();
+            
+            System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
+            for (int i = 0; i < map.GetLength(0); i++)
+            {
+                double[] thisXLine = new double[map.GetLength(1)];
+                double[] thisYLine = new double[map.GetLength(1)];
+                double[] thisValLine = new double[map.GetLength(1)];
+                for (int j = 0; j < map.GetLength(1); j++)
+                {
+                    double[] actionVals = av.value(new int[2] { i, j }, availableActions);
+                    thisXLine[j] = actionVals[2] - actionVals[0];
+                    thisYLine[j] = actionVals[3] - actionVals[1];
+                    thisValLine[j] = actionVals.Max();
+                }
+                valWriter.WriteLine(string.Join(",", thisValLine));
+            }
+            valWriter.Flush(); valWriter.Close();
         }
     }
 

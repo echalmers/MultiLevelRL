@@ -11,8 +11,8 @@ namespace MultiResolutionRL.ValueCalculation
         public double defaultQ = 10, gamma = 0.9;
         int c = 1;
         public int maxUpdates = 120;//1000;
-        SAStable<stateType, actionType, int> T;
-        SAStable<stateType, actionType, double> R;
+        public SAStable<stateType, actionType, int> T;
+        public SAStable<stateType, actionType, double> R;
         public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
@@ -223,7 +223,11 @@ namespace MultiResolutionRL.ValueCalculation
                 }
                 maxQ = Qtable[s2].Values.Max();
 
-                newQ += T.Get(state, action, s2) / P * (R.Get(state, action, s2) + gamma * maxQ);
+                
+                double thisT = T.Get(state, action, s2);
+                double thisR = R.Get(state, action, s2);
+                double thisProb = thisT / P;
+                newQ += thisProb * (thisR + gamma * maxQ);
 
             }
 
@@ -246,7 +250,7 @@ namespace MultiResolutionRL.ValueCalculation
 
     }
 
-    class SAStable<stateType, actionType, entryType>
+    public class SAStable<stateType, actionType, entryType>
     {
         Dictionary<stateType, Dictionary<actionType, Dictionary<stateType, entryType>>> table;
         List<actionType> availableActions;

@@ -8,7 +8,7 @@ namespace MultiResolutionRL.ValueCalculation
 {
     public class ModelFreeValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
-        double alpha = 0.9;
+        double alpha = 0.2;
         public double gamma = 0.9;
         double defaultQ = 10;
         Dictionary<stateType, Dictionary<actionType, double>> table;
