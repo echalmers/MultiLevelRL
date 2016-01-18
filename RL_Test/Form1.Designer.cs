@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.imageContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -62,6 +62,7 @@
             this.exportButton = new System.Windows.Forms.Button();
             this.fromMdlButton = new System.Windows.Forms.Button();
             this.avgRbutton = new System.Windows.Forms.Button();
+            this.contxtChng = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.imageContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.stepsUpDown)).BeginInit();
@@ -170,9 +171,9 @@
             // 
             this.chart1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea1.AxisY.Title = "Reward";
-            chartArea1.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea1);
+            chartArea4.AxisY.Title = "Reward";
+            chartArea4.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea4);
             this.chart1.ContextMenuStrip = this.chartContextMenu;
             this.chart1.Location = new System.Drawing.Point(12, 218);
             this.chart1.Name = "chart1";
@@ -295,9 +296,9 @@
             // 
             this.chart2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea2.AxisY.Title = "Model Use";
-            chartArea2.Name = "ChartArea1";
-            this.chart2.ChartAreas.Add(chartArea2);
+            chartArea1.AxisY.Title = "Model Use";
+            chartArea1.Name = "ChartArea1";
+            this.chart2.ChartAreas.Add(chartArea1);
             this.chart2.ContextMenuStrip = this.chartContextMenu;
             this.chart2.Location = new System.Drawing.Point(12, 338);
             this.chart2.Name = "chart2";
@@ -309,10 +310,10 @@
             // 
             this.chart3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea3.AxisY.IsLogarithmic = true;
-            chartArea3.AxisY.Title = "Steps to Goal";
-            chartArea3.Name = "ChartArea1";
-            this.chart3.ChartAreas.Add(chartArea3);
+            chartArea2.AxisY.IsLogarithmic = true;
+            chartArea2.AxisY.Title = "Steps to Goal";
+            chartArea2.Name = "ChartArea1";
+            this.chart3.ChartAreas.Add(chartArea2);
             this.chart3.ContextMenuStrip = this.steps2goalContextMenu;
             this.chart3.Location = new System.Drawing.Point(12, 460);
             this.chart3.Name = "chart3";
@@ -374,11 +375,22 @@
             this.avgRbutton.UseVisualStyleBackColor = true;
             this.avgRbutton.Click += new System.EventHandler(this.avgRbutton_Click);
             // 
+            // contxtChng
+            // 
+            this.contxtChng.Location = new System.Drawing.Point(481, 71);
+            this.contxtChng.Name = "contxtChng";
+            this.contxtChng.Size = new System.Drawing.Size(75, 23);
+            this.contxtChng.TabIndex = 23;
+            this.contxtChng.Text = "ContxtChng";
+            this.contxtChng.UseVisualStyleBackColor = true;
+            this.contxtChng.Click += new System.EventHandler(this.contxtChng_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(566, 597);
+            this.Controls.Add(this.contxtChng);
             this.Controls.Add(this.avgRbutton);
             this.Controls.Add(this.fromMdlButton);
             this.Controls.Add(this.exportButton);
@@ -449,6 +461,7 @@
         private System.Windows.Forms.Button exportButton;
         private System.Windows.Forms.Button fromMdlButton;
         private System.Windows.Forms.Button avgRbutton;
+        private System.Windows.Forms.Button contxtChng;
     }
 }
 

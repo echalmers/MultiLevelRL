@@ -11,14 +11,14 @@ using MultiResolutionRL;
 using MultiResolutionRL.ValueCalculation;
 using System.Threading;
 using System.Collections;
-using feudalRL_Library;
+
 
 namespace RL_Test
 {
     public partial class Form1 : Form
     {
-        System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Presentation Sept 28\\cumulativeReward.txt");
-        System.IO.StreamWriter trajWriter;
+       // System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Presentation Sept 28\\cumulativeReward.txt");
+       System.IO.StreamWriter trajWriter;
         World world;
         bool saveImages = false;
         string saveFolder; int numSavedImages = 0;
@@ -45,7 +45,7 @@ namespace RL_Test
 
                 chart1.Series.Last().Points.AddY(stats.cumulativeReward);
                 chart2.Series.Last().Points.AddY(stats.modelAccesses + stats.modelUpdates);
-                writer.WriteLine("Reward: " + stats.cumulativeReward);
+                //writer.WriteLine("Reward: " + stats.cumulativeReward);
 
                 if (displayCheckBox.Checked)
                 {
@@ -95,7 +95,7 @@ namespace RL_Test
             //{
             //    chart1.Series.Last().Points.AddXY(i, world.agent.cumulativeReward[i]);
             //}
-            writer.Flush();
+            //writer.Flush();
             //writer.Close();
         }
 
@@ -114,7 +114,7 @@ namespace RL_Test
             {
                 trajWriter.Flush(); trajWriter.Close();
             }
-            trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\trajectory" + of.SafeFileName + ".csv");
+            //trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\trajectory" + of.SafeFileName + ".csv");
         }
 
         private void worldModelButton_Click(object sender, EventArgs e)
@@ -354,6 +354,17 @@ namespace RL_Test
             chart2.Series.Add("AvgRwd" + chart2.Series.Count);
             chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             chart3.Series.Add("AvgRwd" + chart3.Series.Count);
+            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+        }
+
+        private void contxtChng_Click(object sender, EventArgs e)
+        {
+            world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextChangeValue<,>));
+            chart1.Series.Add("CntxtChng" + chart1.Series.Count);
+            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart2.Series.Add("CntxtChng" + chart2.Series.Count);
+            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart3.Series.Add("CntxtChng" + chart3.Series.Count);
             chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
         }
     }

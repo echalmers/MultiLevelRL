@@ -11,8 +11,8 @@ namespace MultiResolutionRL.ValueCalculation
         public double defaultQ = 10, gamma = 0.9;
         int c = 1;
         public int maxUpdates = 120;//1000;
-        SAStable<stateType, actionType, int> T;
-        SAStable<stateType, actionType, double> R;
+        public SAStable<stateType, actionType, int> T;
+        public  SAStable<stateType, actionType, double> R;
         public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
@@ -25,7 +25,7 @@ namespace MultiResolutionRL.ValueCalculation
         
         Random rnd = new Random(1);
 
-        List<actionType> availableActions;
+        public List<actionType> availableActions;
 
         public ModelBasedValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters)
             : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
@@ -246,7 +246,7 @@ namespace MultiResolutionRL.ValueCalculation
 
     }
 
-    class SAStable<stateType, actionType, entryType>
+    public class SAStable<stateType, actionType, entryType>
     {
         Dictionary<stateType, Dictionary<actionType, Dictionary<stateType, entryType>>> table;
         List<actionType> availableActions;
