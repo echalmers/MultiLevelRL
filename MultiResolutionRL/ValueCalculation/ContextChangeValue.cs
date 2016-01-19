@@ -22,8 +22,8 @@ namespace MultiResolutionRL.ValueCalculation
             ModelBasedValue<stateType, actionType> first = new ModelBasedValue<stateType, actionType>(StateComparer,ActionComparer,AvailableActions,StartState,parameters);
             models = new Dictionary<int, ActionValue<stateType, actionType>>();
             models.Add(0, first);
+        
             activeModelKey = 0;
-            
 
             SC = StateComparer;
             AC = ActionComparer;
@@ -37,20 +37,16 @@ namespace MultiResolutionRL.ValueCalculation
         public override double update(StateTransition<stateType, actionType> transition)
         {
             double holder=0;
-
-            if (!didChange)
-            holder = models[activeModelKey].update(transition);
-
-            if (models[0] is ModelBasedValue<stateType, actionType>)
+            holder = models[activeModelKey].update(transition); // getting old and new state of 3,10 when first model has vlaue of 0.3333333
+          //  if (models[0] is ModelBasedValue<stateType, actionType>)
                 t_tableProbs = t_TableValues(transition, models);
+            activeModelKey = FuncApprox();
             return holder;
         }
 
         //Needs to get the values from the currently active Model.
         public override double[] value(stateType state, List<actionType> actions)
-        {
-
-            activeModelKey = FuncApprox();
+        {         
             return models[activeModelKey].value(state, actions);           
         }
 
@@ -60,27 +56,23 @@ namespace MultiResolutionRL.ValueCalculation
         public int FuncApprox()
         {          
             int modelChoice = activeModelKey;
-            didChange = false;
             if (t_tableProbs != null)
             {
-                double maxProb = t_tableProbs[activeModelKey];
-                int maxProbIndex = activeModelKey;
-
+                double maxProb = t_tableProbs[modelChoice];
                 for (int index = 0; index < t_tableProbs.Count; index++)
                 {
+                    if(0.32 < t_tableProbs[index] && t_tableProbs[index] < 0.34)
                     Console.WriteLine("t_tableProbs: {0}, index = {2}, maxProb = {1}", t_tableProbs[index], maxProb, index);
-                    Console.WriteLine("ActiveModel: {0}", activeModelKey);
+                    
                     if (t_tableProbs[index] > maxProb)
                     {
-                        didChange = true;
                         maxProb = t_tableProbs[index];
                         modelChoice = index;
                     }
                 }
-
+                     Console.WriteLine("ActiveModel: {0}", activeModelKey);
                 if (maxProb <= 0.5)
-                {
-                    didChange = true;                   
+                {             
                     modelChoice = models.Count;
                     models.Add(modelChoice, newModel());
                     Console.WriteLine("Creating new model: {0}, the MaxProb was: {1}", modelChoice,maxProb);
@@ -91,29 +83,31 @@ namespace MultiResolutionRL.ValueCalculation
 
         //Given the Current state, needs to view all of the existing model values for the state
         //Will return the probabilities from the t-Table values from all the models as a list
-        public List<double> t_TableValues(StateTransition<stateType,actionType> StaTran,
-                                          Dictionary<int,ActionValue<stateType,actionType>> models )
+        public List<double> t_TableValues(StateTransition<stateType, actionType> StaTran,
+                                            Dictionary<int,ActionValue<stateType, actionType>> models)
+                                       
         {
-            
             List<double> returnValues = new List<double>();
-            int sumActionUsedAtState = -1; //how many times action has been called at state for the model
+            int sumActionUsedAtState = -999; //how many times action has been called at state for the model
             double tValue;
 
-            foreach (int key in models.Keys)
+            //foreach (int key in models.Keys)
+            for (int key=0; key< models.Count;key++)
             {
                 ModelBasedValue<stateType, actionType> modelsCopy = (ModelBasedValue < stateType, actionType> )models[key];
                 sumActionUsedAtState = modelsCopy.T.GetStateValueTable(StaTran.oldState, StaTran.action).Values.Sum();
-
                 tValue = modelsCopy.T.Get(StaTran.oldState, StaTran.action, StaTran.newState);
 
                 if (sumActionUsedAtState > 0)
+                {
                     returnValues.Add(tValue / sumActionUsedAtState);
+                    if (tValue / sumActionUsedAtState < 0.34)
+                        Console.WriteLine("??");
+                }
                 else
                     returnValues.Add(1);
             }
-
             return returnValues;
-
         }
 
         //Will take the similarities between models and apply a gaussian distribution on what model should be attempted
@@ -150,17 +144,18 @@ namespace MultiResolutionRL.ValueCalculation
         // previously existing model is useful for models that are similar up to a point but may have a slight difference
         public ActionValue<stateType,actionType> newModel()
         {
-            ActionValue<stateType, actionType> returnModel = null;
-            Type AVtype = models[0].GetType();
+             ActionValue<stateType, actionType> returnModel = null;
+             Type AVtype = models[0].GetType();
 
-          //  AVtype.MakeGenericType(typeof(stateType), typeof(actionType));
-            returnModel = (ActionValue<stateType, actionType>)Activator.CreateInstance(AVtype, SC, AC, AA, SS, parames);
+            // AVtype.MakeGenericType(typeof(stateType), typeof(actionType));
+              returnModel = (ActionValue<stateType, actionType>)Activator.CreateInstance(AVtype, SC, AC, AA, SS, parames);
 
-            return returnModel;
+              return returnModel;
         }
 
         //*******************MEMBERS*******************//
         Dictionary<int, ActionValue<stateType, actionType>> models;
+       // List<ActionValue<stateType, actionType>> models;
         int activeModelKey;
         bool didChange = false;
 
