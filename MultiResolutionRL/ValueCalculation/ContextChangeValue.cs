@@ -36,13 +36,14 @@ namespace MultiResolutionRL.ValueCalculation
         //Needs to update the currently active model.
         public override double update(StateTransition<stateType, actionType> transition)
         {
-            double holder=0;
-            holder = models[activeModelKey].update(transition); // getting old and new state of 3,10 when first model has vlaue of 0.3333333
+           
+           double holder = models[activeModelKey].update(transition); // getting old and new state of 3,10 when first model has vlaue of 0.3333333
           //  if (models[0] is ModelBasedValue<stateType, actionType>)
                 t_tableProbs = t_TableValues(transition, models);
             activeModelKey = FuncApprox();
             return holder;
         }
+
 
         //Needs to get the values from the currently active Model.
         public override double[] value(stateType state, List<actionType> actions)
@@ -62,20 +63,17 @@ namespace MultiResolutionRL.ValueCalculation
                 for (int index = 0; index < t_tableProbs.Count; index++)
                 {
                     if(0.32 < t_tableProbs[index] && t_tableProbs[index] < 0.34)
-                    Console.WriteLine("t_tableProbs: {0}, index = {2}, maxProb = {1}", t_tableProbs[index], maxProb, index);
-                    
+
                     if (t_tableProbs[index] > maxProb)
                     {
                         maxProb = t_tableProbs[index];
                         modelChoice = index;
                     }
                 }
-                     Console.WriteLine("ActiveModel: {0}", activeModelKey);
                 if (maxProb <= 0.5)
                 {             
                     modelChoice = models.Count;
                     models.Add(modelChoice, newModel());
-                    Console.WriteLine("Creating new model: {0}, the MaxProb was: {1}", modelChoice,maxProb);
                 }
             }
             return modelChoice;
@@ -88,24 +86,21 @@ namespace MultiResolutionRL.ValueCalculation
                                        
         {
             List<double> returnValues = new List<double>();
-            int sumActionUsedAtState = -999; //how many times action has been called at state for the model
-            double tValue;
 
-            //foreach (int key in models.Keys)
-            for (int key=0; key< models.Count;key++)
+            for (int key = 0; key < models.Count; key++)
             {
-                ModelBasedValue<stateType, actionType> modelsCopy = (ModelBasedValue < stateType, actionType> )models[key];
-                sumActionUsedAtState = modelsCopy.T.GetStateValueTable(StaTran.oldState, StaTran.action).Values.Sum();
-                tValue = modelsCopy.T.Get(StaTran.oldState, StaTran.action, StaTran.newState);
+                ModelBasedValue<stateType, actionType> modelsCopy = (ModelBasedValue<stateType, actionType>)models[key];
+                Dictionary<stateType, int> s2Counts = modelsCopy.T.GetStateValueTable(StaTran.oldState, StaTran.action);
 
-                if (sumActionUsedAtState > 0)
-                {
-                    returnValues.Add(tValue / sumActionUsedAtState);
-                    if (tValue / sumActionUsedAtState < 0.34)
-                        Console.WriteLine("??");
-                }
+                double thisS2Counts = 0;
+                if (s2Counts.ContainsKey(StaTran.newState))
+                    thisS2Counts = (double)s2Counts[StaTran.newState];
+                double total = (double)s2Counts.Values.Sum();
+
+                if (total == 0)
+                    returnValues.Add(0);
                 else
-                    returnValues.Add(1);
+                    returnValues.Add(thisS2Counts / total);
             }
             return returnValues;
         }
@@ -123,9 +118,7 @@ namespace MultiResolutionRL.ValueCalculation
         {
             List<int> returnValues = null;
             return returnValues;
-
         }
-
 
         //Return a list of values associated with the action values from each model for the given state
         public List<double[]> modelActionValues(StateTransition<stateType, actionType> StaTran,
@@ -157,7 +150,6 @@ namespace MultiResolutionRL.ValueCalculation
         Dictionary<int, ActionValue<stateType, actionType>> models;
        // List<ActionValue<stateType, actionType>> models;
         int activeModelKey;
-        bool didChange = false;
 
         //int numFactors=1;
         //List<double> FAweights= new List<double>(1);
@@ -184,8 +176,8 @@ namespace MultiResolutionRL.ValueCalculation
             throw new NotImplementedException();
         } 
         public override PerformanceStats getStats()
-        {         
-            return new PerformanceStats();
+        {
+            return models[activeModelKey].getStats();
            // throw new NotImplementedException();
         }
 
