@@ -62,14 +62,13 @@ namespace MultiResolutionRL.ValueCalculation
                 double maxProb = t_tableProbs[modelChoice];
                 for (int index = 0; index < t_tableProbs.Count; index++)
                 {
-                    if(0.32 < t_tableProbs[index] && t_tableProbs[index] < 0.34)
-
                     if (t_tableProbs[index] > maxProb)
                     {
                         maxProb = t_tableProbs[index];
                         modelChoice = index;
                     }
                 }
+
                 if (maxProb <= 0.5)
                 {             
                     modelChoice = models.Count;
