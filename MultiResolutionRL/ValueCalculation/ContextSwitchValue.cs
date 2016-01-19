@@ -22,8 +22,7 @@ namespace MultiResolutionRL.ValueCalculation
             stateComparer = StateComparer;
             actionComparer = ActionComparer;
             availableActions = AvailableActions;
-
-
+            
             models.Add(new ModelBasedValue<stateType, actionType>(StateComparer, ActionComparer, availableActions, StartState, parameters));
             //models.Add(new ModelBasedValue<stateType, actionType>(StateComparer, ActionComparer, availableActions, StartState, parameters));
 
@@ -64,12 +63,15 @@ namespace MultiResolutionRL.ValueCalculation
                 double thisP = Tprobability(transition, m);
                 if (thisP > bestP)
                 {
-                    Console.WriteLine("switching to previously learned model");
+                    Console.WriteLine("switching to previously learned model: " + models.IndexOf(m));
+                    if (models.IndexOf(m)==2)
+                    {
+                        int a = 0;
+                    }
                     currentModel = m;
                     bestP = thisP;
                 }
             }
-            Console.WriteLine(" best p = " + bestP);
 
             if (bestP < 0.5)
             {
