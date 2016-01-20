@@ -12,6 +12,10 @@ using MultiResolutionRL.ValueCalculation;
 using System.Threading;
 using System.Collections;
 using feudalRL_Library;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+
+using System.IO;
 
 namespace RL_Test
 {
@@ -31,6 +35,8 @@ namespace RL_Test
         
         private void button1_Click(object sender, EventArgs e)
         {
+            Console.WriteLine("******");
+
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             PerformanceStats stats = new PerformanceStats();
@@ -117,49 +123,12 @@ namespace RL_Test
             trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\trajectory" + of.SafeFileName + ".csv");
         }
 
-        private void worldModelButton_Click(object sender, EventArgs e)
-        {
-            System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
-            w.Close();
-
-            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
-            chart1.Series.Add("Model-based" + chart1.Series.Count);
-            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart2.Series.Add("Model-based" + chart2.Series.Count);
-            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart3.Series.Add("Model-based" + chart3.Series.Count);
-            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-        }
-
-        private void multiModelButton_Click(object sender, EventArgs e)
-        {
-            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 8);
-            chart1.Series.Add("Multi-layer" + chart1.Series.Count);
-            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart2.Series.Add("Multi-layer" + chart2.Series.Count);
-            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart3.Series.Add("Multi-layer" + chart3.Series.Count);
-            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-        }
-
+        
         private void copyImageToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Clipboard.SetImage(pictureBox1.Image);
         }
-
-        private void QLearnButton_Click(object sender, EventArgs e)
-        {
-            System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
-            w.Close();
-
-            world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
-            chart1.Series.Add("Model-free" + chart1.Series.Count);
-            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart2.Series.Add("Model-free" + chart2.Series.Count);
-            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart3.Series.Add("Model-free" + chart3.Series.Count);
-            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-        }
+        
 
         private void imageContextMenu_Opening(object sender, CancelEventArgs e)
         {
@@ -188,18 +157,7 @@ namespace RL_Test
             chart1.SaveImage("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Images\\chart_" + DateTime.Now.ToString("ddMMM-hh-mm") + ".Tiff", System.Drawing.Imaging.ImageFormat.Tiff);
         }
 
-        private void oneLayerButton_Click(object sender, EventArgs e)
-        {
-            string[] total_min = textBox1.Text.Split(',');
-            agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), Convert.ToInt32(total_min[0]), Convert.ToInt32(total_min[1]));
-            chart1.Series.Add("1-layer" + chart1.Series.Count);
-            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart2.Series.Add("1-layer" + chart2.Series.Count);
-            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart3.Series.Add("1-layer" + chart3.Series.Count);
-            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-        }
-
+        
         private void button1_Click_1(object sender, EventArgs e)
         {
             ((stochasticRewardGridworld)world).ExportGradients();
@@ -339,56 +297,58 @@ namespace RL_Test
 
         private void fromMdlButton_Click(object sender, EventArgs e)
         {
-            ModelBasedValue<int[], int[]> singleModel = (ModelBasedValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue;
-            multiModelButton.PerformClick();
-            MultiResValue<int[],int[]> multiModel = (MultiResValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue;
-            multiModel.models[0] = singleModel;
-            multiModel.stateTree = new MultiResolutionRL.StateManagement.learnedStateTree();
+            //ModelBasedValue<int[], int[]> singleModel = (ModelBasedValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue;
+            //multiModelButton.PerformClick();
+            //MultiResValue<int[],int[]> multiModel = (MultiResValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue;
+            //multiModel.models[0] = singleModel;
+            //multiModel.stateTree = new MultiResolutionRL.StateManagement.learnedStateTree();
         }
-
-        private void avgRbutton_Click(object sender, EventArgs e)
+        
+        
+        
+        private void learnerTypeComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelBasedAvgRwdValue<,>));
-            chart1.Series.Add("AvgRwd" + chart1.Series.Count);
+            switch (learnerTypeComboBox.Text)
+            {
+                case "Q learning":
+                    world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
+                    break;
+                case "Model based":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+                    break;
+                case "Multi-resolution":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 8);
+                    break;
+                case "Context switcher":
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>));
+                    break;
+                case "Load":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+                    learnerTypeComboBox.Text = "Context switcher";
+
+                    IFormatter formatter = new BinaryFormatter();
+                    Stream stream = new FileStream("savedModel.mdl", FileMode.Open,FileAccess.Read,FileShare.Read);
+                    ((Agent<int[], int[]>)agent)._actionValue = (ContextSwitchValue<int[], int[]>)formatter.Deserialize(stream);
+                    stream.Close();
+
+                    break;
+            }
+
+            chart1.Series.Add(chart1.Series.Count + " " + learnerTypeComboBox.Text);
             chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart2.Series.Add("AvgRwd" + chart2.Series.Count);
+            chart2.Series.Add(chart2.Series.Count + " " + learnerTypeComboBox.Text);
             chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart3.Series.Add("AvgRwd" + chart3.Series.Count);
+            chart3.Series.Add(chart3.Series.Count + " " + learnerTypeComboBox.Text);
             chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
         }
 
-        private void LSWSbutton_Click(object sender, EventArgs e)
+        private void saveButton_Click(object sender, EventArgs e)
         {
-            world.addAgent(typeof(OptimalPolicy<,>), typeof(LSValue<,>));
-            chart1.Series.Add("AvgRwd" + chart1.Series.Count);
-            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart2.Series.Add("AvgRwd" + chart2.Series.Count);
-            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart3.Series.Add("AvgRwd" + chart3.Series.Count);
-            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>));
-            chart1.Series.Add("AvgRwd" + chart1.Series.Count);
-            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart2.Series.Add("AvgRwd" + chart2.Series.Count);
-            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart3.Series.Add("AvgRwd" + chart3.Series.Count);
-            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            Agent<int[], int[]> a = (Agent<int[], int[]>)agent;
-            ((ContextSwitchValue<int[], int[]>)a._actionValue).selectModel(0);
-        }
-
-        private void button5_Click(object sender, EventArgs e)
-        {
-            Agent<int[], int[]> a = (Agent<int[], int[]>)agent;
-            ((ContextSwitchValue<int[], int[]>)a._actionValue).selectModel(1);
+            ContextSwitchValue<int[], int[]> mdl = (ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue;
+            IFormatter formatter = new BinaryFormatter();
+            Stream stream = new FileStream("savedModel.mdl", FileMode.Create, FileAccess.Write, FileShare.None);
+            formatter.Serialize(stream, mdl);
+            stream.Close();
         }
     }
 }

@@ -8,6 +8,7 @@ namespace MultiResolutionRL
 {
     namespace ValueCalculation
     {
+        [Serializable]
         public abstract class ActionValue<stateType, actionType>
         {
             protected ActionValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters) { }

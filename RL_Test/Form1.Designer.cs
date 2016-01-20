@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.imageContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -46,12 +46,7 @@
             this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportAsCSVToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadMapButton = new System.Windows.Forms.Button();
-            this.worldModelButton = new System.Windows.Forms.Button();
-            this.multiModelButton = new System.Windows.Forms.Button();
-            this.QLearnButton = new System.Windows.Forms.Button();
-            this.oneLayerButton = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
-            this.textBox1 = new System.Windows.Forms.TextBox();
             this.actionTextBox = new System.Windows.Forms.TextBox();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.chart2 = new System.Windows.Forms.DataVisualization.Charting.Chart();
@@ -61,11 +56,8 @@
             this.button2 = new System.Windows.Forms.Button();
             this.exportButton = new System.Windows.Forms.Button();
             this.fromMdlButton = new System.Windows.Forms.Button();
-            this.avgRbutton = new System.Windows.Forms.Button();
-            this.LSWSbutton = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
-            this.button5 = new System.Windows.Forms.Button();
+            this.learnerTypeComboBox = new System.Windows.Forms.ComboBox();
+            this.saveButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.imageContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.stepsUpDown)).BeginInit();
@@ -174,9 +166,9 @@
             // 
             this.chart1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea2.AxisY.Title = "Reward";
-            chartArea2.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea2);
+            chartArea4.AxisY.Title = "Reward";
+            chartArea4.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea4);
             this.chart1.ContextMenuStrip = this.chartContextMenu;
             this.chart1.Location = new System.Drawing.Point(12, 218);
             this.chart1.Name = "chart1";
@@ -216,46 +208,6 @@
             this.loadMapButton.UseVisualStyleBackColor = true;
             this.loadMapButton.Click += new System.EventHandler(this.loadMapButton_Click);
             // 
-            // worldModelButton
-            // 
-            this.worldModelButton.Location = new System.Drawing.Point(361, 41);
-            this.worldModelButton.Name = "worldModelButton";
-            this.worldModelButton.Size = new System.Drawing.Size(113, 23);
-            this.worldModelButton.TabIndex = 9;
-            this.worldModelButton.Text = "Model-Based";
-            this.worldModelButton.UseVisualStyleBackColor = true;
-            this.worldModelButton.Click += new System.EventHandler(this.worldModelButton_Click);
-            // 
-            // multiModelButton
-            // 
-            this.multiModelButton.Location = new System.Drawing.Point(361, 99);
-            this.multiModelButton.Name = "multiModelButton";
-            this.multiModelButton.Size = new System.Drawing.Size(113, 23);
-            this.multiModelButton.TabIndex = 10;
-            this.multiModelButton.Text = "MultiLayer MBRL";
-            this.multiModelButton.UseVisualStyleBackColor = true;
-            this.multiModelButton.Click += new System.EventHandler(this.multiModelButton_Click);
-            // 
-            // QLearnButton
-            // 
-            this.QLearnButton.Location = new System.Drawing.Point(361, 12);
-            this.QLearnButton.Name = "QLearnButton";
-            this.QLearnButton.Size = new System.Drawing.Size(113, 23);
-            this.QLearnButton.TabIndex = 11;
-            this.QLearnButton.Text = "Q-Learning";
-            this.QLearnButton.UseVisualStyleBackColor = true;
-            this.QLearnButton.Click += new System.EventHandler(this.QLearnButton_Click);
-            // 
-            // oneLayerButton
-            // 
-            this.oneLayerButton.Location = new System.Drawing.Point(361, 70);
-            this.oneLayerButton.Name = "oneLayerButton";
-            this.oneLayerButton.Size = new System.Drawing.Size(113, 23);
-            this.oneLayerButton.TabIndex = 12;
-            this.oneLayerButton.Text = "Reduced Multilayer";
-            this.oneLayerButton.UseVisualStyleBackColor = true;
-            this.oneLayerButton.Click += new System.EventHandler(this.oneLayerButton_Click);
-            // 
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(218, 70);
@@ -265,14 +217,6 @@
             this.button1.Text = "button1";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click_1);
-            // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(307, 73);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(48, 20);
-            this.textBox1.TabIndex = 14;
-            this.textBox1.Text = "8,4";
             // 
             // actionTextBox
             // 
@@ -299,9 +243,9 @@
             // 
             this.chart2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea3.AxisY.Title = "Model Use";
-            chartArea3.Name = "ChartArea1";
-            this.chart2.ChartAreas.Add(chartArea3);
+            chartArea1.AxisY.Title = "Model Use";
+            chartArea1.Name = "ChartArea1";
+            this.chart2.ChartAreas.Add(chartArea1);
             this.chart2.ContextMenuStrip = this.chartContextMenu;
             this.chart2.Location = new System.Drawing.Point(12, 338);
             this.chart2.Name = "chart2";
@@ -313,10 +257,10 @@
             // 
             this.chart3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea4.AxisY.IsLogarithmic = true;
-            chartArea4.AxisY.Title = "Steps to Goal";
-            chartArea4.Name = "ChartArea1";
-            this.chart3.ChartAreas.Add(chartArea4);
+            chartArea2.AxisY.IsLogarithmic = true;
+            chartArea2.AxisY.Title = "Steps to Goal";
+            chartArea2.Name = "ChartArea1";
+            this.chart3.ChartAreas.Add(chartArea2);
             this.chart3.ContextMenuStrip = this.steps2goalContextMenu;
             this.chart3.Location = new System.Drawing.Point(12, 460);
             this.chart3.Name = "chart3";
@@ -350,7 +294,7 @@
             // 
             // exportButton
             // 
-            this.exportButton.Location = new System.Drawing.Point(481, 40);
+            this.exportButton.Location = new System.Drawing.Point(481, 70);
             this.exportButton.Name = "exportButton";
             this.exportButton.Size = new System.Drawing.Size(75, 23);
             this.exportButton.TabIndex = 20;
@@ -368,66 +312,38 @@
             this.fromMdlButton.UseVisualStyleBackColor = true;
             this.fromMdlButton.Click += new System.EventHandler(this.fromMdlButton_Click);
             // 
-            // avgRbutton
+            // learnerTypeComboBox
             // 
-            this.avgRbutton.Location = new System.Drawing.Point(481, 13);
-            this.avgRbutton.Name = "avgRbutton";
-            this.avgRbutton.Size = new System.Drawing.Size(75, 23);
-            this.avgRbutton.TabIndex = 22;
-            this.avgRbutton.Text = "AvgR";
-            this.avgRbutton.UseVisualStyleBackColor = true;
-            this.avgRbutton.Click += new System.EventHandler(this.avgRbutton_Click);
+            this.learnerTypeComboBox.FormattingEnabled = true;
+            this.learnerTypeComboBox.Items.AddRange(new object[] {
+            "Q learning",
+            "Model based",
+            "Multi-resolution",
+            "Context switcher",
+            "Load"});
+            this.learnerTypeComboBox.Location = new System.Drawing.Point(326, 14);
+            this.learnerTypeComboBox.Name = "learnerTypeComboBox";
+            this.learnerTypeComboBox.Size = new System.Drawing.Size(121, 21);
+            this.learnerTypeComboBox.TabIndex = 27;
+            this.learnerTypeComboBox.SelectedIndexChanged += new System.EventHandler(this.learnerTypeComboBox_SelectedIndexChanged);
             // 
-            // LSWSbutton
+            // saveButton
             // 
-            this.LSWSbutton.Location = new System.Drawing.Point(479, 135);
-            this.LSWSbutton.Name = "LSWSbutton";
-            this.LSWSbutton.Size = new System.Drawing.Size(75, 23);
-            this.LSWSbutton.TabIndex = 23;
-            this.LSWSbutton.Text = "Filtered";
-            this.LSWSbutton.UseVisualStyleBackColor = true;
-            this.LSWSbutton.Click += new System.EventHandler(this.LSWSbutton_Click);
-            // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(481, 165);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(75, 23);
-            this.button3.TabIndex = 24;
-            this.button3.Text = "switch";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
-            // button4
-            // 
-            this.button4.Location = new System.Drawing.Point(468, 189);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(40, 23);
-            this.button4.TabIndex = 25;
-            this.button4.Text = "0";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
-            // 
-            // button5
-            // 
-            this.button5.Location = new System.Drawing.Point(514, 189);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(40, 23);
-            this.button5.TabIndex = 26;
-            this.button5.Text = "1";
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button5_Click);
+            this.saveButton.Location = new System.Drawing.Point(479, 12);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(75, 23);
+            this.saveButton.TabIndex = 28;
+            this.saveButton.Text = "Save learner";
+            this.saveButton.UseVisualStyleBackColor = true;
+            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(566, 597);
-            this.Controls.Add(this.button5);
-            this.Controls.Add(this.button4);
-            this.Controls.Add(this.button3);
-            this.Controls.Add(this.LSWSbutton);
-            this.Controls.Add(this.avgRbutton);
+            this.Controls.Add(this.saveButton);
+            this.Controls.Add(this.learnerTypeComboBox);
             this.Controls.Add(this.fromMdlButton);
             this.Controls.Add(this.exportButton);
             this.Controls.Add(this.button2);
@@ -435,12 +351,7 @@
             this.Controls.Add(this.chart2);
             this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.actionTextBox);
-            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
-            this.Controls.Add(this.oneLayerButton);
-            this.Controls.Add(this.QLearnButton);
-            this.Controls.Add(this.multiModelButton);
-            this.Controls.Add(this.worldModelButton);
             this.Controls.Add(this.loadMapButton);
             this.Controls.Add(this.chart1);
             this.Controls.Add(this.displayCheckBox);
@@ -475,17 +386,12 @@
         private System.Windows.Forms.CheckBox displayCheckBox;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
         private System.Windows.Forms.Button loadMapButton;
-        private System.Windows.Forms.Button worldModelButton;
-        private System.Windows.Forms.Button multiModelButton;
         private System.Windows.Forms.ContextMenuStrip imageContextMenu;
         private System.Windows.Forms.ToolStripMenuItem copyImageToolStripMenuItem;
-        private System.Windows.Forms.Button QLearnButton;
         private System.Windows.Forms.ToolStripMenuItem saveImagesFromThisRunToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip chartContextMenu;
         private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
-        private System.Windows.Forms.Button oneLayerButton;
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.TextBox actionTextBox;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart2;
@@ -496,11 +402,8 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button exportButton;
         private System.Windows.Forms.Button fromMdlButton;
-        private System.Windows.Forms.Button avgRbutton;
-        private System.Windows.Forms.Button LSWSbutton;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.ComboBox learnerTypeComboBox;
+        private System.Windows.Forms.Button saveButton;
     }
 }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace MultiResolutionRL.ValueCalculation
 {
+    [Serializable]
     public class ContextSwitchValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
         IEqualityComparer<actionType> actionComparer;
@@ -53,6 +54,15 @@ namespace MultiResolutionRL.ValueCalculation
         {
             currentModel.update(transition);
 
+
+            double[] ps = new double[models.Count];
+            for (int i=0; i<ps.Length; i++)
+            {
+                ps[i] = Tprobability(transition, models[i]);
+            }
+            Console.WriteLine(string.Join(",", ps));
+
+
             double bestP = Tprobability(transition, currentModel);
 
             foreach (ModelBasedValue<stateType, actionType> m in models)
@@ -61,6 +71,7 @@ namespace MultiResolutionRL.ValueCalculation
                     continue;
 
                 double thisP = Tprobability(transition, m);
+
                 if (thisP > bestP)
                 {
                     Console.WriteLine("switching to previously learned model: " + models.IndexOf(m));
@@ -87,12 +98,7 @@ namespace MultiResolutionRL.ValueCalculation
         {
             return currentModel.value(state, actions);
         }
-
-        public void selectModel(int number)
-        {
-            currentModel = models[number];
-        }
-
+        
         double Tprobability(StateTransition<stateType,actionType> transition, ModelBasedValue<stateType, actionType> model)
         {
             Dictionary<stateType, int> s2Counts = model.T.GetStateValueTable(transition.oldState, transition.action);

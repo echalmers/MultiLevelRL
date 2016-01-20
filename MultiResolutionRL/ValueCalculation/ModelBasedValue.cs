@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace MultiResolutionRL.ValueCalculation
 {
+    [Serializable]
     public class ModelBasedValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
         public double defaultQ = 10, gamma = 0.9;
@@ -250,6 +251,7 @@ namespace MultiResolutionRL.ValueCalculation
 
     }
 
+    [Serializable]
     public class SAStable<stateType, actionType, entryType>
     {
         Dictionary<stateType, Dictionary<actionType, Dictionary<stateType, entryType>>> table;
@@ -269,7 +271,18 @@ namespace MultiResolutionRL.ValueCalculation
 
         public entryType Get(stateType oldState, actionType action, stateType newState)
         {
-            ensureExistance(oldState, action, newState);
+            if (!table.ContainsKey(oldState))
+            {
+                return defaultValue;
+            }
+            if (!table[oldState].ContainsKey(action))
+            {
+                return defaultValue;
+            }
+            if (!table[oldState][action].ContainsKey(newState))
+            {
+                return defaultValue;
+            }
             return table[oldState][action][newState];
         }
 
@@ -283,34 +296,34 @@ namespace MultiResolutionRL.ValueCalculation
             if (!table.ContainsKey(oldState))
             {
                 table.Add(oldState, new Dictionary<actionType, Dictionary<stateType, entryType>>(actionComparer));
-                foreach (actionType act in availableActions)
-                {
-                    table[oldState].Add(act, new Dictionary<stateType, entryType>(stateComparer));
-                }
             }
+            if (!table[oldState].ContainsKey(action))
+            {
+                table[oldState].Add(action, new Dictionary<stateType, entryType>(stateComparer));
+            }
+                //foreach (actionType act in availableActions)
+                //{
+                //    table[oldState].Add(act, new Dictionary<stateType, entryType>(stateComparer));
+                //}
+            
             return table[oldState][action];
         }
 
         public void Set(stateType oldState, actionType action, stateType newState, entryType value)
         {
-            ensureExistance(oldState, action, newState);
-            table[oldState][action][newState] = value;
-        }
-
-        private void ensureExistance(stateType oldState, actionType action, stateType newState)
-        {
-            if (!table.ContainsKey(oldState))
+            if(!table.ContainsKey(oldState))
             {
                 table.Add(oldState, new Dictionary<actionType, Dictionary<stateType, entryType>>(actionComparer));
-                foreach (actionType act in availableActions)
-                {
-                    table[oldState].Add(act, new Dictionary<stateType, entryType>(stateComparer));
-                }
             }
-            if (!table[oldState][action].ContainsKey(newState))
+            if(!table[oldState].ContainsKey(action))
             {
-                table[oldState][action].Add(newState, defaultValue);
+                table[oldState].Add(action, new Dictionary<stateType, entryType>(stateComparer));
             }
+            if(!table[oldState][action].ContainsKey(newState))
+            {
+                table[oldState][action].Add(newState, default(entryType));
+            }
+            table[oldState][action][newState] = value;
         }
 
         public void print()

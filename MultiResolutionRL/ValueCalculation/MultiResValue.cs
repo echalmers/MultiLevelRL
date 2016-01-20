@@ -385,7 +385,7 @@ namespace MultiResolutionRL.ValueCalculation
 
     
 
-
+    [Serializable]
     public class IntArrayComparer : IEqualityComparer<int[]>
     {
         public bool Equals(int[] x, int[] y)
@@ -403,7 +403,14 @@ namespace MultiResolutionRL.ValueCalculation
 
         public int GetHashCode(int[] obj)
         {
-            return obj.Sum();
+            //return obj.Sum();
+            int hash = 0;
+            for (int i = 0; i < obj.Length; i++)
+            {
+                int shift = 5 * i;
+                hash += obj[i] << shift;
+            }
+            return hash;
         }
     }
 

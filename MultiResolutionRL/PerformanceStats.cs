@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace MultiResolutionRL
 {
+    [Serializable]
     public class PerformanceStats
     {
         public double cumulativeReward = 0;
