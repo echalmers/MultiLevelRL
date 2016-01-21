@@ -78,7 +78,7 @@ namespace MultiResolutionRL.ValueCalculation
 
                 if (thisP > bestP)
                 {
-                    Console.WriteLine("switching to previously learned model: " + models.IndexOf(m));
+                    Console.WriteLine("switching to previously learned model: " + models.IndexOf(m) + " (p=" + thisP + ")");
                     currentModel = m;
                     bestP = thisP;
                 }

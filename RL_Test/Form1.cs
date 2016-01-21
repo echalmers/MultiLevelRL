@@ -314,7 +314,7 @@ namespace RL_Test
                     world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
                     break;
                 case "Model based":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelBasedValue<,>));
                     break;
                 case "Multi-resolution":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 8);

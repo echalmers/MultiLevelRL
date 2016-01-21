@@ -76,7 +76,7 @@ namespace MultiResolutionRL.ValueCalculation
                 //thisR = new Dictionary<stateType, double>(stateComparer);
                 //trueModel.Qtable[transition.oldState][transition.action] = RPE;
                 backupR = trueModel.R.Get(transition.oldState, transition.action, transition.newState);
-                Histogram temp = new Histogram(); temp.Add(RPE);
+                Histogram temp = new Histogram(0); temp.Add(RPE);
                 trueModel.R.Set(transition.oldState, transition.action, transition.newState, temp);
 
                 LScounter = 8;

@@ -42,8 +42,7 @@ namespace MultiResolutionRL.ValueCalculation
             R = new SAStable<stateType, actionType, Histogram>(stateComparer, actionComparer, availableActions,
                 (x) =>
                 {
-                    Histogram defaultHistogram = new Histogram();
-                    defaultHistogram.Add((double)x[0]);
+                    Histogram defaultHistogram = new Histogram((double)x[0]);
                     return defaultHistogram;
                 },
                 new object[1] { defaultQ }
@@ -269,14 +268,19 @@ namespace MultiResolutionRL.ValueCalculation
 
     public class Histogram
     {
-        Dictionary<double, int> counts = new Dictionary<double, int>();
+        Dictionary<double, double> counts = new Dictionary<double, double>();
+        double defaultAverage;
+        //public Histogram()
+        //{ }
 
-        public Histogram()
-        { }
+        //public Histogram(Histogram toCopy)
+        //{
+        //    counts = new Dictionary<double, double>(toCopy.counts);
+        //}
 
-        public Histogram(Histogram toCopy)
+        public Histogram(double DefaultAverage)
         {
-            counts = new Dictionary<double, int>(toCopy.counts);
+            defaultAverage = DefaultAverage;
         }
 
         public void Add(double value)
@@ -286,9 +290,14 @@ namespace MultiResolutionRL.ValueCalculation
             else
                 counts[value]++;
         }
-        
+                
         public double Average()
         {
+            if (counts.Count == 0)
+                return defaultAverage;
+            else if (counts.Count == 1)
+                return counts.Keys.ElementAt(0);
+
             double avg = 0, sum = 0;
             foreach (double value in counts.Keys)
             {
