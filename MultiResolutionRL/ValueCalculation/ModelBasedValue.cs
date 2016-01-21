@@ -13,7 +13,7 @@ namespace MultiResolutionRL.ValueCalculation
         int c = 1;
         public int maxUpdates = 120;//1000;
         public SAStable<stateType, actionType, int> T;
-        public SAStable<stateType, actionType, double> R;
+        public SAStable<stateType, actionType, Histogram> R;
         public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
@@ -34,8 +34,20 @@ namespace MultiResolutionRL.ValueCalculation
             stateComparer = StateComparer;
             actionComparer = ActionComparer;
             availableActions = AvailableActions;
-            T = new SAStable<stateType, actionType, int>(stateComparer, actionComparer, availableActions, c);
-            R = new SAStable<stateType, actionType, double>(stateComparer, actionComparer, availableActions, defaultQ);
+            T = new SAStable<stateType, actionType, int>(stateComparer, actionComparer, availableActions,
+                (dummy) => { return c; },
+                null
+                );
+
+            R = new SAStable<stateType, actionType, Histogram>(stateComparer, actionComparer, availableActions,
+                (x) =>
+                {
+                    Histogram defaultHistogram = new Histogram();
+                    defaultHistogram.Add((double)x[0]);
+                    return defaultHistogram;
+                },
+                new object[1] { defaultQ }
+            );
             Qtable = new Dictionary<stateType, Dictionary<actionType, double>>(stateComparer);
 
             predecessors = new Dictionary<stateType, Dictionary<stateType, HashSet<actionType>>>(stateComparer);
@@ -78,27 +90,27 @@ namespace MultiResolutionRL.ValueCalculation
             return next;
         }
 
-        public stateType PredictNextStateOptimistic(stateType state, actionType action)
-        {
-            stats.modelAccesses++;
+        //public stateType PredictNextStateOptimistic(stateType state, actionType action)
+        //{
+        //    stats.modelAccesses++;
 
-            stateType next = default(stateType); double reward = double.NegativeInfinity;
+        //    stateType next = default(stateType); double reward = double.NegativeInfinity;
 
-            foreach (stateType s in R.GetStateValueTable(state, action).Keys)
-            {
-                if (R.Get(state, action, s) > reward)
-                {
-                    reward = R.Get(state, action, s);
-                    next = s;
-                }
-            }
-            return next;
-        }
+        //    foreach (stateType s in R.GetStateValueTable(state, action).Keys)
+        //    {
+        //        if (R.Get(state, action, s) > reward)
+        //        {
+        //            reward = R.Get(state, action, s);
+        //            next = s;
+        //        }
+        //    }
+        //    return next;
+        //}
         
         public override double PredictReward(stateType state, actionType action, stateType newState)
         {
             stats.modelAccesses++;
-            return R.Get(state, action, newState);
+            return R.Get(state, action, newState).Average();
         }
         
         public double value(stateType state, actionType action)
@@ -139,11 +151,13 @@ namespace MultiResolutionRL.ValueCalculation
 
             // retrieve current count and reward values
             int thisCount = T.Get(transition.oldState, transition.action, transition.newState);
-            double thisReward = R.Get(transition.oldState, transition.action, transition.newState);
+            Histogram thisReward = R.Get(transition.oldState, transition.action, transition.newState);
 
             // update the model values for the given transition
             T.Set(transition.oldState, transition.action, transition.newState, thisCount + 1);
-            R.Set(transition.oldState, transition.action, transition.newState, thisReward + (transition.reward - thisReward) / thisCount);
+            //R.Set(transition.oldState, transition.action, transition.newState, thisReward + (transition.reward - thisReward) / thisCount);
+            thisReward.Add(transition.reward);
+            R.Set(transition.oldState, transition.action, transition.newState, thisReward);
 
             // update predecessors list
             if (!predecessors.ContainsKey(transition.newState))
@@ -226,7 +240,7 @@ namespace MultiResolutionRL.ValueCalculation
 
                 
                 double thisT = T.Get(state, action, s2);
-                double thisR = R.Get(state, action, s2);
+                double thisR = R.Get(state, action, s2).Average();
                 double thisProb = thisT / P;
                 newQ += thisProb * (thisR + gamma * maxQ);
 
@@ -251,100 +265,38 @@ namespace MultiResolutionRL.ValueCalculation
 
     }
 
-    [Serializable]
-    public class SAStable<stateType, actionType, entryType>
+    
+
+    public class Histogram
     {
-        Dictionary<stateType, Dictionary<actionType, Dictionary<stateType, entryType>>> table;
-        List<actionType> availableActions;
-        IEqualityComparer<stateType> stateComparer;
-        IEqualityComparer<actionType> actionComparer;
-        entryType defaultValue;
+        Dictionary<double, int> counts = new Dictionary<double, int>();
 
-        public SAStable(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, entryType DefaultValue)
+        public Histogram()
+        { }
+
+        public Histogram(Histogram toCopy)
         {
-            availableActions = AvailableActions;
-            stateComparer = StateComparer;
-            actionComparer = ActionComparer;
-            table = new Dictionary<stateType, Dictionary<actionType, Dictionary<stateType, entryType>>>(stateComparer);
-            defaultValue = DefaultValue;
+            counts = new Dictionary<double, int>(toCopy.counts);
         }
 
-        public entryType Get(stateType oldState, actionType action, stateType newState)
+        public void Add(double value)
         {
-            if (!table.ContainsKey(oldState))
-            {
-                return defaultValue;
-            }
-            if (!table[oldState].ContainsKey(action))
-            {
-                return defaultValue;
-            }
-            if (!table[oldState][action].ContainsKey(newState))
-            {
-                return defaultValue;
-            }
-            return table[oldState][action][newState];
+            if (!counts.ContainsKey(value))
+                counts.Add(value, 1);
+            else
+                counts[value]++;
         }
-
-        public stateType[] GetKnownStates()
+        
+        public double Average()
         {
-            return table.Keys.ToArray();
-        }
-
-        public Dictionary<stateType, entryType> GetStateValueTable(stateType oldState, actionType action)
-        {
-            if (!table.ContainsKey(oldState))
+            double avg = 0, sum = 0;
+            foreach (double value in counts.Keys)
             {
-                table.Add(oldState, new Dictionary<actionType, Dictionary<stateType, entryType>>(actionComparer));
+                avg += value * counts[value];
+                sum += counts[value];
             }
-            if (!table[oldState].ContainsKey(action))
-            {
-                table[oldState].Add(action, new Dictionary<stateType, entryType>(stateComparer));
-            }
-                //foreach (actionType act in availableActions)
-                //{
-                //    table[oldState].Add(act, new Dictionary<stateType, entryType>(stateComparer));
-                //}
-            
-            return table[oldState][action];
-        }
-
-        public void Set(stateType oldState, actionType action, stateType newState, entryType value)
-        {
-            if(!table.ContainsKey(oldState))
-            {
-                table.Add(oldState, new Dictionary<actionType, Dictionary<stateType, entryType>>(actionComparer));
-            }
-            if(!table[oldState].ContainsKey(action))
-            {
-                table[oldState].Add(action, new Dictionary<stateType, entryType>(stateComparer));
-            }
-            if(!table[oldState][action].ContainsKey(newState))
-            {
-                table[oldState][action].Add(newState, default(entryType));
-            }
-            table[oldState][action][newState] = value;
-        }
-
-        public void print()
-        {
-            System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\T.csv");
-            foreach (stateType s1 in table.Keys)
-            {
-                foreach (actionType a in table[s1].Keys)
-                {
-                    foreach (stateType s2 in table[s1][a].Keys)
-                    {
-                        int[] s1int = (int[])(object)s1;
-                        int[] aint = (int[])(object)a;
-                        int[] s2int = (int[])(object)s2;
-                        writer.WriteLine(string.Join(",", s1int) + "," + string.Join(",", aint) + "," + string.Join(",", s2int) + "," + table[s1][a][s2].ToString());
-                    }
-                }
-            }
-            writer.Flush();
-            writer.Close();
-
+            avg = (double)avg / (double)sum;
+            return avg;
         }
     }
     

@@ -17,7 +17,7 @@ namespace MultiResolutionRL.ValueCalculation
         //Dictionary<stateType, int> backupT;
         //Dictionary<stateType, double> backupR;
         //double backupQ;
-        double backupR;
+        Histogram backupR;
         StateTransition<stateType, actionType> lossTransition;
         int LScounter = -1;
 
@@ -76,7 +76,8 @@ namespace MultiResolutionRL.ValueCalculation
                 //thisR = new Dictionary<stateType, double>(stateComparer);
                 //trueModel.Qtable[transition.oldState][transition.action] = RPE;
                 backupR = trueModel.R.Get(transition.oldState, transition.action, transition.newState);
-                trueModel.R.Set(transition.oldState, transition.action, transition.newState, RPE);
+                Histogram temp = new Histogram(); temp.Add(RPE);
+                trueModel.R.Set(transition.oldState, transition.action, transition.newState, temp);
 
                 LScounter = 8;
             }

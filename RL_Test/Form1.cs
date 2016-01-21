@@ -284,9 +284,9 @@ namespace RL_Test
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            world = new stochasticRewardGridworld();
+            world = new GridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\stochastic2.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
