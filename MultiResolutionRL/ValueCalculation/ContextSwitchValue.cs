@@ -35,7 +35,15 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override PerformanceStats getStats()
         {
-            return currentModel.getStats();
+            PerformanceStats combinedStats = new PerformanceStats();
+            foreach (ModelBasedValue<stateType, actionType> m in models)
+            {
+                PerformanceStats thisStats = m.getStats();
+                combinedStats.cumulativeReward += thisStats.cumulativeReward;
+                combinedStats.modelAccesses += thisStats.modelAccesses;
+                combinedStats.modelUpdates += thisStats.modelUpdates;
+            }
+            return combinedStats;
         }
 
         public override stateType PredictNextState(stateType state, actionType action)
@@ -68,13 +76,13 @@ namespace MultiResolutionRL.ValueCalculation
 
 
             // select model
-            double bestP = Tprobability(transitionHistory, currentModel);
+            double bestP = EventProbability(transitionHistory, currentModel);
             foreach (ModelBasedValue<stateType, actionType> m in models)
             {
                 if (m == currentModel)
                     continue;
 
-                double thisP = Tprobability(transitionHistory, m);
+                double thisP = EventProbability(transitionHistory, m);
 
                 if (thisP > bestP)
                 {
@@ -102,7 +110,7 @@ namespace MultiResolutionRL.ValueCalculation
             return currentModel.value(state, actions);
         }
         
-        double Tprobability(IEnumerable<StateTransition<stateType, actionType>> transitions, ModelBasedValue<stateType, actionType> model)
+        double EventProbability(IEnumerable<StateTransition<stateType, actionType>> transitions, ModelBasedValue<stateType, actionType> model)
         {
             double p = 1;
             foreach (StateTransition<stateType, actionType> transition in transitions)
@@ -114,6 +122,8 @@ namespace MultiResolutionRL.ValueCalculation
                 double total = (double)s2Counts.Values.Sum() + 1;
                 
                 p *= (thisS2Counts / total);
+
+                p *= model.R.Get(transition.oldState, transition.action, transition.newState).P(transition.reward, 1);
             }
             return p;
         }

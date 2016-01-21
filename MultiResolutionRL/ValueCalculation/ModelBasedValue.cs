@@ -270,6 +270,9 @@ namespace MultiResolutionRL.ValueCalculation
     {
         Dictionary<double, double> counts = new Dictionary<double, double>();
         double defaultAverage;
+        double totalCounts = 0;
+        double recentAverage;
+
         //public Histogram()
         //{ }
 
@@ -289,9 +292,28 @@ namespace MultiResolutionRL.ValueCalculation
                 counts.Add(value, 1);
             else
                 counts[value]++;
+
+            totalCounts++;
+
+            // decide whether to recalculate average
+            if (Math.Abs(value - recentAverage) > 0.01)
+                recentAverage = CalcAverage();
         }
                 
+        public double P(double value, int priorCnt)
+        {
+            double thisCnts = priorCnt;
+            if (counts.ContainsKey(value))
+                thisCnts += counts[value];
+            return thisCnts / (totalCounts+priorCnt);
+        }
+
         public double Average()
+        {
+            return recentAverage;
+        }
+
+        private double CalcAverage()
         {
             if (counts.Count == 0)
                 return defaultAverage;
