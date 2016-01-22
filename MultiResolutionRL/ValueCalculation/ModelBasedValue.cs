@@ -17,7 +17,6 @@ namespace MultiResolutionRL.ValueCalculation
         public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
-        public Func<stateType, IEnumerable<stateType>> stateUpdateSelector = null;
 
         Dictionary<stateType, Dictionary<stateType, HashSet<actionType>>> predecessors;
         Dictionary<stateType, double> priority;
@@ -27,6 +26,13 @@ namespace MultiResolutionRL.ValueCalculation
         Random rnd = new Random(1);
 
         List<actionType> availableActions;
+
+        //public ModelBasedValue(ModelBasedValue<stateType, actionType> toCopy)
+        //{
+        //    defaultQ = toCopy.defaultQ;
+        //    gamma = toCopy.gamma;
+
+        //}
 
         public ModelBasedValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters)
             : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
@@ -262,10 +268,14 @@ namespace MultiResolutionRL.ValueCalculation
             return stats;
         }
 
+        public void ResetStats()
+        {
+            stats = new PerformanceStats();
+        }
     }
 
     
-
+    [Serializable]
     public class Histogram
     {
         Dictionary<double, double> counts = new Dictionary<double, double>();

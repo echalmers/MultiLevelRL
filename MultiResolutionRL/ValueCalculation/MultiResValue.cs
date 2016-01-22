@@ -7,6 +7,7 @@ using MultiResolutionRL.StateManagement;
 
 namespace MultiResolutionRL.ValueCalculation
 {
+    [Serializable]
     public class MultiResValue<stateType,actionType> : ActionValue<int[], actionType>
     {
         public Goal<int[], actionType> currentGoal;
@@ -52,7 +53,7 @@ namespace MultiResolutionRL.ValueCalculation
                 { 
                     maxUpdates = i==0 ? (minLevel>0 ? 20 : 20) : 20, 
                     defaultQ = i==0 ? 15 : 0,
-                    gamma = i==0 ? 0.9 : 0.6
+                    gamma = i==0 ? 0.9 : 0.4
                 };
                 
                 transitions[i] = new StateTransition<int[], actionType>(null, default(actionType), 0, null);
@@ -62,7 +63,7 @@ namespace MultiResolutionRL.ValueCalculation
             currentGoal = new Goal<int[], actionType>(0, null, default(actionType), null, 0, stateComparer, actionComparer);
 
         }
-
+        
 
         private Goal<int[], actionType> selectGoal(int[] state, int maxLevel, List<actionType> availableActions)
         {
@@ -240,15 +241,15 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override double update(StateTransition<int[], actionType> transition)
         {            
-            if (currentGoal.goalState == null)
-            {
-                Console.WriteLine("Goal: null");
-            }
-            else
-            {
-                Console.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState) + ", value: " + currentGoal.value);
-            }
-            Console.WriteLine("   current state: " + String.Join(",", transition.newState) + " / " + String.Join(",", stateTree.GetParentState(transition.newState, currentGoal.level)));
+            //if (currentGoal.goalState == null)
+            //{
+            //    Console.WriteLine("Goal: null");
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState) + ", value: " + currentGoal.value);
+            //}
+            //Console.WriteLine("   current state: " + String.Join(",", transition.newState) + " / " + String.Join(",", stateTree.GetParentState(transition.newState, currentGoal.level)));
 
             
             // update the stateTree
@@ -378,8 +379,15 @@ namespace MultiResolutionRL.ValueCalculation
             }
             return combinedStats;
         }
-        
 
+        public void ResetStats()
+        {
+            combinedStats = new PerformanceStats();
+            foreach(ModelBasedValue<int[], actionType> m in models)
+            {
+                m.ResetStats();
+            }
+        }
 
     }
 
