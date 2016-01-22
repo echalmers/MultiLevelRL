@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 
 namespace MultiResolutionRL.ValueCalculation
 {
-   public class ContextChangeValue<stateType, actionType> : ActionValue<stateType, actionType>
+   public class ContextChangeValueGeneric<stateType, actionType> : ActionValue<stateType, actionType>
     {
-        public ContextChangeValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters) : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
+        public ContextChangeValueGeneric(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters) : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
         {
             //Constructor
             ModelBasedValue<stateType, actionType> first = new ModelBasedValue<stateType, actionType>(StateComparer,ActionComparer,AvailableActions,StartState,parameters);

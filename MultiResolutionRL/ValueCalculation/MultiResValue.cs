@@ -7,7 +7,7 @@ using MultiResolutionRL.StateManagement;
 
 namespace MultiResolutionRL.ValueCalculation
 {
-    public class MultiResValue<stateType,actionType> : ActionValue<int[], actionType>
+    public class MultiResValue<stateType, actionType> : ActionValue<int[], actionType>
     {
         public Goal<int[], actionType> currentGoal;
 
@@ -24,11 +24,11 @@ namespace MultiResolutionRL.ValueCalculation
 
         IEqualityComparer<int[]> stateComparer;
         IEqualityComparer<actionType> actionComparer;
-        
+
         int minLevel = 0;
-        
-        
-        
+
+
+
         public MultiResValue(IEqualityComparer<int[]> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, int[] StartState, params object[] numLevels_minLevel)
             : base(StateComparer, ActionComparer, AvailableActions, StartState, numLevels_minLevel)
         {
@@ -43,18 +43,18 @@ namespace MultiResolutionRL.ValueCalculation
             stateTree = new intStateTree();
             //stateTree = new taxiStateTree();
             //stateTree = new learnedStateTree();
-            
+
             pathFinder = new PathFinder<int[], actionType>(stateComparer);
 
             for (int i = 0; i < models.Length; i++)
             {
-                models[i] = new ModelBasedValue<int[], actionType>(stateComparer, actionComparer, availableActions, StartState) 
-                { 
-                    maxUpdates = i==0 ? (minLevel>0 ? 20 : 20) : 20, 
-                    defaultQ = i==0 ? 15 : 0,
-                    gamma = i==0 ? 0.9 : 0.6
+                models[i] = new ModelBasedValue<int[], actionType>(stateComparer, actionComparer, availableActions, StartState)
+                {
+                    maxUpdates = i == 0 ? (minLevel > 0 ? 20 : 20) : 20,
+                    defaultQ = i == 0 ? 15 : 0,
+                    gamma = i == 0 ? 0.9 : 0.6
                 };
-                
+
                 transitions[i] = new StateTransition<int[], actionType>(null, default(actionType), 0, null);
                 subgoals[i] = new List<Goal<int[], actionType>>();
             }
@@ -87,7 +87,7 @@ namespace MultiResolutionRL.ValueCalculation
             }
 
             // find the best action at any allowed level
-            for (int l = Math.Max(minLevel,1); l <= maxLevel; l++)
+            for (int l = Math.Max(minLevel, 1); l <= maxLevel; l++)
             {
                 int[] thisState = stateTree.GetParentState(state, l);
                 for (int i = 0; i < availableActions.Count(); i++)
@@ -144,8 +144,8 @@ namespace MultiResolutionRL.ValueCalculation
                     {
                         goalStates = stateTree.GetChildren(subgoals[l + 1][0].goalState, l + 1);
                         int[] currentGoalLevelState = stateTree.GetParentState(state, currentGoal.level);
-                        Console.WriteLine("couldn't find a path to level " + currentGoal.level + ": " + String.Join(",",currentGoal.goalState) + " at level " + l);
-                        
+                        Console.WriteLine("couldn't find a path to level " + currentGoal.level + ": " + String.Join(",", currentGoal.goalState) + " at level " + l);
+
                         currentGoal.goalState = null;
                         for (int i = 0; i < subgoals.Length; i++)
                         {
@@ -162,8 +162,8 @@ namespace MultiResolutionRL.ValueCalculation
                     // no local path should be more than 2 steps
                     if (subgoals[l].Count > 3)
                     {
-                        int[] thisOldState = subgoals[l+1][0].startState;
-                        actionType thisAction = subgoals[l + 1][0].action; 
+                        int[] thisOldState = subgoals[l + 1][0].startState;
+                        actionType thisAction = subgoals[l + 1][0].action;
                         int[] thisNewState = subgoals[l + 1][0].goalState;
                         StateTransition<int[], actionType> t = new StateTransition<int[], actionType>(thisOldState, thisAction, -10, thisNewState); //*********************** size of negative reward?
                         models[l + 1].update(t);
@@ -209,14 +209,14 @@ namespace MultiResolutionRL.ValueCalculation
                 if (actionComparer.Equals(subgoals[0][0].action, availableActions.ElementAt(i)))
                     response[i] = 1;
             }
-            
+
             return response;
         }
 
         private List<Goal<int[], actionType>> path2subgoals(List<Tuple<int[], actionType, double>> path, int level, ActionValue<int[], actionType> model)
         {
             List<Goal<int[], actionType>> subgoals = new List<Goal<int[], actionType>>();
-            for (int i = 0; i < path.Count-1; i++)
+            for (int i = 0; i < path.Count - 1; i++)
             {
                 subgoals.Add(new Goal<int[], actionType>(level, path[i].Item1, path[i].Item2, path[i + 1].Item1, path[i].Item3, stateComparer, actionComparer));
             }
@@ -227,7 +227,7 @@ namespace MultiResolutionRL.ValueCalculation
         {
             throw new NotImplementedException();
         }
-        
+
         public override Dictionary<int[], double> PredictNextStates(int[] state, actionType action)
         {
             throw new NotImplementedException();
@@ -239,7 +239,7 @@ namespace MultiResolutionRL.ValueCalculation
         }
 
         public override double update(StateTransition<int[], actionType> transition)
-        {            
+        {
             if (currentGoal.goalState == null)
             {
                 Console.WriteLine("Goal: null");
@@ -250,7 +250,7 @@ namespace MultiResolutionRL.ValueCalculation
             }
             Console.WriteLine("   current state: " + String.Join(",", transition.newState) + " / " + String.Join(",", stateTree.GetParentState(transition.newState, currentGoal.level)));
 
-            
+
             // update the stateTree
             stateTree.AddState(transition.newState);
 
@@ -284,7 +284,7 @@ namespace MultiResolutionRL.ValueCalculation
                     // get the representation of state at this level
                     int[] thisOldState = stateTree.GetParentState(transition.oldState, i);
                     int[] thisNewState = stateTree.GetParentState(transition.newState, i);
-                    
+
                     // check if the local transition represents a transition at this level
                     if ((!stateComparer.Equals(thisOldState, thisNewState)) || i == 0)// transition - update the model at this level, and start a new accumulation of reward
                     {
@@ -334,7 +334,7 @@ namespace MultiResolutionRL.ValueCalculation
                         break;
                 }
             }
-            else if (minLevel>0 && !stateComparer.Equals(stateTree.GetParentState(transition.newState, currentGoal.level), currentGoal.startState)) // if we're no longer in the start state at the goal level (for dH lesions)
+            else if (minLevel > 0 && !stateComparer.Equals(stateTree.GetParentState(transition.newState, currentGoal.level), currentGoal.startState)) // if we're no longer in the start state at the goal level (for dH lesions)
             {
                 currentGoal.goalState = null;
                 for (int i = 0; i < subgoals.Length; i++)
@@ -378,12 +378,12 @@ namespace MultiResolutionRL.ValueCalculation
             }
             return combinedStats;
         }
-        
+
 
 
     }
 
-    
+
 
 
     public class IntArrayComparer : IEqualityComparer<int[]>
@@ -401,11 +401,34 @@ namespace MultiResolutionRL.ValueCalculation
             return true;
         }
 
+
         public int GetHashCode(int[] obj)
-        {
+        { /*
+             uint FnvPrime = unchecked(16777619);
+              uint hash = unchecked(2166136261);                    
+
+              for(int i = 0;i<obj.Length;i++)      
+                  for(int bit = 0; bit< 32;bit++)           
+                      {
+                          // hash = hash XOR byte_of_data
+                          //hash = hash × FNV_prime
+                          hash ^= (uint)obj[i];
+                          hash *= FnvPrime;
+                      }
+                      return (int)hash;
+              
+             
+
+            /*
+                        int hash = 0;
+                        for (int exp = 0; exp < obj.Length; exp++)
+                            hash += obj[exp] * (int)Math.Pow(64, exp);
+
+                        return hash;
+            */
+
             return obj.Sum();
         }
     }
-
 
 }
