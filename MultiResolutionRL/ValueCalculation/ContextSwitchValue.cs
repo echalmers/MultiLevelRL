@@ -142,7 +142,7 @@ namespace MultiResolutionRL.ValueCalculation
                         // copy the best model for adaptation
                         Console.WriteLine("Adapting model " + models.IndexOf(bestModel) + " (p = " + bestP);// + ", bestVal = " + bestVal + ")");
                         currentModel = copyModel(bestModel);
-                        models.Add(currentModel);
+                        models.Add(currentModel); //??????????????????? if not here then move to adaptation successful
                         currentMachineState = machineState.tryAdapt;
                     }
 
@@ -155,6 +155,29 @@ namespace MultiResolutionRL.ValueCalculation
                     {
                         currentMachineState = machineState.useCurrent;
                         Console.WriteLine("Adaptation successful");
+                    }
+
+                    // switch to the model which best explains the recent transition history
+                    bestP = EventProbability(transitionHistory, currentModel, 1);
+                    bestModel = currentModel;
+                    foreach (MultiResValue<stateType, actionType> m in models)
+                    {
+                        if (m == currentModel)
+                            continue;
+
+                        double thisP = EventProbability(transitionHistory, m, 1);
+                        if (thisP > (bestP + 0.05))
+                        {
+                            bestP = thisP;
+                            bestModel = m;
+
+                            if (thisP >= pThreshold)
+                            {
+                                Console.WriteLine("Adaptation aborted. Switching to previously learned model: " + models.IndexOf(m) + "(p = " + Math.Round(thisP, 2) + ")");
+                                currentModel = m;
+                                currentMachineState = machineState.useCurrent;
+                            }
+                        }
                     }
 
                     // if value gradient flattens, assume model cannot be adapted
