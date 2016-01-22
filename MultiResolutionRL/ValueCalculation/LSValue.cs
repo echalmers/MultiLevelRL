@@ -114,5 +114,11 @@ namespace MultiResolutionRL.ValueCalculation
         {
             return trueModel.value(state, action);
         }
+
+        //Simple Getter function for the true models T table<stateType, actionType, int>
+        public SAStable<stateType, actionType,int> getTTable()
+            {
+                 return trueModel.T;
+            }
     }
 }

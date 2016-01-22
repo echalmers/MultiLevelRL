@@ -334,9 +334,13 @@ namespace RL_Test
                 case "Context switcher":
                     agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>));
                     break;
+                case "Context switcher Generic (MB)":
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextChangeValueGeneric<,>));
+                    break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
                     learnerTypeComboBox.Text = "Context switcher";
+                    
 
                     IFormatter formatter = new BinaryFormatter();
                     Stream stream = new FileStream("savedModel.mdl", FileMode.Open,FileAccess.Read,FileShare.Read);

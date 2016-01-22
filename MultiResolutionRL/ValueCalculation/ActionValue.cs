@@ -11,6 +11,8 @@ namespace MultiResolutionRL
         [Serializable]
         public abstract class ActionValue<stateType, actionType>
         {
+            public List<actionType> availableActions;
+
             protected ActionValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters) { }
             abstract public double[] value(stateType state, List<actionType> actions);
             abstract public double update(StateTransition<stateType, actionType> transition);

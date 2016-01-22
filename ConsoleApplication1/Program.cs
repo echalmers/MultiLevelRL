@@ -162,7 +162,7 @@ namespace ConsoleApplication1
             sw.Stop();
             Console.WriteLine(sw.Elapsed.TotalSeconds.ToString());
 
-            System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\data.csv");
+           // System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\data.csv");
             for (int i = 0; i < goalCt; i++)
             {
                 List<string> line = new List<string>();
@@ -170,10 +170,10 @@ namespace ConsoleApplication1
                 {
                     line.Add(series[i].ToString());
                 }
-                writer.WriteLine(string.Join(",", line));
+               // writer.WriteLine(string.Join(",", line));
             }
-            writer.Flush();
-            writer.Close();
+           // writer.Flush();
+            //writer.Close();
 
 
             //// Post-training Lesion study

@@ -13,7 +13,7 @@ namespace MultiResolutionRL.ValueCalculation
         double defaultQ = 10;
         Dictionary<stateType, Dictionary<actionType, double>> table;
         IEqualityComparer<actionType> actionComparer;
-        List<actionType> availableActions;
+        public List<actionType> availableActions;
         PerformanceStats stats = new PerformanceStats();
 
         public ModelFreeValue(IEqualityComparer<stateType> stateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters)

@@ -388,32 +388,33 @@ namespace MultiResolutionRL.ValueCalculation
     [Serializable]
     public class IntArrayComparer : IEqualityComparer<int[]>
     {
+        //Consider looking into doing some form Duff's device for accepting larger degree of states
         public bool Equals(int[] x, int[] y)
         {
 
             if (x == null || y == null)
                 return false;
-
-          /*  for(int i = 0; < x.Length;i+=2)
+        
+            for(int i = 0; i < x.Length;i+=2)
             {
                 if (x[i] != y[i] || x[i + 1] != y[i + 1])
                     return false;
             }
-          */
-            for (int i = 0; i < x.Length; i++)
+          
+            /*for (int i = 0; i < x.Length; i++)
             {
                 if (x[i] != y[i])
                     return false;
                 
-            }
+            }*/
             return true;
         }
 
         public int GetHashCode(int[] obj)
         {
             //FNV HASH
-            /*
-            uint FnvPrime = unchecked(16777619);
+            
+           /* uint FnvPrime = unchecked(16777619);
             uint hash = unchecked(2166136261);
 
             for (int i = 0; i < obj.Length; i++)
@@ -429,11 +430,11 @@ namespace MultiResolutionRL.ValueCalculation
 
 
             //ERICS HASH
-            //return obj.Sum();
+           // return obj.Sum();
             int hash = 0;
             for (int i = 0; i < obj.Length; i++)
             {
-                int shift = 5 * i;
+                int shift = 8 * i;
                 hash += obj[i] << shift;
             }
             return hash;
