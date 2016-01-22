@@ -403,6 +403,24 @@ namespace MultiResolutionRL.ValueCalculation
 
         public int GetHashCode(int[] obj)
         {
+            //FNV HASH
+            /*
+            uint FnvPrime = unchecked(16777619);
+            uint hash = unchecked(2166136261);
+
+            for (int i = 0; i < obj.Length; i++)
+                for (int bit = 0; bit < 32; bit++)
+                {
+                    // hash = hash XOR byte_of_data
+                    //hash = hash × FNV_prime
+                    hash ^= (uint)obj[i];
+                    hash *= FnvPrime;
+                }
+            return (int)hash;
+            */
+
+
+            //ERICS HASH
             //return obj.Sum();
             int hash = 0;
             for (int i = 0; i < obj.Length; i++)

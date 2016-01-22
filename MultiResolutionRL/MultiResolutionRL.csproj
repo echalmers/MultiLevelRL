@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent.cs" />
+    <Compile Include="OutputData.cs" />
     <Compile Include="PerformanceStats.cs" />
     <Compile Include="RewardMemory.cs" />
     <Compile Include="Goal.cs" />

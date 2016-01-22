@@ -4,13 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using MultiResolutionRL.ValueCalculation;
 
+
+
 namespace MultiResolutionRL
 {
+
+   
     public interface World
-    {
+    {       
         object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters);
         PerformanceStats stepAgent(string userAction="");
         void Load(string filename);
@@ -29,8 +34,15 @@ namespace MultiResolutionRL
         IntArrayComparer comparer = new IntArrayComparer();
         HashSet<int[]> rewardSites;
 
+        OutputData OD;
+        DirectoryInfo DI;
+
         public stochasticRewardGridworld()
         {
+
+            OD = new OutputData();
+            DI = Directory.CreateDirectory(OD.getAddress("outputData"));
+
             availableActions = new List<int[]>();
             availableActions.Add(new int[2] { -1, 0 });
             availableActions.Add(new int[2] { 0, -1 });
@@ -183,7 +195,7 @@ namespace MultiResolutionRL
             /*FilteredValue<int[], int[]>*/ ActionValue<int[],int[]> av = /*(FilteredValue<int[], int[]>)*/agent._actionValue;
             StateManagement.intStateTree tree = new StateManagement.intStateTree();
             
-            System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
+            System.IO.StreamWriter valWriter = new System.IO.StreamWriter(OD.getAddress("gradientsVal"));
             for (int i = 0; i < map.GetLength(0); i++)
             {
                 double[] thisXLine = new double[map.GetLength(1)];
@@ -204,6 +216,8 @@ namespace MultiResolutionRL
 
     public class GridWorld : World
     {
+
+
         public Bitmap mapBmp;
         private int[,] map;
         private int[] startState;
@@ -211,9 +225,15 @@ namespace MultiResolutionRL
         List<int[]> availableActions;
 
         List<int[]> visitedStates = new List<int[]>();
-        
+        OutputData OD;
+        DirectoryInfo DI;
+
         public GridWorld()
         {
+           OD = new OutputData();
+           DI = Directory.CreateDirectory(OD.getAddress("outputData"));
+
+
             availableActions = new List<int[]>();
             availableActions.Add(new int[2] { -1, 0 });
             availableActions.Add(new int[2] { 0, -1 });
@@ -389,9 +409,13 @@ namespace MultiResolutionRL
             StateManagement.intStateTree tree = new StateManagement.intStateTree();
 
 
-            System.IO.StreamWriter xWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsX.csv");
-            System.IO.StreamWriter yWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsY.csv");
-            System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
+            //System.IO.StreamWriter xWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsX.csv");
+            System.IO.StreamWriter xWriter = new System.IO.StreamWriter(OD.getAddress("gradientsX"));
+            // System.IO.StreamWriter yWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsY.csv");
+            System.IO.StreamWriter yWriter = new System.IO.StreamWriter(OD.getAddress("gradientsY"));
+            // System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
+            System.IO.StreamWriter valWriter = new System.IO.StreamWriter(OD.getAddress("gradientsVal"));
+
             for (int i=0; i< map.GetLength(0); i++)
             {
                 double[] thisXLine = new double[map.GetLength(1)];
@@ -497,6 +521,7 @@ namespace MultiResolutionRL
 
     public class MountainCar : World
     {
+
         public Agent<int[], int> agent;
         double g = -0.0025;
         List<int> availableActions = new List<int>();
@@ -505,8 +530,14 @@ namespace MultiResolutionRL
         Random rnd = new Random(0);
         Bitmap hill = new Bitmap(18, 101);
 
+        OutputData OD;
+        DirectoryInfo DI;
+
         public MountainCar()
         {
+            OD = new OutputData();
+            DI = Directory.CreateDirectory(OD.getAddress("outputData"));
+
             availableActions.Add(-1);
             //availableActions.Add(0);
             availableActions.Add(1);
@@ -632,8 +663,15 @@ namespace MultiResolutionRL
         double pickupReward = 0;
         double dropReward = 40;
 
+
+        OutputData OD;
+        DirectoryInfo DI;
+
         public Taxi()
         {
+            OD = new OutputData();
+          DI = Directory.CreateDirectory(OD.getAddress("outputData"));
+
             dropSites.Add(null);
 
             availableActions.Add(1);//left

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MultiResolutionRL;
 using MultiResolutionRL.ValueCalculation;
-using feudalRL_Library;
+//using feudalRL_Library;
 
 namespace FeudalTest
 {
@@ -50,7 +50,7 @@ namespace FeudalTest
                 System.Threading.Thread.Sleep(run * 100); // staggered instantiation to avoid identical random number generators
 
                 //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiGridWorldModel<,>), 8);
-                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(Boss<,>), wS, RL, a, g, tO, mR, cP);
+              //  thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(Boss<,>), wS, RL, a, g, tO, mR, cP);
 
                 // run
                 PerformanceStats stats = new PerformanceStats();

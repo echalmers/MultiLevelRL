@@ -11,7 +11,6 @@ using MultiResolutionRL;
 using MultiResolutionRL.ValueCalculation;
 using System.Threading;
 using System.Collections;
-using feudalRL_Library;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -21,7 +20,11 @@ namespace RL_Test
 {
     public partial class Form1 : Form
     {
-        System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Presentation Sept 28\\cumulativeReward.txt");
+        OutputData OD = new OutputData();
+        DirectoryInfo DI;
+        //System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Presentation Sept 28\\cumulativeReward.txt");
+
+        System.IO.StreamWriter writer;
         System.IO.StreamWriter trajWriter;
         World world;
         bool saveImages = false;
@@ -30,6 +33,9 @@ namespace RL_Test
 
         public Form1()
         {
+            DI = Directory.CreateDirectory(OD.getAddress("outputData"));
+            writer = new System.IO.StreamWriter(OD.getAddress("cumulativeReward"));
+
             InitializeComponent();
         }
         
@@ -120,7 +126,9 @@ namespace RL_Test
             {
                 trajWriter.Flush(); trajWriter.Close();
             }
-            trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\trajectory" + of.SafeFileName + ".csv");
+            string outS = OD.getAddress("trajectory") + of.SafeFileName + ".csv";
+            trajWriter = new System.IO.StreamWriter(outS);
+            // trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\trajectory" + of.SafeFileName + ".csv");
         }
 
         
@@ -140,7 +148,9 @@ namespace RL_Test
             saveImages = !saveImages;
             if (saveImages)
             {
-                saveFolder = "C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Images\\" + DateTime.Now.ToString("ddMMM-hh-mm") + "\\";
+              saveFolder = OD.getAddress("Images") + DateTime.Now.ToString("ddMMM-hh-mm") + "\\";
+                
+                    //saveFolder = "C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Images\\" + DateTime.Now.ToString("ddMMM-hh-mm") + "\\";
                 System.IO.Directory.CreateDirectory(saveFolder);
 
                 displayCheckBox.Checked = true;
@@ -154,7 +164,9 @@ namespace RL_Test
 
         private void exportToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            chart1.SaveImage("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Images\\chart_" + DateTime.Now.ToString("ddMMM-hh-mm") + ".Tiff", System.Drawing.Imaging.ImageFormat.Tiff);
+            string outS = OD.getAddress("chart") + DateTime.Now.ToString("ddMMM-hh-mm") + ".Tiff";
+           chart1.SaveImage(outS , System.Drawing.Imaging.ImageFormat.Tiff);
+           // chart1.SaveImage("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Images\\chart_" + DateTime.Now.ToString("ddMMM-hh-mm") + ".Tiff", System.Drawing.Imaging.ImageFormat.Tiff);
         }
 
         
