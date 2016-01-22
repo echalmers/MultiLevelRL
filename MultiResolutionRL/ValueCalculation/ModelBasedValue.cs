@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MultiResolutionRL.ValueCalculation
 {
     [Serializable]
-    public class ModelBasedValue<stateType, actionType> : ActionValue<stateType, actionType>
+    public class ModelBasedValue<stateType, actionType> : ModelBasedActionValue<stateType, actionType>
     {
         public double defaultQ = 10, gamma = 0.9;
         int c = 1;
@@ -261,6 +261,17 @@ namespace MultiResolutionRL.ValueCalculation
         {
             return stats;
         }
+
+        public override SAStable<stateType, actionType, int> getTTable()
+        {
+            return T;
+        }
+
+        public override SAStable<stateType, actionType, Histogram> getRTable()
+        {
+            return R;
+        }
+
 
     }
 

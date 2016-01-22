@@ -19,21 +19,37 @@ namespace MultiResolutionRL.ValueCalculation
         public ContextChangeValueGeneric(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters) : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
         {
             //Constructor
-            ModelBasedValue<stateType, actionType> first = new ModelBasedValue<stateType, actionType>(StateComparer,ActionComparer,AvailableActions,StartState,parameters);
-            models = new Dictionary<int, ActionValue<stateType, actionType>>();
-            models.Add(0, first);
-        
-            activeModelKey = 0;
-            modelType = first.GetType();
-
             SC = StateComparer;
             AC = ActionComparer;
             AA = AvailableActions;
             SS = StartState;
             parames = parameters;
 
+            
+            if (!(setType((Type)parames[0])))
+                Console.WriteLine("Error setting model type {0}", (Type)parameters[0]);
+
+           // modelType = typeof(ModelBasedValue<,>);
+                models = new Dictionary<int, ActionValue<stateType, actionType>>();
+                models.Add(0, newModel());
+
+                activeModelKey = 0;
+            
+
         }
 
+
+        //used for setting the currently active type of model, the type given is an accepted type, return true;
+        //Else will return false
+        public bool setType(Type mType)
+        {
+            if (!(mType.IsSubclassOf(typeof(ModelBasedActionValue<stateType, actionType>))))
+            {
+                modelType = mType.MakeGenericType(typeof(stateType), typeof(actionType));
+                return true;
+            }
+            return false;
+        }
         //Needs to update the currently active model.
         public override double update(StateTransition<stateType, actionType> transition)
         {
@@ -42,12 +58,10 @@ namespace MultiResolutionRL.ValueCalculation
 
             
 
-            if (modelType is ModelBasedValue<stateType,actionType> ||
-                modelType is LSValue<stateType,actionType> ||
-                modelType is ModelBasedAvgRwdValue<stateType,actionType> ||
-                modelType is MultiResValue<stateType,actionType>)
+            if (modelType.IsSubclassOf(typeof(ModelBasedActionValue<stateType,actionType>)))
                 t_tableProbs = t_TableValues(transition, models);
-
+            
+            //else(for non-modelbased such as Q-learning, or not yet implemented)
 
             activeModelKey = FuncApprox();
             return holder;
@@ -97,8 +111,8 @@ namespace MultiResolutionRL.ValueCalculation
 
             for (int key = 0; key < models.Count; key++)
             {
-                ModelBasedValue<stateType, actionType> modelsCopy = (ModelBasedValue<stateType, actionType>)models[key].T.GetStateValueTable;
-                Dictionary<stateType, int> s2Counts = modelsCopy.T.GetStateValueTable(StaTran.oldState, StaTran.action);
+                SAStable<stateType, actionType, int> table = ((ModelBasedActionValue<stateType, actionType>)models[key]).getTTable();
+                Dictionary<stateType, int> s2Counts = table.GetStateValueTable(StaTran.oldState, StaTran.action);            
 
                 double thisS2Counts = 0;
                 if (s2Counts.ContainsKey(StaTran.newState))
@@ -145,18 +159,14 @@ namespace MultiResolutionRL.ValueCalculation
         // previously existing model is useful for models that are similar up to a point but may have a slight difference
         public ActionValue<stateType,actionType> newModel()
         {
+            Console.WriteLine("Creating new Model: {0}", models.Count);
              ActionValue<stateType, actionType> returnModel = null;
-             Type AVtype = models[0].GetType();
-
-            // AVtype.MakeGenericType(typeof(stateType), typeof(actionType));
-              returnModel = (ActionValue<stateType, actionType>)Activator.CreateInstance(AVtype, SC, AC, AA, SS, parames);
-
+              returnModel = (ActionValue<stateType, actionType>)Activator.CreateInstance(modelType, SC, AC, AA, SS, parames);
               return returnModel;
         }
 
         //*******************MEMBERS*******************//
         Dictionary<int, ActionValue<stateType, actionType>> models;
-       // List<ActionValue<stateType, actionType>> models;
         int activeModelKey;
         Type modelType;
 

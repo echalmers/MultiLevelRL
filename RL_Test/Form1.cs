@@ -35,8 +35,10 @@ namespace RL_Test
         {
             DI = Directory.CreateDirectory(OD.getAddress("outputData"));
             writer = new System.IO.StreamWriter(OD.getAddress("cumulativeReward"));
+          
 
             InitializeComponent();
+            LearnStyle_DropBox.Enabled = false;
         }
         
         private void button1_Click(object sender, EventArgs e)
@@ -334,8 +336,9 @@ namespace RL_Test
                 case "Context switcher":
                     agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>));
                     break;
-                case "Context switcher Generic (MB)":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextChangeValueGeneric<,>));
+                case "Context switcher Generic":
+                    LearnStyle_DropBox.Enabled = true;
+                    //agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextChangeValueGeneric<,>));
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
@@ -365,6 +368,24 @@ namespace RL_Test
             Stream stream = new FileStream("savedModel.mdl", FileMode.Create, FileAccess.Write, FileShare.None);
             formatter.Serialize(stream, mdl);
             stream.Close();
+        }
+
+        private void LearnStyle_DropBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (LearnStyle_DropBox.Text)
+            {
+                case "ModelBasedValue":
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextChangeValueGeneric<,>),typeof(ModelBasedValue<,>));
+                    break;
+
+                case "LS-ModelBased":
+                    Console.WriteLine("LS-ModelBased");
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextChangeValueGeneric<,>), typeof(LSValue<,>));
+                    break;
+
+                    
+            }
+            LearnStyle_DropBox.Enabled = false;
         }
     }
 }

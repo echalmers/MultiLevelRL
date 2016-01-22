@@ -1,4 +1,5 @@
-﻿using System;
+﻿/*
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using MultiResolutionRL.ValueCalculation;
 
 namespace MultiResolutionRL.ValueCalculation
 {
-    public class ModelBasedAvgRwdValue<stateType, actionType> : ActionValue<stateType, actionType>
+    public class ModelBasedAvgRwdValue<stateType, actionType> : ModelBasedActionValue<stateType, actionType>
     {
         int c = 1;
         double defaultVal = 0;
@@ -20,7 +21,7 @@ namespace MultiResolutionRL.ValueCalculation
         List<actionType> availableActions;
 
         Dictionary<stateType, Dictionary<actionType, double>> R;
-        Dictionary<stateType, Dictionary<actionType, Dictionary<stateType, double>>> T;
+        Dictionary<stateType, Dictionary<actionType, Dictionary<stateType, int>>> T;
         Dictionary<stateType, double> V;
 
         Dictionary<stateType, Dictionary<stateType, List<actionType>>> predecessors;
@@ -132,5 +133,16 @@ namespace MultiResolutionRL.ValueCalculation
             }
             return v;
         }
+
+        public override SAStable<stateType, actionType, int> getTTable()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override SAStable<stateType, actionType, Histogram> getRTable()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
+*/

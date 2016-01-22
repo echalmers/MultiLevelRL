@@ -7,7 +7,7 @@ using MultiResolutionRL.ValueCalculation;
 
 namespace MultiResolutionRL.ValueCalculation
 {
-    public class LSValue<stateType, actionType> : ActionValue<stateType, actionType>
+    public class LSValue<stateType, actionType> : ModelBasedActionValue<stateType, actionType>
     {
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
@@ -117,9 +117,14 @@ namespace MultiResolutionRL.ValueCalculation
         }
 
         //Simple Getter function for the true models T table<stateType, actionType, int>
-        public SAStable<stateType, actionType,int> getTTable()
+        public override SAStable<stateType, actionType,int> getTTable()
             {
                  return trueModel.T;
+            }
+        //Simple Getter function for the true models R table<stateType, actionType, Histogram>
+        public override SAStable<stateType, actionType, Histogram> getRTable()
+            {
+                return trueModel.R;
             }
     }
 }
