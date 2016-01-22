@@ -146,6 +146,8 @@ namespace MultiResolutionRL.ValueCalculation
                         goalStates = stateTree.GetChildren(subgoals[l + 1][0].goalState, l + 1);
                         int[] currentGoalLevelState = stateTree.GetParentState(state, currentGoal.level);
                         Console.WriteLine("couldn't find a path to level " + currentGoal.level + ": " + String.Join(",",currentGoal.goalState) + " at level " + l);
+
+                        throw new ApplicationException("Pathfinding failed");
                         
                         currentGoal.goalState = null;
                         for (int i = 0; i < subgoals.Length; i++)
