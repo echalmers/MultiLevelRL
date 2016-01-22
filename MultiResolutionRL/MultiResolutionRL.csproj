@@ -50,8 +50,9 @@
     <Compile Include="Policy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StateTree.cs" />
-    <Compile Include="ValueCalculation\ActionValue.cs" />
+    <Compile Include="ValueCalculation\BaseClasses\ActionValue.cs" />
     <Compile Include="StateTransition.cs" />
+    <Compile Include="ValueCalculation\BaseClasses\ModelBasedActionValue.cs" />
     <Compile Include="ValueCalculation\ContextSwitchValue.cs" />
     <Compile Include="ValueCalculation\ContextChangeValueGeneric.cs" />
     <Compile Include="ValueCalculation\FeudalValue.cs" />
