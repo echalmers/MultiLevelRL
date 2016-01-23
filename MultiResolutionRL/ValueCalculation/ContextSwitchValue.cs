@@ -101,14 +101,14 @@ namespace MultiResolutionRL.ValueCalculation
                 case machineState.useCurrent:
                     
                     // switch to the model which best explains the recent transition history
-                    double bestP = EventProbability(transitionHistory, currentModel, 1);
+                    double bestP = EventProbability(transitionHistory, currentModel, 5);
                     MultiResValue < stateType, actionType > bestModel = currentModel;
                     foreach (MultiResValue<stateType, actionType> m in models)
                     {
                         if (m == currentModel)
                             continue;
 
-                        double thisP = EventProbability(transitionHistory, m, 1);
+                        double thisP = EventProbability(transitionHistory, m, 5);
                         if (thisP > (bestP + 0.05))
                         {
                             bestP = thisP;
@@ -139,11 +139,24 @@ namespace MultiResolutionRL.ValueCalculation
                         //    }
                         //}
 
-                        // copy the best model for adaptation
-                        Console.WriteLine("Adapting model " + models.IndexOf(bestModel) + " (p = " + bestP);// + ", bestVal = " + bestVal + ")");
-                        currentModel = copyModel(bestModel);
-                        models.Add(currentModel); //??????????????????? if not here then move to adaptation successful
-                        currentMachineState = machineState.tryAdapt;
+                        if (layers > 1)
+                        {
+                            // copy the best model for adaptation
+                            Console.WriteLine("Adapting model " + models.IndexOf(bestModel) + " (p = " + bestP);// + ", bestVal = " + bestVal + ")");
+                            currentModel = copyModel(bestModel);
+                            models.Add(currentModel); //??????????????????? if not here then move to adaptation successful
+                            currentMachineState = machineState.tryAdapt;
+                        }
+                        else
+                        {
+                            currentModel = new MultiResValue<stateType, actionType>((IEqualityComparer<int[]>)stateComparer, actionComparer, availableActions, (int[])((object)startState), layers);
+                            foreach (ModelBasedValue<int[], actionType> m in models.Last().models)
+                            {
+                                m.maxUpdates = maxUpdates;
+                            }
+                            models.Add(currentModel);
+                            Console.WriteLine("Starting new model (p = " + bestP + ")");
+                        }
                     }
 
                     break;
@@ -189,6 +202,7 @@ namespace MultiResolutionRL.ValueCalculation
                         {
                             m.maxUpdates = maxUpdates;
                         }
+                        models.Add(currentModel);
                         currentMachineState = machineState.useCurrent;
                         Console.WriteLine("Adaptation failed. Starting new model");
                     }

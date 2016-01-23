@@ -328,6 +328,14 @@ namespace MultiResolutionRL.ValueCalculation
                     subgoals[currentGoal.level].Add(currentGoal);
                 }
             }
+            else if (subgoals[0].Count==0) // error check ****************
+            {
+                currentGoal.goalState = null;
+                for (int i = 0; i < subgoals.Length; i++)
+                {
+                    subgoals[i].Clear();
+                }
+            }
             else if (stateComparer.Equals(subgoals[0][0].goalState, transition.newState)) // if the next step at level 0 has been reached successfully
             {
                 for (int i = 0; i < currentGoal.level; i++)

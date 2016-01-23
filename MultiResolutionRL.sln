@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "feudalRL_Library", "..\Feud
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeudalTest", "FeudalTest\FeudalTest.csproj", "{D205447C-E62C-4CA9-AA6B-34793ADEEE76}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HierarchicalContextSwitchTest", "HierarchicalContextSwitchTest\HierarchicalContextSwitchTest.csproj", "{A3DFD2FC-FCA7-4746-8987-CBBDB581FFBA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{D205447C-E62C-4CA9-AA6B-34793ADEEE76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D205447C-E62C-4CA9-AA6B-34793ADEEE76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D205447C-E62C-4CA9-AA6B-34793ADEEE76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3DFD2FC-FCA7-4746-8987-CBBDB581FFBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3DFD2FC-FCA7-4746-8987-CBBDB581FFBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3DFD2FC-FCA7-4746-8987-CBBDB581FFBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3DFD2FC-FCA7-4746-8987-CBBDB581FFBA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

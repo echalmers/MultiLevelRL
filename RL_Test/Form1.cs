@@ -319,8 +319,11 @@ namespace RL_Test
                 case "Multi-resolution":
                     agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 8);
                     break;
-                case "Context switcher":
+                case "Context switcher (hierarchical)":
                     agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>));
+                    break;
+                case "Context switcher":
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>), 1);
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
