@@ -107,7 +107,11 @@ namespace RL_Test
 
         private void loadMapButton_Click(object sender, EventArgs e)
         {
-            ((ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).resetHistory();
+            try
+            {
+                ((ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).resetHistory();
+            }
+            catch { }
 
             OpenFileDialog of = new OpenFileDialog();
             of.Title = "Load map";
@@ -316,16 +320,16 @@ namespace RL_Test
                     world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
                     break;
                 case "Model based":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelBasedValue<,>));
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
                     break;
                 case "Multi-resolution":
                     agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 8);
                     break;
                 case "Context switcher (hierarchical)":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>));
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
                     break;
                 case "Context switcher":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>), 1, 120);
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));

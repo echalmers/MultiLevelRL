@@ -15,6 +15,7 @@ namespace MultiResolutionRL
             abstract public double[] value(stateType state, List<actionType> actions);
             abstract public double update(StateTransition<stateType, actionType> transition);
             abstract public PerformanceStats getStats();
+            abstract public explorationMode getRecommendedExplorationMode();
 
             abstract public stateType PredictNextState(stateType state, actionType action);
             //abstract public stateType PredictBestNextState(stateType state, actionType action);
@@ -22,6 +23,6 @@ namespace MultiResolutionRL
             abstract public double PredictReward(stateType state, actionType action, stateType newState);
         }
 
-
+        public enum explorationMode { normal, suspendExploration};
     }
 }

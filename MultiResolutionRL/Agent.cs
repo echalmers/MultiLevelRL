@@ -13,7 +13,8 @@ namespace MultiResolutionRL
         public Policy<stateType, actionType> _policy;
         public ActionValue<stateType, actionType> _actionValue;
         public List<actionType> _possibleActions;
-        //Queue<StateTransition<stateType, actionType>> history = new Queue<StateTransition<stateType, actionType>>();
+
+        OptimalPolicy<stateType, actionType> explorationFreePolicy = new OptimalPolicy<stateType, actionType>();
                 
 
         public Agent(stateType State, Policy<stateType, actionType> policy, ActionValue<stateType, actionType> actionValue, List<actionType> possibleActions)
@@ -29,7 +30,11 @@ namespace MultiResolutionRL
             // get value for every action;
             double[] values = _actionValue.value(state, _possibleActions);
             //Console.WriteLine(String.Join(",", values));
-            return _policy.selectAction(_possibleActions, values.ToList());
+
+            if (_actionValue.getRecommendedExplorationMode() == explorationMode.suspendExploration)
+                return explorationFreePolicy.selectAction(_possibleActions, values.ToList());
+            else
+                return _policy.selectAction(_possibleActions, values.ToList());
         }
 
         public void logEvent(StateTransition<stateType, actionType> transition)

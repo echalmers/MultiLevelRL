@@ -332,5 +332,10 @@ namespace MultiResolutionRL.ValueCalculation
         {
             return stats;
         }
+
+        public override explorationMode getRecommendedExplorationMode()
+        {
+            return explorationMode.normal;
+        }
     }
 }

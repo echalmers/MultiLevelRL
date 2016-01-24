@@ -156,7 +156,7 @@ namespace MultiResolutionRL.ValueCalculation
                             Console.WriteLine("Adapting model " + models.IndexOf(bestModel) + " (p = " + bestP);// + ", bestVal = " + bestVal + ")");
                             currentModel = copyModel(bestModel);
                             //models.Add(currentModel); //??????????????????? if not here then move to adaptation successful
-                            candidateModel = newModel(0.00011);
+                            candidateModel = newModel(0.001);
                             currentMachineState = machineState.tryAdapt;
                         }
                         else
@@ -175,6 +175,7 @@ namespace MultiResolutionRL.ValueCalculation
                     candidateModel.update((StateTransition<int[], actionType>)((object)transition));
 
                     // if goal has been found, assume model is adapted successfully
+                    
                     if (transition.reward > 0)
                     {
                         currentMachineState = machineState.useCurrent;
@@ -182,6 +183,7 @@ namespace MultiResolutionRL.ValueCalculation
                         models.Add(candidateModel);
                         //models.Add(currentModel);
                         Console.WriteLine("Adaptation successful");
+                        break;
                     }
 
                     //// switch to the model which best explains the recent transition history
@@ -256,6 +258,15 @@ namespace MultiResolutionRL.ValueCalculation
             currentModel.update((StateTransition<int[], actionType>)((object)transition));
             
             return 0;
+        }
+
+        public override explorationMode getRecommendedExplorationMode()
+        {
+            return explorationMode.suspendExploration;
+            //if (currentMachineState == machineState.tryAdapt)
+            //    return explorationMode.suspendExploration;
+            //else
+            //    return explorationMode.normal;
         }
 
         public override double[] value(stateType state, List<actionType> actions)

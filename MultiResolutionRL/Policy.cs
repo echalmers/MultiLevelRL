@@ -42,7 +42,7 @@ namespace MultiResolutionRL
 
     public class EGreedyPolicy<stateType, actionType> : Policy<stateType, actionType>
     {
-        double defaultE = 0.8;// double.PositiveInfinity;
+        double defaultE = 0.9;// double.PositiveInfinity;
         Random rnd = new Random();
         
         public actionType selectAction(List<actionType> availableActions, List<double> values, params double[] parameters)

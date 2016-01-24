@@ -14,6 +14,7 @@ namespace HierarchicalContextSwitchTest
         {
             string stepsToGoalFilename = "C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\stepsToGoal.csv";
             string modelUseFilename = "C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\modelUse.csv";
+            string mapsDirectory = "C:\\Users\\Eric\\Desktop\\Maps\\";
 
             int runs = 8;
             int goalCt = 10;

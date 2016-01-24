@@ -272,6 +272,11 @@ namespace MultiResolutionRL.ValueCalculation
         {
             stats = new PerformanceStats();
         }
+
+        public override explorationMode getRecommendedExplorationMode()
+        {
+            return explorationMode.normal;
+        }
     }
 
     
