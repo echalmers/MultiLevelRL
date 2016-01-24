@@ -107,6 +107,8 @@ namespace RL_Test
 
         private void loadMapButton_Click(object sender, EventArgs e)
         {
+            ((ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).resetHistory();
+
             OpenFileDialog of = new OpenFileDialog();
             of.Title = "Load map";
             of.ShowDialog();
@@ -323,7 +325,7 @@ namespace RL_Test
                     agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>));
                     break;
                 case "Context switcher":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>), 1);
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>), 1, 120);
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
