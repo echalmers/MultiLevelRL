@@ -15,12 +15,14 @@ namespace HierarchicalContextSwitchTest
         {
             string stepsToGoalFilename = "C:\\Users\\Eric\\Desktop\\Maps\\stepsToGoal.csv";
             string modelUseFilename = "C:\\Users\\Eric\\Desktop\\Maps\\modelUse.csv";
+            string cumRewardFilename = "C:\\Users\\Eric\\Desktop\\Maps\\cumReward.csv";
             string mapsDirectory = "C:\\Users\\Eric\\Desktop\\Maps\\";
 
             int runs = 8;
-            int goalCt = 11;
+            int goalCt = 10;
             List<double>[] stepsToGoal = new List<double>[runs];
             List<double>[] cumModelUse = new List<double>[runs];
+            List<double>[] cumReward = new List<double>[runs];
 
             string[] mapNames = Directory.GetFiles(mapsDirectory, "*.bmp");
             List<string> maps = new List<string>();
@@ -38,6 +40,7 @@ namespace HierarchicalContextSwitchTest
             Parallel.For(0, runs, op, (run) =>
             {
                 cumModelUse[run] = new List<double>();
+                cumReward[run] = new List<double>();
 
                 // instantiate world
                 World thisWorld = new GridWorld();
@@ -50,7 +53,7 @@ namespace HierarchicalContextSwitchTest
 
                 PerformanceStats stats = new PerformanceStats();
 
-                for (int mapNumber = 0; mapNumber<maps.Length; mapNumber++)
+                for (int mapNumber = 0; mapNumber<maps.Count; mapNumber++)
                 {
                     // load map
                     thisWorld.Load(maps[mapNumber]);
@@ -62,7 +65,8 @@ namespace HierarchicalContextSwitchTest
                         if (stats.stepsToGoal.Last() == 0)
                         {
                             cumModelUse[run].Add(stats.modelAccesses + stats.modelUpdates);
-                            Console.WriteLine("run " + run.ToString() + " goal count: " + (stats.stepsToGoal.Count-1));
+                            cumReward[run].Add(stats.cumulativeReward);
+                            Console.WriteLine("run " + run.ToString() + " goal count: " + (stats.stepsToGoal.Count-1) + " steps: " + stats.stepsToGoal[mapNumber]);
                         }
                     }
 
@@ -72,23 +76,18 @@ namespace HierarchicalContextSwitchTest
             });
             //}
 
-            System.IO.StreamWriter writer = new System.IO.StreamWriter(stepsToGoalFilename);
-            for (int i = 0; i < stepsToGoal[0].Count; i++)
+            saveToCSV(stepsToGoalFilename, stepsToGoal);
+            saveToCSV(modelUseFilename, cumModelUse);
+            saveToCSV(cumRewardFilename, cumReward);
+        }
+
+        public static void saveToCSV(string filename, List<double>[] data)
+        {
+            System.IO.StreamWriter writer = new System.IO.StreamWriter(filename);
+            for (int i = 0; i < data[0].Count; i++)
             {
                 List<string> line = new List<string>();
-                foreach (List<double> series in stepsToGoal)
-                {
-                    line.Add(series[i].ToString());
-                }
-                writer.WriteLine(string.Join(",", line));
-            }
-            writer.Flush();
-            writer.Close();
-            writer = new System.IO.StreamWriter(modelUseFilename);
-            for (int i = 0; i < cumModelUse[0].Count; i++)
-            {
-                List<string> line = new List<string>();
-                foreach (List<double> series in cumModelUse)
+                foreach (List<double> series in data)
                 {
                     line.Add(series[i].ToString());
                 }
