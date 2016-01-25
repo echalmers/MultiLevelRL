@@ -57,8 +57,8 @@ namespace RL_Test
                 label1.Text = i.ToString();
                 label1.Refresh();
 
-                chart1.Series.Last().Points.AddY(stats.cumulativeReward);
-                chart2.Series.Last().Points.AddY(stats.modelAccesses + stats.modelUpdates);
+               chart1.Series.Last().Points.AddY(stats.cumulativeReward);
+               chart2.Series.Last().Points.AddY(stats.modelAccesses + stats.modelUpdates);
                 writer.WriteLine("Reward: " + stats.cumulativeReward);
 
                 if (displayCheckBox.Checked)
@@ -80,7 +80,7 @@ namespace RL_Test
             {
                 if (d <= 0)
                     break;
-                chart3.Series.Last().Points.Add(d);
+             chart3.Series.Last().Points.Add(d);
             }
             label1.Text = Math.Round(sw.Elapsed.TotalSeconds,1) + "s";
 
