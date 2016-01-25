@@ -12,6 +12,8 @@ namespace MultiResolutionRL.ValueCalculation
     [Serializable]
     public class ContextSwitchValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
+        Random rnd = new Random();
+
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
         List<actionType> availableActions;
@@ -214,9 +216,15 @@ namespace MultiResolutionRL.ValueCalculation
                     double currentValue = currentModel.models[0].value((int[])((object)transition.newState), availableActions).Max();
                     if (currentValue < vThreshold)
                     {
-                        currentModel = newModel(15);
-                        models.Add(currentModel);
+                        //currentModel = newModel(15);
+                        //models.Add(currentModel);
+                        //candidateModel = null;
+
+                        currentModel = candidateModel;
                         candidateModel = null;
+                        models.Add(currentModel);
+                        currentModel.models[0].defaultQ = 15;
+
                         currentMachineState = machineState.useCurrent;
                         Console.WriteLine("Adaptation failed. Starting new model");
 
@@ -262,11 +270,10 @@ namespace MultiResolutionRL.ValueCalculation
 
         public override explorationMode getRecommendedExplorationMode()
         {
-            return explorationMode.suspendExploration;
-            //if (currentMachineState == machineState.tryAdapt)
-            //    return explorationMode.suspendExploration;
-            //else
-            //    return explorationMode.normal;
+            if (currentMachineState == machineState.tryAdapt)
+                return explorationMode.suspendExploration;
+            else
+                return explorationMode.normal;
         }
 
         public override double[] value(stateType state, List<actionType> actions)
@@ -294,9 +301,15 @@ namespace MultiResolutionRL.ValueCalculation
                 }
                 catch (ApplicationException ex)
                 {
+                    //candidateModel = null;
+                    //currentModel = newModel(15);
+                    //models.Add(currentModel);
+
+                    currentModel = candidateModel;
                     candidateModel = null;
-                    currentModel = newModel(15);
                     models.Add(currentModel);
+                    currentModel.models[0].defaultQ = 15;
+
                     currentMachineState = machineState.useCurrent;
                     Console.WriteLine("Starting new model");
                     return currentModel.value((int[])((object)state), actions);
@@ -356,10 +369,10 @@ namespace MultiResolutionRL.ValueCalculation
             }
             newmodel.models[0].defaultQ = defaultQ;
 
-            foreach(StateTransition<stateType, actionType> t in transitionHistory)
-            {
-                newmodel.update((StateTransition<int[], actionType>)(object)t);
-            }
+            //foreach(StateTransition<stateType, actionType> t in transitionHistory)
+            //{
+            //    newmodel.update((StateTransition<int[], actionType>)(object)t);
+            //}
 
             return newmodel;
         }
@@ -384,13 +397,15 @@ namespace MultiResolutionRL.ValueCalculation
 
         MultiResValue<stateType, actionType> copyModel(MultiResValue<stateType, actionType> toCopy)
         {
+            string filename = rnd.Next().ToString() + ".bin";
+
             IFormatter formatter = new BinaryFormatter();
-            Stream stream = new FileStream("temp.bin", FileMode.Create, FileAccess.Write, FileShare.None);
+            Stream stream = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.None);
             formatter.Serialize(stream, toCopy);
             stream.Close();
 
             formatter = new BinaryFormatter();
-            stream = new FileStream("temp.bin", FileMode.Open, FileAccess.Read, FileShare.Read);
+            stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
             MultiResValue < stateType, actionType > copied = (MultiResValue<stateType, actionType>)formatter.Deserialize(stream);
             stream.Close();
 

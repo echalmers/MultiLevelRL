@@ -50,10 +50,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\FeudalRL\feudalRL_Library\feudalRL_Library\feudalRL_Library.csproj">
-      <Project>{e65dd8d6-c15c-418d-88b2-1f719433ad9e}</Project>
-      <Name>feudalRL_Library</Name>
-    </ProjectReference>
     <ProjectReference Include="..\MultiResolutionRL\MultiResolutionRL.csproj">
       <Project>{a5c06884-6d62-4f15-8a14-7411a0569664}</Project>
       <Name>MultiResolutionRL</Name>

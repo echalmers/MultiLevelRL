@@ -307,12 +307,14 @@ namespace MultiResolutionRL
             }
             
             agent.getStats().TallyStepsToGoal(reward > 0);
-            //if (agent.getStats().stepsToGoal.Last() > 5000)
-            //{
-            //    agent.getStats().TallyStepsToGoal(true);
-            //    newState = new int[2] { startState[0], startState[1] };
-            //    absorbingStateReached = true;
-            //}
+            //***************************************************
+            if (agent.getStats().stepsToGoal.Last() > 5000)
+            {
+                agent.getStats().TallyStepsToGoal(true);
+                newState = new int[2] { startState[0], startState[1] };
+                absorbingStateReached = true;
+            }
+            //***************************************************
             agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
             return agent.getStats();
         }

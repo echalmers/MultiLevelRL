@@ -13,7 +13,7 @@ namespace MultiResolutionRL
 
     public class SoftmaxPolicy<stateType, actionType> : Policy<stateType, actionType>
     {
-        public double defaultT = 1;
+        public double defaultT = 0.1;
 
         Random rnd = new Random();
 
@@ -42,7 +42,7 @@ namespace MultiResolutionRL
 
     public class EGreedyPolicy<stateType, actionType> : Policy<stateType, actionType>
     {
-        double defaultE = 0.9;// double.PositiveInfinity;
+        double defaultE = 0.90;// double.PositiveInfinity;
         Random rnd = new Random();
         
         public actionType selectAction(List<actionType> availableActions, List<double> values, params double[] parameters)
@@ -54,22 +54,31 @@ namespace MultiResolutionRL
             // select at random or by value?
             if (rnd.NextDouble() < e) // by value
             {
-                actionType bestAction = availableActions[0];
-                double expectedReward = double.NegativeInfinity;
+                //actionType bestAction = availableActions[0];
+                //double expectedReward = double.NegativeInfinity;
+                //for (int i = 0; i < values.Count; i++)
+                //{
+                //    if (values[i] > expectedReward)
+                //    {
+                //        expectedReward = values[i];
+                //        bestAction = availableActions[i];
+                //    }
+                //}
+                //return bestAction;
+
+                List<actionType> bestActions = new List<actionType>();
+                double bestValue = values.Max();
                 for (int i = 0; i < values.Count; i++)
                 {
-                    if (values[i] > expectedReward)
-                    {
-                        expectedReward = values[i];
-                        bestAction = availableActions[i];
-                    }
+                    if (values[i] == bestValue)
+                        bestActions.Add(availableActions[i]);
                 }
-                return bestAction;
+                return bestActions[rnd.Next(bestActions.Count)];
             }
             else // randomly
             {
-                int randIndex = rnd.Next(availableActions.Count - 1);
-                double expectedReward = values[randIndex];
+                int randIndex = rnd.Next(availableActions.Count);
+                //double expectedReward = values[randIndex];
                 return availableActions[randIndex];
             }
         }

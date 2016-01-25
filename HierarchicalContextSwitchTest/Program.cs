@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MultiResolutionRL;
 using MultiResolutionRL.ValueCalculation;
+using System.IO;
 
 namespace HierarchicalContextSwitchTest
 {
@@ -12,14 +13,16 @@ namespace HierarchicalContextSwitchTest
     {
         static void Main(string[] args)
         {
-            string stepsToGoalFilename = "C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\stepsToGoal.csv";
-            string modelUseFilename = "C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\modelUse.csv";
+            string stepsToGoalFilename = "C:\\Users\\Eric\\Desktop\\Maps\\stepsToGoal.csv";
+            string modelUseFilename = "C:\\Users\\Eric\\Desktop\\Maps\\modelUse.csv";
             string mapsDirectory = "C:\\Users\\Eric\\Desktop\\Maps\\";
 
             int runs = 8;
-            int goalCt = 10;
+            int goalCt = 11;
             List<double>[] stepsToGoal = new List<double>[runs];
             List<double>[] cumModelUse = new List<double>[runs];
+
+            string[] maps = Directory.GetFiles(mapsDirectory, "*.bmp");
 
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
@@ -29,9 +32,7 @@ namespace HierarchicalContextSwitchTest
                 MaxDegreeOfParallelism = 8
             };
 
-            // setup list of environments
-
-
+            //for(int run=0; run< runs; run++)
             Parallel.For(0, runs, op, (run) =>
             {
                 cumModelUse[run] = new List<double>();
@@ -39,43 +40,35 @@ namespace HierarchicalContextSwitchTest
                 // instantiate world
                 World thisWorld = new GridWorld();
 
-                // load 1st map
-                thisWorld.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10.bmp");
-
                 // add agent
                 System.Threading.Thread.Sleep(run * 100); // staggered instantiation to avoid identical random number generators
+                //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100); // this line for context-switch + adaptation
+                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100); // this line for context-switch olny
+                //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>)); // this line for standard MBRL
 
-                //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiGridWorldModel<,>), 8);
-                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
-
-                // run
                 PerformanceStats stats = new PerformanceStats();
-                while (stats.stepsToGoal.Count <= goalCt)
+
+                for (int mapNumber = 0; mapNumber<maps.Length; mapNumber++)
                 {
-                    stats = thisWorld.stepAgent("");
-                    if (stats.stepsToGoal.Last() == 0)
+                    // load map
+                    thisWorld.Load(maps[mapNumber]);
+
+                    // go
+                    while (stats.stepsToGoal.Count < goalCt * (mapNumber+1))
                     {
-                        cumModelUse[run].Add(stats.modelAccesses + stats.modelUpdates);
-                        Console.WriteLine("run " + run.ToString() + " goal count: " + stats.stepsToGoal.Count);
+                        stats = thisWorld.stepAgent("");
+                        if (stats.stepsToGoal.Last() == 0)
+                        {
+                            cumModelUse[run].Add(stats.modelAccesses + stats.modelUpdates);
+                            Console.WriteLine("run " + run.ToString() + " goal count: " + (stats.stepsToGoal.Count-1));
+                        }
                     }
+
+                    stepsToGoal[run] = stats.stepsToGoal;
                 }
 
-                // switch task
-                thisWorld.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10e.bmp");
-
-                // run again
-                while (stats.stepsToGoal.Count <= goalCt * 2)
-                {
-                    stats = thisWorld.stepAgent("");
-                    if (stats.stepsToGoal.Last() == 0)
-                    {
-                        cumModelUse[run].Add(stats.modelAccesses + stats.modelUpdates);
-                        Console.WriteLine("run " + run.ToString() + " goal count: " + stats.stepsToGoal.Count);
-                    }
-                }
-
-                stepsToGoal[run] = stats.stepsToGoal;
             });
+            //}
 
             System.IO.StreamWriter writer = new System.IO.StreamWriter(stepsToGoalFilename);
             for (int i = 0; i < stepsToGoal[0].Count; i++)
