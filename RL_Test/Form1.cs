@@ -300,7 +300,7 @@ namespace RL_Test
         {
             world = new GridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10.bmp");
+            world.Load("..\\Maps\\map10.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
