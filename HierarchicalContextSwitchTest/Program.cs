@@ -22,7 +22,9 @@ namespace HierarchicalContextSwitchTest
             List<double>[] stepsToGoal = new List<double>[runs];
             List<double>[] cumModelUse = new List<double>[runs];
 
-            string[] maps = Directory.GetFiles(mapsDirectory, "*.bmp");
+            string[] mapNames = Directory.GetFiles(mapsDirectory, "*.bmp");
+            List<string> maps = new List<string>();
+            maps.AddRange(mapNames); maps.AddRange(mapNames);
 
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
@@ -43,7 +45,7 @@ namespace HierarchicalContextSwitchTest
                 // add agent
                 System.Threading.Thread.Sleep(run * 100); // staggered instantiation to avoid identical random number generators
                 //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100); // this line for context-switch + adaptation
-                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100); // this line for context-switch olny
+                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100); // this line for context-switch only
                 //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>)); // this line for standard MBRL
 
                 PerformanceStats stats = new PerformanceStats();
