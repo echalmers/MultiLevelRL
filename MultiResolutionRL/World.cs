@@ -893,6 +893,99 @@ namespace MultiResolutionRL
         }
     }
 
+    public class ProceduralGridWorld : World
+    {
+        public Bitmap mapBmp;
+        private int[,] map;
+        private int[] startState;
+        public Agent<int[], int[]> agent;
+        List<int[]> availableActions;
 
-    
+        List<int[]> visitedStates = new List<int[]>();
+        OutputData OD;
+        DirectoryInfo DI;
+
+        ProceduralGridWorld()
+        {
+            OD = new OutputData();
+            DI = Directory.CreateDirectory(OD.getAddress("outputData"));
+
+            availableActions = new List<int[]>();
+            availableActions.Add(new int[2] { -1, 0 });
+            availableActions.Add(new int[2] { 0, -1 });
+            availableActions.Add(new int[2] { 1, 0 });
+            availableActions.Add(new int[2] { 0, 1 });
+
+            startState = new int[2] { 1, 1 };
+
+            Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
+            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
+            agent = new Agent<int[], int[]>(startState, policy, value, availableActions);
+
+        }
+
+        public object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        //Will load up a set of maps from the folderName
+        //Ultimately they will be stitched together and one will have its goal state kept while the others have tehm removed.
+        //Will need to pad the maps with a pixel wide blue border,
+        //Determine edge maps, and what edge they rest on to give appropriate border
+        public void Load(string folderName)
+        {
+            int numMaps = 4;
+            int mapsInFolder = 4;
+            int mapW = 0;
+            int mapH = 0;
+            //First select n-number of maps, 
+            for (int i = 0; i < numMaps; i++)
+            {
+                string m = (new Random()).Next(0, mapsInFolder).ToString();
+                mapBmp = new Bitmap(m+".bmp");
+                mapW += mapBmp.Width;
+                mapH = mapBmp.Height;
+                map = new int[mapW, mapH];
+            }
+
+            for (int i = 0; i < mapBmp.Width; i++)
+            {
+                for (int j = 0; j < mapBmp.Height; j++)
+                {
+                    Color thisPixel = mapBmp.GetPixel(i, j);
+                    if (thisPixel == Color.FromArgb(0, 0, 0))
+                    {
+                        startState = new int[2] { i, j };
+                        mapBmp.SetPixel(i, j, Color.White);
+                    }
+
+                    if (thisPixel == Color.FromArgb(0, 0, 255))
+                        map[i, j] = 1;
+                    else if (thisPixel == Color.FromArgb(255, 0, 0))
+                        map[i, j] = 2;
+                    else if (thisPixel == Color.FromArgb(0, 255, 0))
+                        map[i, j] = 3;
+                    else
+                        map[i, j] = 0;
+                }
+            }
+
+            visitedStates.Clear();
+            agent.state = startState;
+        }
+    }
+
+        public Bitmap showState(int width, int height, bool showPath = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public PerformanceStats stepAgent(string userAction = "")
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
 }

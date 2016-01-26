@@ -192,12 +192,14 @@ namespace MultiResolutionRL.ValueCalculation
 
                     // perform update
                     double oldValue = value(priorityS, availableActions).Max();
-                    foreach (actionType a in availableActions) 
+
+               foreach (actionType a in availableActions) 
                     {
                         updateQ(priorityS, a);
                         stats.modelUpdates++;
                     }
-                    double newValue = value(priorityS, availableActions).Max();
+
+                double newValue = value(priorityS, availableActions).Max();
                     double valueChange = Math.Abs(oldValue - newValue);
                     maxChange = Math.Max(maxChange, valueChange);
 

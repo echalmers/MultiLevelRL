@@ -394,13 +394,14 @@ namespace MultiResolutionRL.ValueCalculation
 
             if (x == null || y == null)
                 return false;
-        
+
+            
             for(int i = 0; i < x.Length;i+=2)
             {
                 if (x[i] != y[i] || x[i + 1] != y[i + 1])
                     return false;
             }
-          
+            
             /*for (int i = 0; i < x.Length; i++)
             {
                 if (x[i] != y[i])
