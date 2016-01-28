@@ -13,13 +13,14 @@ using MultiResolutionRL.ValueCalculation;
 namespace MultiResolutionRL
 {
 
-   
+
     public interface World
-    {       
+    {
         object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters);
-        PerformanceStats stepAgent(string userAction="");
+        PerformanceStats stepAgent(string userAction = "");
         void Load(string filename);
         Bitmap showState(int width, int height, bool showPath = false);
+        bool useFolder();
     }
 
     public class stochasticRewardGridworld : World
@@ -63,7 +64,7 @@ namespace MultiResolutionRL
         {
             policyType = policyType.MakeGenericType(typeof(int[]), typeof(int[]));
             Policy<int[], int[]> newPolicy = (Policy<int[], int[]>)Activator.CreateInstance(policyType);
-            
+
             actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int[]));
             ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
 
@@ -91,7 +92,7 @@ namespace MultiResolutionRL
                         map[i, j] = 1;
                     else if (thisPixel == Color.FromArgb(255, 0, 0))
                         map[i, j] = 2;
-                    else if (thisPixel == Color.FromArgb(255, 0, 255) || thisPixel == Color.FromArgb(0,255,0))
+                    else if (thisPixel == Color.FromArgb(255, 0, 255) || thisPixel == Color.FromArgb(0, 255, 0))
                     {
                         map[i, j] = 3;
                         rewardSites.Add(new int[2] { i, j });
@@ -101,7 +102,7 @@ namespace MultiResolutionRL
                         map[i, j] = 0;
                 }
             }
-            
+
             agent.state = startState;
             currentRewardSite = rewardSites.ElementAt(rnd.Next(rewardSites.Count - 1));
         }
@@ -110,7 +111,7 @@ namespace MultiResolutionRL
         {
             width = 100; height = 100;
             Bitmap modMap = new Bitmap(mapBmp);
-            
+
             modMap.SetPixel(agent.state[0], agent.state[1], Color.Black);
             modMap.SetPixel(currentRewardSite[0], currentRewardSite[1], Color.Green);
 
@@ -185,16 +186,17 @@ namespace MultiResolutionRL
             //Console.WriteLine(Math.Round(av.PredictReward(new int[2] { 9, 8 }, new int[2] { 0, 1 }, new int[2] { 9, 9 }), 2));
 
             agent.getStats().TallyStepsToGoal(reward > 0);
-            
+
             agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
             return agent.getStats();
         }
 
         public void ExportGradients()
         {
-            /*FilteredValue<int[], int[]>*/ ActionValue<int[],int[]> av = /*(FilteredValue<int[], int[]>)*/agent._actionValue;
+            /*FilteredValue<int[], int[]>*/
+            ActionValue<int[], int[]> av = /*(FilteredValue<int[], int[]>)*/agent._actionValue;
             StateManagement.intStateTree tree = new StateManagement.intStateTree();
-            
+
             System.IO.StreamWriter valWriter = new System.IO.StreamWriter(OD.getAddress("gradientsVal"));
             for (int i = 0; i < map.GetLength(0); i++)
             {
@@ -212,6 +214,7 @@ namespace MultiResolutionRL
             }
             valWriter.Flush(); valWriter.Close();
         }
+        public bool useFolder() { return false; }
     }
 
     public class GridWorld : World
@@ -230,8 +233,8 @@ namespace MultiResolutionRL
 
         public GridWorld()
         {
-           OD = new OutputData();
-           DI = Directory.CreateDirectory(OD.getAddress("outputData"));
+            OD = new OutputData();
+            DI = Directory.CreateDirectory(OD.getAddress("outputData"));
 
 
             availableActions = new List<int[]>();
@@ -282,14 +285,14 @@ namespace MultiResolutionRL
             visitedStates.Clear();
             agent.state = startState;
         }
-                
-        public PerformanceStats stepAgent(string userAction="")
+
+        public PerformanceStats stepAgent(string userAction = "")
         {
             int[] state = agent.state;
-            if (!visitedStates.Contains(agent.state,new IntArrayComparer()))
+            if (!visitedStates.Contains(agent.state, new IntArrayComparer()))
                 visitedStates.Add(agent.state);
             int[] action;
-            if (userAction=="")
+            if (userAction == "")
                 action = agent.selectAction();
             else
             {
@@ -308,7 +311,7 @@ namespace MultiResolutionRL
             switch (newStateType)
             {
                 case 0: // open space
-                    newState = new int[2] {state[0] + action[0], state[1] + action[1]};
+                    newState = new int[2] { state[0] + action[0], state[1] + action[1] };
                     reward = -0.01;
                     break;
                 case 1: // wall
@@ -320,12 +323,12 @@ namespace MultiResolutionRL
                     reward = -0.5;
                     break;
                 case 3: // goal
-                    newState = new int[2] {startState[0], startState[1]};
+                    newState = new int[2] { startState[0], startState[1] };
                     reward = 10;
                     absorbingStateReached = true;
                     break;
             }
-            
+
             agent.getStats().TallyStepsToGoal(reward > 0);
             //if (agent.getStats().stepsToGoal.Last() > 5000)
             //{
@@ -340,11 +343,11 @@ namespace MultiResolutionRL
         public object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters)
         {
             policyType = policyType.MakeGenericType(typeof(int[]), typeof(int[]));
-            Policy<int[], int[]> newPolicy = (Policy<int[],int[]>)Activator.CreateInstance(policyType);
+            Policy<int[], int[]> newPolicy = (Policy<int[], int[]>)Activator.CreateInstance(policyType);
 
             actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int[]));
             ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
-            
+
             agent = new Agent<int[], int[]>(startState, newPolicy, newActionValue, availableActions);
             return agent;
         }
@@ -359,7 +362,7 @@ namespace MultiResolutionRL
             {
                 modMap.SetPixel(state[0], state[1], Color.FromArgb(mapBmp.GetPixel(state[0], state[1]).R * 3 / 4, mapBmp.GetPixel(state[0], state[1]).G * 3 / 4, mapBmp.GetPixel(state[0], state[1]).B * 3 / 4));
             }
-            
+
 
             if (showPath)
             {
@@ -373,9 +376,9 @@ namespace MultiResolutionRL
                     if (x >= mapBmp.Width || y >= mapBmp.Height)
                         continue;
 
-                    int r = mapBmp.GetPixel(x,y).R;
-                    int b = mapBmp.GetPixel(x,y).B;
-                    int g = mapBmp.GetPixel(x,y).G;
+                    int r = mapBmp.GetPixel(x, y).R;
+                    int b = mapBmp.GetPixel(x, y).B;
+                    int g = mapBmp.GetPixel(x, y).G;
                     if (s[2] == "p")
                     {
                         b = Math.Max(0, b - 50);
@@ -416,7 +419,7 @@ namespace MultiResolutionRL
             // System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
             System.IO.StreamWriter valWriter = new System.IO.StreamWriter(OD.getAddress("gradientsVal"));
 
-            for (int i=0; i< map.GetLength(0); i++)
+            for (int i = 0; i < map.GetLength(0); i++)
             {
                 double[] thisXLine = new double[map.GetLength(1)];
                 double[] thisYLine = new double[map.GetLength(1)];
@@ -456,6 +459,7 @@ namespace MultiResolutionRL
             }
             writerAdj.Flush(); writerAdj.Close();
         }
+        public bool useFolder() { return false; }
 
         //public void ExportDistances()
         //{
@@ -490,7 +494,7 @@ namespace MultiResolutionRL
         //    }
         //    //    }
         //    //} 
-            
+
         //    writer.Flush();
         //    writer.Close();
 
@@ -516,7 +520,7 @@ namespace MultiResolutionRL
         //    writer.Flush();
         //    writer.Close();
         //}
-        
+
     }
 
     public class MountainCar : World
@@ -549,12 +553,12 @@ namespace MultiResolutionRL
             agent = new Agent<int[], int>(discretizeState(_position, _velocity), policy, value, availableActions);
 
             // create the hill bitmap
-            for (int i=0; i<17; i++)
+            for (int i = 0; i < 17; i++)
             {
                 double position = (0.5 + 1.2) / (18 - 1) * i - 1.2;
                 double amplitude = Math.Sin(3 * position);
-                amplitude = amplitude*50+50;
-                hill.SetPixel(i, (int)(100-amplitude), Color.ForestGreen);
+                amplitude = amplitude * 50 + 50;
+                hill.SetPixel(i, (int)(100 - amplitude), Color.ForestGreen);
             }
         }
 
@@ -570,8 +574,8 @@ namespace MultiResolutionRL
         int[] discretizeState(double position, double velocity)
         {
             int[] discretized = new int[2];
-            discretized[0] = (int)(Math.Round(position+1.2, 1)*10);
-            discretized[1] = (int)(Math.Round(velocity+0.07, 2)*100);
+            discretized[0] = (int)(Math.Round(position + 1.2, 1) * 10);
+            discretized[1] = (int)(Math.Round(velocity + 0.07, 2) * 100);
             return discretized;
         }
 
@@ -587,7 +591,7 @@ namespace MultiResolutionRL
             return agent;
         }
 
-        public PerformanceStats stepAgent(string userAction="")
+        public PerformanceStats stepAgent(string userAction = "")
         {
             int action;
             if (userAction == "")
@@ -595,7 +599,7 @@ namespace MultiResolutionRL
             else
                 action = Convert.ToInt32(userAction);
 
-            _velocity += 0.001 * (double)action + g * Math.Cos(3*_position);
+            _velocity += 0.001 * (double)action + g * Math.Cos(3 * _position);
             _velocity = Math.Min(0.07, Math.Max(_velocity, -0.07));
             _position += _velocity;
             if (_position > 0.5 || _position < -1.2)
@@ -625,7 +629,7 @@ namespace MultiResolutionRL
 
             return agent.getStats();
         }
-        
+
         public Bitmap showState(int width, int height, bool showPath = false)
         {
             int position = agent.state[0];
@@ -634,7 +638,7 @@ namespace MultiResolutionRL
             double amplitude = Math.Sin(3 * positionDouble);
             amplitude = amplitude * 49 + 50;
             Bitmap map = new Bitmap(hill);
-            map.SetPixel(position, (int)(100-amplitude), Color.Firebrick);
+            map.SetPixel(position, (int)(100 - amplitude), Color.Firebrick);
             map.SetPixel(position, (int)(101 - amplitude), Color.Firebrick);
             map.SetPixel(position, (int)(99 - amplitude), Color.Firebrick);
 
@@ -647,6 +651,7 @@ namespace MultiResolutionRL
             }
             return resized;
         }
+        public bool useFolder() { return false; }
     }
 
     public class Taxi : World
@@ -670,7 +675,7 @@ namespace MultiResolutionRL
         public Taxi()
         {
             OD = new OutputData();
-          DI = Directory.CreateDirectory(OD.getAddress("outputData"));
+            DI = Directory.CreateDirectory(OD.getAddress("outputData"));
 
             dropSites.Add(null);
 
@@ -684,12 +689,12 @@ namespace MultiResolutionRL
             // set the default agent
             Policy<int[], int> policy = new EGreedyPolicy<int[], int>();
             ActionValue<int[], int> value = new ModelFreeValue<int[], int>(new IntArrayComparer(), EqualityComparer<int>.Default, availableActions, new int[4] { 1, 2, 1, 10 });
-            agent = new Agent<int[], int>(new int[4] { 1, 2, 10, 1}, policy, value, availableActions);
+            agent = new Agent<int[], int>(new int[4] { 1, 2, 10, 1 }, policy, value, availableActions);
         }
 
         int[] rndStartState()
         {
-            int[] state = new int[4] { startLocation[0], startLocation[1], rnd.Next(5, 10), rnd.Next(1, dropSites.Count)};
+            int[] state = new int[4] { startLocation[0], startLocation[1], rnd.Next(5, 10), rnd.Next(1, dropSites.Count) };
             //state[2] = 10; //********************
             return state;
         }
@@ -720,10 +725,10 @@ namespace MultiResolutionRL
 
             int[] newState = new int[4];
             Array.Copy(state, newState, state.Length);
-            double reward=0;
+            double reward = 0;
             bool absorbingStateReached = false;
 
-            if (action>0 && action <5)// perform navigation
+            if (action > 0 && action < 5)// perform navigation
             {
                 absorbingStateReached = performNavigation(action, state, out newState, out reward);
             }
@@ -777,7 +782,7 @@ namespace MultiResolutionRL
             newState = new int[4]; Array.Copy(state, newState, state.Length);
             reward = -1;
 
-            switch(action)
+            switch (action)
             {
                 case 1:
                     newState[0] = state[0] - 1; break;
@@ -866,18 +871,18 @@ namespace MultiResolutionRL
 
         public Bitmap showState(int width, int height, bool showPath = false)
         {
-            double fuel = (double)(agent.state[2])/10;
+            double fuel = (double)(agent.state[2]) / 10;
             Color fuelColor = Color.FromArgb((int)((1 - fuel) * 255), (int)(fuel * 255), 50);
 
             Bitmap modMap = new Bitmap(mapBmp);
-            
+
             modMap.SetPixel(agent.state[0], agent.state[1], fuelColor);
             int pickupStatus = agent.state[3];
-            if (pickupStatus>0) // pickup required
+            if (pickupStatus > 0) // pickup required
             {
                 modMap.SetPixel(dropSites[pickupStatus][0], dropSites[pickupStatus][1], Color.Green);
             }
-            else if (pickupStatus<0) // drop required
+            else if (pickupStatus < 0) // drop required
             {
                 modMap.SetPixel(dropSites[-pickupStatus][0], dropSites[-pickupStatus][1], Color.Red);
             }
@@ -891,11 +896,13 @@ namespace MultiResolutionRL
             }
             return resized;
         }
+        public bool useFolder() { return false; }
     }
 
     public class ProceduralGridWorld : World
     {
-        public Bitmap mapBmp;
+        public Bitmap[] mapBmp;
+        public Bitmap displayMap;
         private int[,] map;
         private int[] startState;
         public Agent<int[], int[]> agent;
@@ -926,7 +933,14 @@ namespace MultiResolutionRL
 
         public object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters)
         {
-            throw new NotImplementedException();
+            policyType = policyType.MakeGenericType(typeof(int[]), typeof(int[]));
+            Policy<int[], int[]> newPolicy = (Policy<int[], int[]>)Activator.CreateInstance(policyType);
+
+            actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int[]));
+            ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
+
+            agent = new Agent<int[], int[]>(startState, newPolicy, newActionValue, availableActions);
+            return agent;
         }
 
         //Will load up a set of maps from the folderName
@@ -943,49 +957,205 @@ namespace MultiResolutionRL
             for (int i = 0; i < numMaps; i++)
             {
                 string m = (new Random()).Next(0, mapsInFolder).ToString();
-                mapBmp = new Bitmap(m+".bmp");
-                mapW += mapBmp.Width;
-                mapH = mapBmp.Height;
+                mapBmp[i] = new Bitmap(m + ".bmp");
+                mapW += mapBmp[i].Width;
+                if (mapH < mapBmp[i].Height)
+                    mapH = mapBmp[i].Height;
                 map = new int[mapW, mapH];
             }
 
-            for (int i = 0; i < mapBmp.Width; i++)
-            {
-                for (int j = 0; j < mapBmp.Height; j++)
-                {
-                    Color thisPixel = mapBmp.GetPixel(i, j);
-                    if (thisPixel == Color.FromArgb(0, 0, 0))
-                    {
-                        startState = new int[2] { i, j };
-                        mapBmp.SetPixel(i, j, Color.White);
-                    }
-
-                    if (thisPixel == Color.FromArgb(0, 0, 255))
-                        map[i, j] = 1;
-                    else if (thisPixel == Color.FromArgb(255, 0, 0))
-                        map[i, j] = 2;
-                    else if (thisPixel == Color.FromArgb(0, 255, 0))
-                        map[i, j] = 3;
-                    else
-                        map[i, j] = 0;
-                }
-            }
+            MapFromBitmap(mapBmp, map, numMaps);
+         displayMap = new Bitmap(newDisplayBit(map,mapW,mapH));
 
             visitedStates.Clear();
             agent.state = startState;
         }
-    }
+
+        //STep the agent from one state to another
+        public PerformanceStats stepAgent(string userAction = "")
+        {
+            {
+                int[] state = agent.state;
+                if (!visitedStates.Contains(agent.state, new IntArrayComparer()))
+                    visitedStates.Add(agent.state);
+                int[] action;
+                if (userAction == "")
+                    action = agent.selectAction();
+                else
+                {
+                    string[] act = userAction.Split(',');
+                    action = new int[2];
+                    action[0] = Convert.ToInt32(act[0]);
+                    action[1] = Convert.ToInt32(act[1]);
+                }
+
+                int[] newState = new int[2];
+                double reward = 0;
+                bool absorbingStateReached = false;
+
+                // get the type of the new location
+                int newStateType = map[state[0] + action[0], state[1] + action[1]];
+                switch (newStateType)
+                {
+                    case 0: // open space
+                        newState = new int[2] { state[0] + action[0], state[1] + action[1] };
+                        reward = -0.01;
+                        break;
+                    case 1: // wall
+                        newState = new int[2] { state[0], state[1] };
+                        reward = -0.1;
+                        break;
+                    case 2: // lava
+                        newState = new int[2] { state[0] + action[0], state[1] + action[1] };
+                        reward = -0.5;
+                        break;
+                    case 3: // goal
+                        newState = new int[2] { startState[0], startState[1] };
+                        reward = 10;
+                        absorbingStateReached = true;
+                        break;
+                }
+
+                agent.getStats().TallyStepsToGoal(reward > 0);
+                //if (agent.getStats().stepsToGoal.Last() > 5000)
+                //{
+                //    agent.getStats().TallyStepsToGoal(true);
+                //    newState = new int[2] { startState[0], startState[1] };
+                //    absorbingStateReached = true;
+                //}
+                agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
+                return agent.getStats();
+            }
+        }
 
         public Bitmap showState(int width, int height, bool showPath = false)
         {
-            throw new NotImplementedException();
-        }
+            width = 144; height = 48;
+            Bitmap modMap = new Bitmap(displayMap);
 
-        public PerformanceStats stepAgent(string userAction = "")
-        {
-            throw new NotImplementedException();
+            foreach (int[] state in visitedStates)
+            {
+                modMap.SetPixel(state[0], state[1], Color.FromArgb(displayMap.GetPixel(state[0], state[1]).R * 3 / 4, displayMap.GetPixel(state[0], state[1]).G * 3 / 4, displayMap.GetPixel(state[0], state[1]).B * 3 / 4));
+            }
+
+
+            if (showPath)
+            {
+                System.IO.StreamReader reader = new System.IO.StreamReader("log.txt");
+                string text;
+                while ((text = reader.ReadLine()) != null)
+                {
+                    string[] s = text.Split(',');
+                    int x = Convert.ToInt32(s[0]);
+                    int y = Convert.ToInt32(s[1]);
+                    if (x >= displayMap.Width || y >= displayMap.Height)
+                        continue;
+
+                    int r = displayMap.GetPixel(x, y).R;
+                    int b = displayMap.GetPixel(x, y).B;
+                    int g = displayMap.GetPixel(x, y).G;
+                    if (s[2] == "p")
+                    {
+                        b = Math.Max(0, b - 50);
+                        g = Math.Max(0, g - 50);
+                    }
+                    else if (s[2] == "g")
+                    {
+                        b = Math.Max(0, b - 100);
+                        g = Math.Max(0, g - 100);
+                    }
+                    Color c = Color.FromArgb(r, g, b);
+                    modMap.SetPixel(x, y, c);
+                }
+                reader.Close();
+            }
+            modMap.SetPixel(agent.state[0], agent.state[1], Color.Black);
+
+            Bitmap resized = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(resized))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                g.DrawImage(modMap, 0, 0, width, height);
+            }
+            return resized;
         }
+    
+       
+        public void MapFromBitmap(Bitmap[] mapBmp, int[,] map, int numMaps)
+        {
+            int ctsI = 0, ctsJ = 0;
+            for (int n = 0; n < mapBmp.Length; n++)
+                for (int i = 0; i < mapBmp[n].Width; i++)
+                    for (int j = 0; j < mapBmp[n].Height; j++)//Assumes they are all the same height at the moment
+                    {
+                        ctsI += i;
+                        ctsJ += j;
+                        Color thisPixel = mapBmp[n].GetPixel(i, j);
+                        if (thisPixel == Color.FromArgb(0, 0, 0))//If it is the black pixel, Agent
+                        {
+                            if (n == 0)//Only first state is the start segment right now
+                                startState = new int[2] { i, j };
+
+
+                            mapBmp[n].SetPixel(i, j, Color.White);
+                        }
+                        else if (thisPixel == Color.FromArgb(0, 0, 255))//Its a wall; 
+                            map[i, j] = 1;
+                        else if (thisPixel == Color.FromArgb(255, 0, 0))
+                            map[i, j] = 2;
+                        else if (thisPixel == Color.FromArgb(0, 255, 0))//Its the Goal State
+                        {
+                            if (n == numMaps)//Only the end state is the goal state;
+                                map[i, j] = 3;
+                            else map[i, j] = 0;
+                        }
+                        else
+                            map[i, j] = 0;
+                    }
+        }
+        
+         //Given the collection of Bitmaps, stitch them together into a new bitmap
+        public Bitmap newDisplayBit(int[,] map,int mapW, int mapH)
+        {
+            Bitmap displayMap = new Bitmap(mapH, mapW);
+               
+            //Set the colors on the new bitmap according to the int map
+            for(int i=1;i< mapW;i++)
+                for(int j=1;j<mapH;j++)
+            {
+                if(map[i,j] == 1)//Is a Wall
+                displayMap.SetPixel(i,j, Color.FromArgb(0, 0, 255));
+                switch(map[i,j])
+                    {
+                        case 1://Its a wall
+                            displayMap.SetPixel(i, j, Color.FromArgb(0, 0, 255)); break;
+                        case 2://Its a Lava
+                            displayMap.SetPixel(i, j, Color.FromArgb(255, 0, 0)); break;
+                        case 3://Its the Goal
+                            displayMap.SetPixel(i, j, Color.FromArgb(0, 255, 0)); break;
+                        default://White Space
+                            displayMap.SetPixel(i, j, Color.FromArgb(255, 255, 255)); break;
+                    }
+            }
+            //Buffer the blue Border top and bottom
+            for (int i = 0; i < mapW; i++)
+            {
+                displayMap.SetPixel(i, 0, Color.FromArgb(0,0, 255));
+                displayMap.SetPixel(i, mapW-1, Color.FromArgb(0,0, 255));
+            }
+            for (int i = 0; i < mapH; i++)
+            {
+                displayMap.SetPixel(0, i, Color.FromArgb(0, 0, 255));
+                displayMap.SetPixel(mapH-1, i, Color.FromArgb(0, 0, 255));
+            }
+
+            return displayMap;
+        }
+        public bool useFolder() { return true; }
+
     }
 
 
 }
+

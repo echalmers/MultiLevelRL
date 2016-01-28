@@ -116,13 +116,17 @@ namespace RL_Test
         private void loadMapButton_Click(object sender, EventArgs e)
         {
             OpenFileDialog of = new OpenFileDialog();
-            of.Title = "Load map";
-            of.ShowDialog();
-            of.Filter = "*.bmp|*.bmp";
-            if (System.IO.File.Exists(of.FileName))
+            if (world.useFolder())
             {
-                world.Load(of.FileName);
-                pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
+                of.Title = "Load map";
+                of.ShowDialog();
+                of.Filter = "*.bmp|*.bmp";
+
+                if (System.IO.File.Exists(of.FileName))
+                {
+                    world.Load(of.FileName);
+                    pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
+                }
             }
             if (trajWriter!=null && trajWriter.BaseStream != null)
             {
