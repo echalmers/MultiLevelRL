@@ -115,9 +115,10 @@ namespace RL_Test
 
         private void loadMapButton_Click(object sender, EventArgs e)
         {
-            OpenFileDialog of = new OpenFileDialog();
-            if (world.useFolder())
+            
+            if (!world.useFolder())
             {
+                OpenFileDialog of = new OpenFileDialog();
                 of.Title = "Load map";
                 of.ShowDialog();
                 of.Filter = "*.bmp|*.bmp";
@@ -127,13 +128,23 @@ namespace RL_Test
                     world.Load(of.FileName);
                     pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
                 }
+                string outS = OD.getAddress("trajectory") + of.SafeFileName + ".csv";
+                trajWriter = new System.IO.StreamWriter(outS);
             }
+            else
+            {
+                FolderBrowserDialog fbd = new FolderBrowserDialog();
+                fbd.ShowDialog();
+
+                world.Load(fbd.SelectedPath);
+                pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
+            }
+
             if (trajWriter!=null && trajWriter.BaseStream != null)
             {
                 trajWriter.Flush(); trajWriter.Close();
             }
-            string outS = OD.getAddress("trajectory") + of.SafeFileName + ".csv";
-            trajWriter = new System.IO.StreamWriter(outS);
+          
             // trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\trajectory" + of.SafeFileName + ".csv");
         }
 
@@ -201,6 +212,11 @@ namespace RL_Test
                     break;
                 case "Stochastic":
                     world = new stochasticRewardGridworld();
+                    loadMapButton.Enabled = true;
+                    loadMapButton.PerformClick();
+                    break;
+                case "ProceduralWorld":
+                    world = new ProceduralGridWorld();
                     loadMapButton.Enabled = true;
                     loadMapButton.PerformClick();
                     break;
