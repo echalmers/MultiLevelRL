@@ -912,7 +912,7 @@ namespace MultiResolutionRL
         OutputData OD;
         DirectoryInfo DI;
 
-       public ProceduralGridWorld()
+        public ProceduralGridWorld()
         {
             OD = new OutputData();
             DI = Directory.CreateDirectory(OD.getAddress("outputData"));
@@ -949,28 +949,33 @@ namespace MultiResolutionRL
         //Determine edge maps, and what edge they rest on to give appropriate border
         public void Load(string folderName)
         {
-            
-            int numMaps = 4;
+
+            int mapsWide = 4;
+            int mapsTall = 4;
             string[] mapNames = Directory.GetFiles(folderName, "*.bmp");
             int mapsInFolder = mapNames.Count();
             int mapW = 0;
             int mapH = 0;
             Random rnd = new Random();
-            mapBmp = new Bitmap[numMaps];
-            //First select n-number of maps, 
-            for (int i = 0; i < numMaps; i++)
+            mapBmp = new Bitmap[mapsWide * mapsTall];
+            //First select n-number of maps,
+            for (int k = 0; k < mapsTall; k++)
             {
-                int mapchoice = rnd.Next(0, mapsInFolder);
-
-                mapBmp[i] = new Bitmap(mapNames[mapchoice]);
-                mapW += mapBmp[i].Width;
-                if (mapH < mapBmp[i].Height)
-                    mapH = mapBmp[i].Height;
-                
+                int tempMapW = 0;
+                for (int i = 0; i < mapsWide; i++)
+                {
+                    int mapchoice = rnd.Next(0, mapsInFolder);
+                    mapBmp[k * mapsWide + i] = new Bitmap(mapNames[mapchoice]);
+                    tempMapW += mapBmp[i].Width;
+                    if (tempMapW > mapW)
+                        mapW = tempMapW;
+                }
+                mapH += mapBmp[(k * mapsWide)].Height;
             }
-            map = new int[mapW, mapH];
-            MapFromBitmap(mapBmp, map, numMaps);
-         displayMap = new Bitmap(newDisplayBit(map,mapW,mapH));
+
+            map = new int[mapW + 2, mapH + 2];//To allow room for the buffered border
+            MapFromBitmap(mapBmp, map, mapsWide, mapsTall);
+            displayMap = new Bitmap(newDisplayBit(map, mapW, mapH));
 
             visitedStates.Clear();
             agent.state = startState;
@@ -1031,14 +1036,14 @@ namespace MultiResolutionRL
         //TODO: FIGURE OUT BETTER WAY OF IMPROVING THE VIEW OF THE BOX
         public Bitmap showState(int width, int height, bool showPath = false)
         {
-            
-           // width = displayMap.Width; height = displayMap.Height;
+
+            // width = displayMap.Width; height = displayMap.Height;
             int ratioW = (width / height) + 1;
             int ratioH = height / width;
             width = 200;
-            height = 80;
+            height = 200;
             //while (width < 200 && height < 200)
-              //  width += ratioH;height += ratioW;
+            //  width += ratioH;height += ratioW;
 
             Bitmap modMap = new Bitmap(displayMap);
 
@@ -1078,7 +1083,7 @@ namespace MultiResolutionRL
                 }
                 reader.Close();
             }
-            modMap.SetPixel(agent.state[0],agent.state[1], Color.Black);
+            modMap.SetPixel(agent.state[0], agent.state[1], Color.Black);
 
             Bitmap resized = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(resized))
@@ -1089,56 +1094,75 @@ namespace MultiResolutionRL
             }
             return resized;
         }
-    
-       
-        public void MapFromBitmap(Bitmap[] mapBmp, int[,] map, int numMaps)
+
+
+        //For each individual map, iterate the width, by the height and copy its value into the int[] map, 
+        //iuterate this for each map 
+        public void MapFromBitmap(Bitmap[] mapBmp, int[,] map, int mapsWide, int mapsTall)
         {
-            int ctsI = -1, ctsJ = 0;
+            //Function needs to build that map from the first index points, 
+            // and end at its height-1, width -1
+            //For buffer space
 
-            for (int n = 0; n < mapBmp.Length; n++)
-            {
-                for (int i = 0; i < mapBmp[n].Width; i++)
+            Random randEnd = new Random();
+            int goalMap = randEnd.Next(1, mapsWide * mapsTall);
+
+            int ctsJ = 1; int ctsI = 1;
+
+            //Iterate each column of maps, then next row of maps,
+            for (int mapRow = 0; mapRow < mapsTall; mapRow++)
+                for (int mapCol = 0; mapCol < mapsWide; mapCol++)
                 {
-                    for (int j = 0; j < mapBmp[n].Height; j++)//Assumes they are all the same height at the moment
+                    int curMap = mapRow * mapsWide + mapCol;
+                    ctsJ = (mapRow * mapBmp[curMap].Height) - 1;
+                                 
+                    if (mapRow == 0)
+                        ctsJ++;
+                   
+                    for (int pixelRow = 0; pixelRow < mapBmp[curMap].Height; pixelRow++) //Iterate each pixel in the given map, 
                     {
-                        ctsI = i+(n*mapBmp[n].Width);
+                        ctsJ++;
+                        ctsI = (mapCol * mapBmp[curMap].Width) - 1;
+                        if (mapCol == 0)
+                            ctsI++;
 
-                        ctsJ = j;
-                        Color thisPixel = mapBmp[n].GetPixel(i, j);
-                        if (thisPixel == Color.FromArgb(0, 0, 0))//If it is the black pixel, Agent
+                        for (int pixelCol = 0; pixelCol < mapBmp[curMap].Width; pixelCol++)
                         {
-                            if (n == 0)//Only first state is the start segment right now
-                                startState = new int[2] { i, j };
-                            mapBmp[n].SetPixel(i, j, Color.White);
+                            ctsI++;
+                            Color thisPixel = mapBmp[curMap].GetPixel(pixelCol, pixelRow);
+                            if (thisPixel == Color.FromArgb(0, 0, 0))//If it is the black pixel, Agent
+                            {
+                                if (curMap == 0)//Only first state is the start segment right now
+                                    startState = new int[2] { pixelCol, pixelRow };
+                                mapBmp[curMap].SetPixel(pixelCol, pixelRow, Color.White);
+                            }
+                            else if (thisPixel == Color.FromArgb(0, 0, 255))//Its a wall; 
+                                map[ctsI, ctsJ] = 1;
+                            else if (thisPixel == Color.FromArgb(255, 0, 0))
+                                map[ctsI, ctsJ] = 2;
+                            else if (thisPixel == Color.FromArgb(0, 255, 0))//Its the Goal State
+                            {
+                                if (curMap == goalMap)
+                                    map[ctsI, ctsJ] = 3;
+                                else map[ctsI, ctsJ] = 0;
+                            }
+                            else
+                                map[ctsI, ctsJ] = 0;
                         }
-                        else if (thisPixel == Color.FromArgb(0, 0, 255))//Its a wall; 
-                            map[ctsI, ctsJ] = 1;
-                        else if (thisPixel == Color.FromArgb(255, 0, 0))
-                            map[ctsI,ctsJ] = 2;
-                        else if (thisPixel == Color.FromArgb(0, 255, 0))//Its the Goal State
-                        {
-                            if (n == numMaps - 1)//Only the end state is the goal state;
-                                map[ctsI,ctsJ] = 3;
-                            else map[ctsI,ctsJ] = 0;
-                        }
-                        else
-                            map[ctsI,ctsJ] = 0;
                     }
                 }
-            }
         }
-        
-         //Given the collection of Bitmaps, stitch them together into a new bitmap
-        public Bitmap newDisplayBit(int[,] map,int mapW, int mapH)
-        {
-            Bitmap displayMap = new Bitmap(mapW, mapH);
-               
-            //Set the colors on the new bitmap according to the int map
-            for(int i=1;i< mapW;i++)
-                for(int j=1;j<mapH;j++)
-            {
 
-                switch(map[i,j])
+        //Given the collection of Bitmaps, stitch them together into a new bitmap
+        public Bitmap newDisplayBit(int[,] map, int mapW, int mapH)
+        {
+            Bitmap displayMap = new Bitmap(mapW + 2, mapH + 2);
+
+            //Set the colors on the new bitmap according to the int map
+            for (int i = 1; i <= mapW; i++)
+                for (int j = 1; j <= mapH; j++)
+                {
+                    switch (map[i, j])
                     {
                         case 1://Its a wall
                             displayMap.SetPixel(i, j, Color.FromArgb(0, 0, 255)); break;
@@ -1149,21 +1173,22 @@ namespace MultiResolutionRL
                         default://White Space
                             displayMap.SetPixel(i, j, Color.FromArgb(255, 255, 255)); break;
                     }
-            }
+                }
             //Buffer the blue Border top and bottom
-            for (int i = 0; i < mapW; i++)
+            for (int i = 0; i <= mapW; i++)
             {
-                map[i, mapH-1] = 1;
+                map[i, mapH + 1] = 1;
                 map[i, 0] = 1;
-                displayMap.SetPixel(i, 0, Color.FromArgb(0,0, 255));
-                displayMap.SetPixel(i, (mapH - 1), Color.FromArgb(0,0, 255));
+                displayMap.SetPixel(i, 0, Color.FromArgb(0, 0, 255));
+                displayMap.SetPixel(i, (mapH + 1), Color.FromArgb(0, 0, 255));
             }
-            for (int i = 0; i < mapH; i++)
+            //Left and right side
+            for (int i = 0; i <= mapH; i++)
             {
                 map[0, i] = 1;
-                map[mapW-1,i] = 1;
+                map[mapW + 1, i] = 1;
                 displayMap.SetPixel(0, i, Color.FromArgb(0, 0, 255));
-                displayMap.SetPixel(mapW - 1, i, Color.FromArgb(0, 0, 255));
+                displayMap.SetPixel(mapW + 1, i, Color.FromArgb(0, 0, 255));
             }
 
             return displayMap;
