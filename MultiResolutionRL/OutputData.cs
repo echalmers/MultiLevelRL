@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-//THE CLASS BRANDON PREDEFINED BECAUSE FOR SOMEREASON COULDNT FIGURE OUT HOW TO CHANGE THE MACROS OR SET THEM UP ON THIS SOLUTION
+//
 namespace MultiResolutionRL
 {
     public class OutputData

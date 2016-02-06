@@ -28,6 +28,7 @@ namespace MultiResolutionRL
         }
 
     }
+    /*
 
     public class GoalComparer<stateType, actionType> : IEqualityComparer<Goal<stateType, actionType>>
     {
@@ -50,5 +51,5 @@ namespace MultiResolutionRL
         }
     }
 
-
+    */
 }

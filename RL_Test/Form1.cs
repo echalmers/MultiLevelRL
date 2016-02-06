@@ -360,11 +360,11 @@ namespace RL_Test
                     LearnStyle_DropBox.Enabled = true;
                     //agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextChangeValueGeneric<,>));
                     break;
+                case "ActionClass":
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ActionClass<,>));
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
                     learnerTypeComboBox.Text = "Context switcher";
-                    
-
                     IFormatter formatter = new BinaryFormatter();
                     Stream stream = new FileStream("savedModel.mdl", FileMode.Open,FileAccess.Read,FileShare.Read);
                     ((Agent<int[], int[]>)agent)._actionValue = (ContextSwitchValue<int[], int[]>)formatter.Deserialize(stream);

@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent.cs" />
+    <Compile Include="Comparer.cs" />
     <Compile Include="OutputData.cs" />
     <Compile Include="PerformanceStats.cs" />
     <Compile Include="RewardMemory.cs" />
@@ -49,7 +50,9 @@
     <Compile Include="PathFinder.cs" />
     <Compile Include="Policy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StateClass.cs" />
     <Compile Include="StateTree.cs" />
+    <Compile Include="ValueCalculation\ActionClass.cs" />
     <Compile Include="ValueCalculation\BaseClasses\ActionValue.cs" />
     <Compile Include="StateTransition.cs" />
     <Compile Include="ValueCalculation\BaseClasses\ModelBasedActionValue.cs" />

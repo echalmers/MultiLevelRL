@@ -383,7 +383,8 @@ namespace MultiResolutionRL.ValueCalculation
 
     }
 
-    
+    /*
+    /*
 
     [Serializable]
     public class IntArrayComparer : IEqualityComparer<int[]>
@@ -407,10 +408,10 @@ namespace MultiResolutionRL.ValueCalculation
                 if (x[i] != y[i])
                     return false;
                 
-            }*/
+            }
             return true;
         }
-
+/*
         public int GetHashCode(int[] obj)
         {
             //FNV HASH
@@ -427,7 +428,7 @@ namespace MultiResolutionRL.ValueCalculation
                     hash *= FnvPrime;
                 }
             return (int)hash;
-            */
+            
 
 
             //ERICS HASH
@@ -441,6 +442,7 @@ namespace MultiResolutionRL.ValueCalculation
             return hash;
         }
     }
+*/
 
 
 }

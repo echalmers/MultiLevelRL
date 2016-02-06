@@ -54,7 +54,7 @@ namespace MultiResolutionRL.ValueCalculation
         public override double update(StateTransition<stateType, actionType> transition)
         {
            
-           double holder = models[activeModelKey].update(transition); // getting old and new state of 3,10 when first model has vlaue of 0.3333333
+           double holder = models[activeModelKey].update(transition); 
 
             
 

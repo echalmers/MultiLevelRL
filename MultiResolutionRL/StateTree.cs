@@ -25,11 +25,11 @@ namespace MultiResolutionRL
             {
                 parents = new Dictionary<int[], int[]>[5];
                 children = new Dictionary<int[], List<int[]>>[5];
-                MultiResolutionRL.ValueCalculation.IntArrayComparer comparer = new ValueCalculation.IntArrayComparer();
+               // MultiResolutionRL.ValueCalculation.IntArrayComparer comparer = new ValueCalculation.IntArrayComparer();
                 for (int i=0; i<parents.Length; i++)
                 {
-                    parents[i] = new Dictionary<int[], int[]>(comparer);
-                    children[i] = new Dictionary<int[], List<int[]>>(comparer);
+                    parents[i] = new Dictionary<int[], int[]>(Comparer.IAC);
+                    children[i] = new Dictionary<int[], List<int[]>>(Comparer.IAC);
                 }
 
                 for (int i = 1; i <= 3; i++)

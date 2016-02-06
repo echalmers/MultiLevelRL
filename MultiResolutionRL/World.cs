@@ -16,6 +16,7 @@ namespace MultiResolutionRL
 
     public interface World
     {
+
         object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters);
         PerformanceStats stepAgent(string userAction = "");
         void Load(string filename);
@@ -32,7 +33,7 @@ namespace MultiResolutionRL
         List<int[]> availableActions;
         int[] currentRewardSite;
         Random rnd = new Random();
-        IntArrayComparer comparer = new IntArrayComparer();
+        // IntArrayComparer comparer = new IntArrayComparer();
         HashSet<int[]> rewardSites;
 
         OutputData OD;
@@ -50,13 +51,13 @@ namespace MultiResolutionRL
             availableActions.Add(new int[2] { 1, 0 });
             availableActions.Add(new int[2] { 0, 1 });
 
-            rewardSites = new HashSet<int[]>(comparer);
+            rewardSites = new HashSet<int[]>(Comparer.IAC);
 
             // set the default agent
             startState = new int[2] { 1, 1 };
 
             Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
-            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
+            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(Comparer.IAC, Comparer.IAC, availableActions, startState);
             agent = new Agent<int[], int[]>(startState, policy, value, availableActions);
         }
 
@@ -66,7 +67,7 @@ namespace MultiResolutionRL
             Policy<int[], int[]> newPolicy = (Policy<int[], int[]>)Activator.CreateInstance(policyType);
 
             actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int[]));
-            ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
+            ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new Comparer.IntArrayComparer(), new Comparer.IntArrayComparer(), availableActions, startState, actionValueParameters);
 
             agent = new Agent<int[], int[]>(startState, newPolicy, newActionValue, availableActions);
             return agent;
@@ -161,7 +162,7 @@ namespace MultiResolutionRL
                     reward = -0.5;
                     break;
                 case 3: // reward site
-                    if (comparer.Equals(currentRewardSite, potentialNewState))
+                    if (Comparer.IAC.Equals(currentRewardSite, potentialNewState))
                     {
                         currentRewardSite = rewardSites.ElementAt(rnd.Next(rewardSites.Count));
                         reward = 10;
@@ -216,7 +217,7 @@ namespace MultiResolutionRL
         }
         public bool useFolder() { return false; }
     }
-
+    /*
     public class GridWorld : World
     {
 
@@ -251,7 +252,7 @@ namespace MultiResolutionRL
             startState = new int[2] { 1, 1 };
 
             Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
-            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
+            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(Comparer.IAC, Comparer.IAC, availableActions, startState);
             agent = new Agent<int[], int[]>(startState, policy, value, availableActions);
         }
 
@@ -289,7 +290,7 @@ namespace MultiResolutionRL
         public PerformanceStats stepAgent(string userAction = "")
         {
             int[] state = agent.state;
-            if (!visitedStates.Contains(agent.state, new IntArrayComparer()))
+            if (!visitedStates.Contains(agent.state, Comparer.IAC))
                 visitedStates.Add(agent.state);
             int[] action;
             if (userAction == "")
@@ -346,7 +347,7 @@ namespace MultiResolutionRL
             Policy<int[], int[]> newPolicy = (Policy<int[], int[]>)Activator.CreateInstance(policyType);
 
             actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int[]));
-            ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
+            ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, Comparer.IAC, Comparer.IAC, availableActions, startState, actionValueParameters);
 
             agent = new Agent<int[], int[]>(startState, newPolicy, newActionValue, availableActions);
             return agent;
@@ -445,7 +446,7 @@ namespace MultiResolutionRL
         {
             System.IO.StreamWriter writerAdj = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Fuzzy Place Field Test\\Adjacencies.csv");
             ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
-            IEqualityComparer<int[]> comparer = new IntArrayComparer();
+            //IEqualityComparer<int[]> comparer = new IntArrayComparer();
 
             List<int[]> allStates = model.Qtable.Keys.ToList();
 
@@ -461,68 +462,8 @@ namespace MultiResolutionRL
         }
         public bool useFolder() { return false; }
 
-        //public void ExportDistances()
-        //{
-        //    System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distances.csv");
-        //    ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
-        //    PathFinder<int[], int[]> pathfinder = new PathFinder<int[], int[]>(new IntArrayComparer());
-
-        //    double[,] distances = new double[model.Qtable.Keys.Count, model.Qtable.Keys.Count];
-        //    List<int[]> allStates = model.Qtable.Keys.ToList();
-
-        //    //for (int i=1; i<map.GetLength(0)-1; i++)
-        //    //{
-        //    //    for (int j=0; j<map.GetLength(1)-1; j++)
-        //    //    {
-        //    for (int i=0; i<allStates.Count; i++)
-        //    {
-        //        int index1 = allStates.IndexOf(allStates[i]);
-        //        Dictionary<int[], double> dists = pathfinder.DijkstraDistances(allStates[i]/*new int[2] { i, j }*/, model, availableActions);
-
-        //        foreach (int[] s in dists.Keys)
-        //        {
-        //            //writer.WriteLine(i + "," + j + "," + s[0] + "," + s[1] + "," + dists[s]);
-        //            writer.WriteLine(allStates[i][0] + "," + allStates[i][1] + "," + s[0] + "," + s[1] + "," + dists[s]);
-        //        }
-
-        //        for (int j=0; j<allStates.Count; j++)
-        //        {
-        //            distances[i, j] = dists[allStates[j]];
-        //            distances[j, i] = dists[allStates[j]];
-        //        }
-
-        //    }
-        //    //    }
-        //    //} 
-
-        //    writer.Flush();
-        //    writer.Close();
-
-        //    writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distancesMat.csv");
-        //    for (int i = 0; i < allStates.Count; i++)
-        //    {
-        //        for (int j = 0; j < allStates.Count; j++)
-        //        {
-        //            writer.Write(distances[i,j] + ",");
-        //        }
-        //        writer.Write(Environment.NewLine);
-        //    }
-        //    writer.Flush();
-        //    writer.Close();
-
-        //    writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\distancesClusters.csv");
-        //    StateManagement.SelfAbstractingStateTree<int[]> tree = new StateManagement.SelfAbstractingStateTree<int[]>();
-        //    List<int[]> clusters = tree.PerformAbstraction(distances, allStates, new IntArrayComparer());
-        //    for (int i= 0; i < clusters.Count; i++)
-        //    {
-        //        writer.WriteLine(string.Join(",", allStates[i]) + "," + string.Join(",", clusters[i]));
-        //    }
-        //    writer.Flush();
-        //    writer.Close();
-        //}
-
     }
-
+    */
     public class MountainCar : World
     {
 
@@ -549,7 +490,7 @@ namespace MultiResolutionRL
 
             // set the default agent
             Policy<int[], int> policy = new EGreedyPolicy<int[], int>();
-            ActionValue<int[], int> value = new ModelFreeValue<int[], int>(new IntArrayComparer(), EqualityComparer<int>.Default, availableActions, discretizeState(_position, _velocity));
+            ActionValue<int[], int> value = new ModelFreeValue<int[], int>(Comparer.IAC, EqualityComparer<int>.Default, availableActions, discretizeState(_position, _velocity));
             agent = new Agent<int[], int>(discretizeState(_position, _velocity), policy, value, availableActions);
 
             // create the hill bitmap
@@ -585,7 +526,7 @@ namespace MultiResolutionRL
             Policy<int[], int> newPolicy = (Policy<int[], int>)Activator.CreateInstance(policyType);
 
             actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int));
-            ActionValue<int[], int> newActionValue = (ActionValue<int[], int>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), EqualityComparer<int>.Default, availableActions, discretizeState(_position, _velocity), actionValueParameters);
+            ActionValue<int[], int> newActionValue = (ActionValue<int[], int>)Activator.CreateInstance(actionValueType, Comparer.IAC, EqualityComparer<int>.Default, availableActions, discretizeState(_position, _velocity), actionValueParameters);
 
             agent = new Agent<int[], int>(discretizeState(_position, _velocity), newPolicy, newActionValue, availableActions);
             return agent;
@@ -662,7 +603,7 @@ namespace MultiResolutionRL
         public Agent<int[], int> agent;
         List<int> availableActions = new List<int>();
         List<int[]> dropSites = new List<int[]>();
-        IEqualityComparer<int[]> stateComparer = new IntArrayComparer();
+        //IEqualityComparer<int[]> stateComparer = new IntArrayComparer();
         Random rnd = new Random(0);
 
         double pickupReward = 0;
@@ -688,7 +629,7 @@ namespace MultiResolutionRL
 
             // set the default agent
             Policy<int[], int> policy = new EGreedyPolicy<int[], int>();
-            ActionValue<int[], int> value = new ModelFreeValue<int[], int>(new IntArrayComparer(), EqualityComparer<int>.Default, availableActions, new int[4] { 1, 2, 1, 10 });
+            ActionValue<int[], int> value = new ModelFreeValue<int[], int>(Comparer.IAC, EqualityComparer<int>.Default, availableActions, new int[4] { 1, 2, 1, 10 });
             agent = new Agent<int[], int>(new int[4] { 1, 2, 10, 1 }, policy, value, availableActions);
         }
 
@@ -707,7 +648,7 @@ namespace MultiResolutionRL
             Policy<int[], int> newPolicy = (Policy<int[], int>)Activator.CreateInstance(policyType);
 
             actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int));
-            ActionValue<int[], int> newActionValue = (ActionValue<int[], int>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), EqualityComparer<int>.Default, availableActions, startState, actionValueParameters);
+            ActionValue<int[], int> newActionValue = (ActionValue<int[], int>)Activator.CreateInstance(actionValueType, Comparer.IAC, EqualityComparer<int>.Default, availableActions, startState, actionValueParameters);
 
             agent = new Agent<int[], int>(startState, newPolicy, newActionValue, availableActions);
             return agent;
@@ -741,7 +682,7 @@ namespace MultiResolutionRL
                 else
                 {
                     int[] currentLocation = new int[2] { state[0], state[1] };
-                    if (stateComparer.Equals(currentLocation, dropSites[state[3]]))
+                    if (Comparer.IAC.Equals(currentLocation, dropSites[state[3]]))
                     {
                         reward = pickupReward;
                         newState[3] = -rnd.Next(1, dropSites.Count);
@@ -759,7 +700,7 @@ namespace MultiResolutionRL
                 else
                 {
                     int[] currentLocation = new int[2] { state[0], state[1] };
-                    if (stateComparer.Equals(currentLocation, dropSites[-state[3]]))
+                    if (Comparer.IAC.Equals(currentLocation, dropSites[-state[3]]))
                     {
                         reward = dropReward;
                         newState = rndStartState();
@@ -926,7 +867,7 @@ namespace MultiResolutionRL
             startState = new int[2] { 1, 1 };
 
             Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
-            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
+            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(Comparer.IAC, Comparer.IAC, availableActions, startState);
             agent = new Agent<int[], int[]>(startState, policy, value, availableActions);
 
         }
@@ -937,7 +878,7 @@ namespace MultiResolutionRL
             Policy<int[], int[]> newPolicy = (Policy<int[], int[]>)Activator.CreateInstance(policyType);
 
             actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int[]));
-            ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
+            ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, Comparer.IAC, Comparer.IAC, availableActions, startState, actionValueParameters);
 
             agent = new Agent<int[], int[]>(startState, newPolicy, newActionValue, availableActions);
             return agent;
@@ -986,7 +927,7 @@ namespace MultiResolutionRL
         {
             {
                 int[] state = agent.state;
-                if (!visitedStates.Contains(agent.state, new IntArrayComparer()))
+                if (!visitedStates.Contains(agent.state, Comparer.IAC))
                     visitedStates.Add(agent.state);
                 int[] action;
                 if (userAction == "")
@@ -1115,10 +1056,10 @@ namespace MultiResolutionRL
                 {
                     int curMap = mapRow * mapsWide + mapCol;
                     ctsJ = (mapRow * mapBmp[curMap].Height) - 1;
-                                 
+
                     if (mapRow == 0)
                         ctsJ++;
-                   
+
                     for (int pixelRow = 0; pixelRow < mapBmp[curMap].Height; pixelRow++) //Iterate each pixel in the given map, 
                     {
                         ctsJ++;
@@ -1198,5 +1139,303 @@ namespace MultiResolutionRL
     }
 
 
+    public class GridWorld : World
+    {
+        Type actType = typeof(int[]);
+
+        int egoSize = 3;//SHOULD BE A ODD NUMBER! SO THE AGENT IS CENTERED ON ITS EGO
+        public Bitmap mapBmp;
+        private int[,] map;
+        private StateClass startState;
+        public Agent<StateClass, int[]> agent;
+        List<int[]> availableActions;
+
+        List<StateClass> visitedStates = new List<StateClass>();
+        OutputData OD;
+        DirectoryInfo DI;
+
+        public GridWorld()
+        {
+            OD = new OutputData();
+            DI = Directory.CreateDirectory(OD.getAddress("outputData"));
+
+
+            availableActions = new List<int[]>();
+            availableActions.Add(new int[2] { -1, 0 });
+            availableActions.Add(new int[2] { 0, -1 });
+            availableActions.Add(new int[2] { 1, 0 });
+            availableActions.Add(new int[2] { 0, 1 });
+            //availableActions.Add(new int[2] { -1, -1 });
+            //availableActions.Add(new int[2] { 1, -1 });
+            //availableActions.Add(new int[2] { -1, 1 });
+            //availableActions.Add(new int[2] { 1, 1 });
+
+            // set the default agent
+            //startState = new int[2] { 1, 1 };
+            string initDescript = "GlobalLocation";
+            string ego = "Ego";
+            
+            int[] startLoc = { 1, 1 };
+
+            int[] egoLoc = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            startState = new StateClass(initDescript, startLoc);
+            startState.addState(ego,egoLoc);
+
+            Policy<StateClass, int[]> policy = new EGreedyPolicy<StateClass, int[]>();
+            ActionValue<StateClass, int[]> value = new ModelFreeValue<StateClass, int[]>(Comparer.SCC, Comparer.IAC, availableActions, startState);
+            agent = new Agent<StateClass, int[]>(startState, policy, value, availableActions);
+        }
+
+        public void Load(string bmpFilename)
+        {
+            mapBmp = new Bitmap(bmpFilename);
+            map = new int[mapBmp.Width, mapBmp.Height];
+
+            int[] startLoc = { 1, 1 };
+            for (int i = 0; i < mapBmp.Width; i++)
+            {
+                for (int j = 0; j < mapBmp.Height; j++)
+                {
+                    Color thisPixel = mapBmp.GetPixel(i, j);
+                    if (thisPixel == Color.FromArgb(0, 0, 0))
+                    {
+                        startLoc[0] = i;
+                        startLoc[1] = j;                     
+                        startState = new StateClass("GlobalLocation", startLoc);
+                        mapBmp.SetPixel(i, j, Color.White);
+                    }
+
+                    if (thisPixel == Color.FromArgb(0, 0, 255))
+                        map[i, j] = 1;
+                    else if (thisPixel == Color.FromArgb(255, 0, 0))
+                        map[i, j] = 2;
+                    else if (thisPixel == Color.FromArgb(0, 255, 0))
+                        map[i, j] = 3;
+                    else
+                        map[i, j] = 0;
+                }
+            
+            }
+            int[] startEgo = new int[egoSize*egoSize];
+            for (int r = egoSize / 2; r < egoSize/2; r++)//Iterate left to right, top to bottom, centered on zero,abuses int division.
+            {
+                for (int c = -egoSize / 2; c < egoSize/2; c++)
+                {
+                    if (startLoc[0] + c >= 0 && startLoc[1] + r >= 0 && startLoc[0] + c < mapBmp.Width && startLoc[1] + r < mapBmp.Height)
+                        startEgo[(r+egoSize/2)*egoSize + (c+egoSize/2)] = map[startLoc[0] + c, r + startLoc[1]];
+                    else
+                        startEgo[(r + egoSize / 2) * egoSize + (c + egoSize/2)] = 1;//Pretend its a wall
+
+                }
+
+            }
+            startState.ModifyState("Ego", startEgo);
+
+            visitedStates.Clear();
+            agent.state = startState;
+        }
+
+        public PerformanceStats stepAgent(string userAction = "")
+        {
+            StateClass state = agent.state;
+            if (!visitedStates.Contains(agent.state, Comparer.SCC))
+                visitedStates.Add(agent.state);
+            int[] action;
+            if (userAction == "")
+                action = agent.selectAction();
+            else
+            {
+                string[] act = userAction.Split(',');
+                action = new int[2];
+                action[0] = Convert.ToInt32(act[0]);
+                action[1] = Convert.ToInt32(act[1]);
+            }
+
+            StateClass newState;// = new StateClass();
+            double reward = 0;
+            bool absorbingStateReached = false;
+
+            // get the type of the new location
+            int[] loc = (int[])state.GetStateFactor("GlobalLocation");
+            int newStateType = map[loc[0] + action[0], loc[1] + action[1]];
+            int[] newLoc;
+            switch (newStateType)
+            {
+                case 0: // open space               
+                    newLoc = new int[2] { loc[0] + action[0], loc[1] + action[1] };
+                    reward = -0.01;
+                    break;
+                case 1: // wall
+                    newLoc = new int[2] { loc[0], loc[1] };
+                    reward = -0.1;
+                    break;
+                case 2: // lava
+                    newLoc = new int[2] { loc[0] + action[0], loc[1] + action[1] };
+                    reward = -0.5;
+                    break;
+                case 3: // goal
+                    newLoc = (int[])startState.GetStateFactor("GlobalLocation");
+                    reward = 10;
+                    absorbingStateReached = true;
+                    break;
+                default: newLoc = new int[2] { 9999999, 9999999 }; break;//This is an error
+            }
+            int[] ego = new int[egoSize*egoSize];
+            for (int r = egoSize/2; r < egoSize/2; r++)//Iterate left to right, top to bottom
+            {
+                for (int c = -egoSize/2; c < egoSize/2; c++)
+                {
+                    if (newLoc[0] + c >= 0 && newLoc[1] + r >= 0 && newLoc[0] + c < mapBmp.Width && newLoc[1] + r < mapBmp.Height)
+                        ego[(r+egoSize/2)*egoSize + (c+egoSize/2)] = map[newLoc[0] + c, r + newLoc[1]];
+                    else
+                        ego[(r + egoSize / 2) * egoSize + (c + egoSize / 2)] = 1;
+                }
+
+            }
+            newState = new StateClass("GlobalLocation", newLoc);
+            newState.addState("Ego", ego);
+            agent.getStats().TallyStepsToGoal(reward > 0);
+            
+            agent.logEvent(new StateTransition<StateClass, int[]>(state, action, reward, newState, absorbingStateReached));
+            return agent.getStats();
+        }
+
+        public object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters)
+        {
+            policyType = policyType.MakeGenericType(typeof(StateClass), typeof(int[]));
+            Policy<StateClass, int[]> newPolicy = (Policy<StateClass, int[]>)Activator.CreateInstance(policyType);
+
+            actionValueType = actionValueType.MakeGenericType(typeof(StateClass), typeof(int[]));
+            ActionValue<StateClass, int[]> newActionValue = (ActionValue<StateClass, int[]>)Activator.CreateInstance(actionValueType, Comparer.SCC, Comparer.IAC, availableActions, startState, actionValueParameters);
+
+            agent = new Agent<StateClass, int[]>(startState, newPolicy, newActionValue, availableActions);
+            return agent;
+        }
+
+
+        public Bitmap showState(int width, int height, bool showPath = false)
+        {
+            width = 144; height = 48;
+            Bitmap modMap = new Bitmap(mapBmp);
+
+            foreach (StateClass state in visitedStates)
+            {
+                int[] loc2 = (int[])state.GetStateFactor("GlobalLocation");
+                modMap.SetPixel(loc2[0], loc2[1], Color.FromArgb(mapBmp.GetPixel(loc2[0], loc2[1]).R * 3 / 4, mapBmp.GetPixel(loc2[0], loc2[1]).G * 3 / 4, mapBmp.GetPixel(loc2[0], loc2[1]).B * 3 / 4));
+            }
+
+
+            if (showPath)
+            {
+                System.IO.StreamReader reader = new System.IO.StreamReader("log.txt");
+                string text;
+                while ((text = reader.ReadLine()) != null)
+                {
+                    string[] s = text.Split(',');
+                    int x = Convert.ToInt32(s[0]);
+                    int y = Convert.ToInt32(s[1]);
+                    if (x >= mapBmp.Width || y >= mapBmp.Height)
+                        continue;
+
+                    int r = mapBmp.GetPixel(x, y).R;
+                    int b = mapBmp.GetPixel(x, y).B;
+                    int g = mapBmp.GetPixel(x, y).G;
+                    if (s[2] == "p")
+                    {
+                        b = Math.Max(0, b - 50);
+                        g = Math.Max(0, g - 50);
+                    }
+                    else if (s[2] == "g")
+                    {
+                        b = Math.Max(0, b - 100);
+                        g = Math.Max(0, g - 100);
+                    }
+                    Color c = Color.FromArgb(r, g, b);
+                    modMap.SetPixel(x, y, c);
+                }
+                reader.Close();
+            }
+            int[] loc = (int[])agent.state.GetStateFactor("GlobalLocation");
+            modMap.SetPixel(loc[0], loc[1], Color.Black);
+
+            Bitmap resized = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(resized))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                g.DrawImage(modMap, 0, 0, width, height);
+            }
+            return resized;
+        }
+
+        public bool useFolder()
+        {
+            return false;    
+        }
+
+        public void ExportGradients()
+        {
+            throw new NotImplementedException();
+        }
+            /*
+              MultiResValue<StateClass, int[]> av = (MultiResValue<StateClass, int[]>)agent._actionValue;
+              StateManagement.intStateTree tree = new StateManagement.intStateTree();
+
+
+              //System.IO.StreamWriter xWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsX.csv");
+              System.IO.StreamWriter xWriter = new System.IO.StreamWriter(OD.getAddress("gradientsX"));
+              // System.IO.StreamWriter yWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsY.csv");
+              System.IO.StreamWriter yWriter = new System.IO.StreamWriter(OD.getAddress("gradientsY"));
+              // System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
+              System.IO.StreamWriter valWriter = new System.IO.StreamWriter(OD.getAddress("gradientsVal"));
+
+              for (int i = 0; i < map.GetLength(0); i++)
+              {
+                  double[] thisXLine = new double[map.GetLength(1)];
+                  double[] thisYLine = new double[map.GetLength(1)];
+                  double[] thisValLine = new double[map.GetLength(1)];
+                  for (int j = 0; j < map.GetLength(1); j++)
+                  {
+                      int[] thisState = tree.GetParentState(new int[2] { i, j }, 0);
+                      double[] actionVals = av.models[0].value(thisState, availableActions);
+                      thisXLine[j] = actionVals[2] - actionVals[0];
+                      thisYLine[j] = actionVals[3] - actionVals[1];
+                      thisValLine[j] = actionVals.Max();
+                  }
+                  xWriter.WriteLine(string.Join(",", thisXLine));
+                  yWriter.WriteLine(string.Join(",", thisYLine));
+                  valWriter.WriteLine(string.Join(",", thisValLine));
+              }
+              xWriter.Flush(); xWriter.Close();
+              yWriter.Flush(); yWriter.Close();
+              valWriter.Flush(); valWriter.Close();
+          }
+          */
+        public void ExportAdjacencies()
+        {
+            throw new NotImplementedException();
+        }
+        /*{
+             System.IO.StreamWriter writerAdj = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Fuzzy Place Field Test\\Adjacencies.csv");
+             ModelBasedValue<StateClass, int[]> model = (ModelBasedValue<StateClass, int[]>)agent._actionValue;
+             //IEqualityComparer<int[]> comparer = new IntArrayComparer();
+
+             List<StateClass> allStates = model.Qtable.Keys.ToList();
+
+             foreach (StateClass state in allStates)
+             {
+                 foreach (int[] action in availableActions)
+                 {
+                     int[] neighbor = model.PredictNextState(state, action);
+                     writerAdj.WriteLine(string.Join(",", state) + "," + string.Join(",", neighbor));
+                 }
+             }
+             writerAdj.Flush(); writerAdj.Close();
+         }
+         public bool useFolder() { return false; }
+
+     }*/
+
+    }
 }
 
