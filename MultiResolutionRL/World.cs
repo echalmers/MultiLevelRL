@@ -419,7 +419,7 @@ namespace MultiResolutionRL
 
         public void ExportAdjacencies()
         {
-            System.IO.StreamWriter writerAdj = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Fuzzy Place Field Test\\Adjacencies.csv");
+            System.IO.StreamWriter writerAdj = new System.IO.StreamWriter("C:\\Users\\Eric\\Desktop\\Adjacencies.csv");
             ModelBasedValue<int[], int[]> model = (ModelBasedValue<int[], int[]>)agent._actionValue;
             IEqualityComparer<int[]> comparer = new IntArrayComparer();
 
@@ -430,7 +430,8 @@ namespace MultiResolutionRL
                 foreach (int[] action in availableActions)
                 {
                     int[] neighbor = model.PredictNextState(state, action);
-                    writerAdj.WriteLine(string.Join(",", state) + "," + string.Join(",", neighbor));
+                    if (!(neighbor== null))
+                        writerAdj.WriteLine(string.Join(",", state) + "," + string.Join(",", neighbor));
                 }
             }
             writerAdj.Flush(); writerAdj.Close();

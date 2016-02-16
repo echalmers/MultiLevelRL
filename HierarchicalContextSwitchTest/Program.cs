@@ -18,7 +18,7 @@ namespace HierarchicalContextSwitchTest
             string cumRewardFilename = "C:\\Users\\Eric\\Desktop\\Maps\\cumReward.csv";
             string mapsDirectory = "C:\\Users\\Eric\\Desktop\\Maps\\";
 
-            int runs = 8;
+            int runs = 96;
             int goalCt = 10;
             List<double>[] stepsToGoal = new List<double>[runs];
             List<double>[] cumModelUse = new List<double>[runs];
@@ -26,7 +26,7 @@ namespace HierarchicalContextSwitchTest
 
             string[] mapNames = Directory.GetFiles(mapsDirectory, "*.bmp");
             List<string> maps = new List<string>();
-            maps.AddRange(mapNames); maps.AddRange(mapNames);
+            maps.AddRange(mapNames); //maps.AddRange(mapNames);
 
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
@@ -46,9 +46,9 @@ namespace HierarchicalContextSwitchTest
                 World thisWorld = new GridWorld();
 
                 // add agent
-                System.Threading.Thread.Sleep(run * 100); // staggered instantiation to avoid identical random number generators
-                //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100); // this line for context-switch + adaptation
-                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100); // this line for context-switch only
+                System.Threading.Thread.Sleep(run * 101); // staggered instantiation to avoid identical random number generators
+                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100); // this line for context-switch + adaptation
+                //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100); // this line for context-switch only
                 //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>)); // this line for standard MBRL
 
                 PerformanceStats stats = new PerformanceStats();

@@ -43,7 +43,7 @@ namespace RL_Test
             {
                 stats = world.stepAgent(actionTextBox.Text);
 
-                //trajWriter.WriteLine(string.Join(",", ((Agent<int[], int[]>)agent).state));
+                trajWriter.WriteLine(string.Join(",", ((Agent<int[], int[]>)agent).state));
 
                 label1.Text = i.ToString();
                 label1.Refresh();
@@ -125,7 +125,7 @@ namespace RL_Test
             {
                 trajWriter.Flush(); trajWriter.Close();
             }
-            trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\trajectory" + of.SafeFileName + ".csv");
+            trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Desktop\\trajectory" + of.SafeFileName + ".csv");
         }
 
         
@@ -165,7 +165,8 @@ namespace RL_Test
         
         private void button1_Click_1(object sender, EventArgs e)
         {
-            ((stochasticRewardGridworld)world).ExportGradients();
+            //((stochasticRewardGridworld)world).ExportGradients();
+            ((GridWorld)world).ExportAdjacencies();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -328,7 +329,7 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
                     break;
                 case "Context switcher":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
