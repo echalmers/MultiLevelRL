@@ -19,12 +19,9 @@ namespace MultiResolutionRL.ValueCalculation
         abstract public SAStable<stateType, actionType, Histogram> getRTable();
 
 
-
-
-
-
         //**************Inheritted from the ActionValue*********************************************//
         abstract override public double[] value(stateType state, List<actionType> actions);
+
         abstract override public double update(StateTransition<stateType, actionType> transition);
         abstract override public PerformanceStats getStats();
 

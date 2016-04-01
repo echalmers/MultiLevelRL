@@ -1177,7 +1177,7 @@ namespace MultiResolutionRL
             
             int[] startLoc = { 1, 1 };
 
-            int[] egoLoc = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            int[] egoLoc = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };//Weird numbers for debugging, should not effect
             startState = new StateClass(initDescript, startLoc);
             startState.addState(ego,egoLoc);
 
@@ -1217,19 +1217,22 @@ namespace MultiResolutionRL
             
             }
             int[] startEgo = new int[egoSize*egoSize];
-            for (int r = egoSize / 2; r < egoSize/2; r++)//Iterate left to right, top to bottom, centered on zero,abuses int division.
+            for (int r = -egoSize / 2; r < egoSize/2; r++)//Iterate left to right, top to bottom, centered on zero,abuses int division.
             {
                 for (int c = -egoSize / 2; c < egoSize/2; c++)
                 {
                     if (startLoc[0] + c >= 0 && startLoc[1] + r >= 0 && startLoc[0] + c < mapBmp.Width && startLoc[1] + r < mapBmp.Height)
-                        startEgo[(r+egoSize/2)*egoSize + (c+egoSize/2)] = map[startLoc[0] + c, r + startLoc[1]];
+                    {
+                        startEgo[(r + egoSize / 2) * egoSize + (c + egoSize / 2)] = map[startLoc[0] + c, r + startLoc[1]];
+
+                    }
                     else
-                        startEgo[(r + egoSize / 2) * egoSize + (c + egoSize/2)] = 1;//Pretend its a wall
+                        startEgo[(r + egoSize / 2) * egoSize + (c + egoSize / 2)] = 1;//Pretend its a wall
 
                 }
 
             }
-            startState.ModifyState("Ego", startEgo);
+            startState.addState("Ego", startEgo);
 
             visitedStates.Clear();
             agent.state = startState;
@@ -1251,7 +1254,7 @@ namespace MultiResolutionRL
                 action[1] = Convert.ToInt32(act[1]);
             }
 
-            StateClass newState;// = new StateClass();
+            StateClass newState;
             double reward = 0;
             bool absorbingStateReached = false;
 
@@ -1281,12 +1284,13 @@ namespace MultiResolutionRL
                 default: newLoc = new int[2] { 9999999, 9999999 }; break;//This is an error
             }
             int[] ego = new int[egoSize*egoSize];
-            for (int r = egoSize/2; r < egoSize/2; r++)//Iterate left to right, top to bottom
+            for (int r = -egoSize/2; r < egoSize/2 + 1; r++)//Iterate left to right, top to bottom
             {
-                for (int c = -egoSize/2; c < egoSize/2; c++)
+                for (int c = -egoSize/2; c < egoSize/2 + 1; c++)
                 {
                     if (newLoc[0] + c >= 0 && newLoc[1] + r >= 0 && newLoc[0] + c < mapBmp.Width && newLoc[1] + r < mapBmp.Height)
                         ego[(r+egoSize/2)*egoSize + (c+egoSize/2)] = map[newLoc[0] + c, r + newLoc[1]];
+                
                     else
                         ego[(r + egoSize / 2) * egoSize + (c + egoSize / 2)] = 1;
                 }
@@ -1358,6 +1362,16 @@ namespace MultiResolutionRL
             int[] loc = (int[])agent.state.GetStateFactor("GlobalLocation");
             modMap.SetPixel(loc[0], loc[1], Color.Black);
 
+            for (int r = -egoSize / 2; r < egoSize / 2 + 1; r++)//Iterate left to right, top to bottom
+            {
+                for (int c = -egoSize / 2; c < egoSize / 2 + 1; c++)
+                    if (loc[0] + c >= 0 && loc[1] + r >= 0 && loc[0] + c < mapBmp.Width && loc[1] + r < mapBmp.Height)
+                        modMap.SetPixel(loc[0] + c, loc[1] + r, Color.FromArgb(85,Color.Chartreuse));
+            }
+        
+
+            modMap.SetPixel(loc[0], loc[1], Color.Black);
+
             Bitmap resized = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(resized))
             {
@@ -1375,10 +1389,9 @@ namespace MultiResolutionRL
 
         public void ExportGradients()
         {
-            throw new NotImplementedException();
-        }
-            /*
-              MultiResValue<StateClass, int[]> av = (MultiResValue<StateClass, int[]>)agent._actionValue;
+
+            
+              ActionClass<StateClass, int[]> av = (ActionClass<StateClass, int[]>)agent._actionValue;
               StateManagement.intStateTree tree = new StateManagement.intStateTree();
 
 
@@ -1397,7 +1410,7 @@ namespace MultiResolutionRL
                   for (int j = 0; j < map.GetLength(1); j++)
                   {
                       int[] thisState = tree.GetParentState(new int[2] { i, j }, 0);
-                      double[] actionVals = av.models[0].value(thisState, availableActions);
+                      double[] actionVals = av.aloModel.value(thisState, availableActions);
                       thisXLine[j] = actionVals[2] - actionVals[0];
                       thisYLine[j] = actionVals[3] - actionVals[1];
                       thisValLine[j] = actionVals.Max();
@@ -1410,7 +1423,7 @@ namespace MultiResolutionRL
               yWriter.Flush(); yWriter.Close();
               valWriter.Flush(); valWriter.Close();
           }
-          */
+          
         public void ExportAdjacencies()
         {
             throw new NotImplementedException();

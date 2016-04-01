@@ -48,7 +48,7 @@ namespace MultiResolutionRL
                 return outputData + gradientsVal;
 
             else if (desired == "gradientsX")
-                return gradientsX;
+                return outputData + gradientsX;
 
             else if (desired == "gradientsY")
                 return outputData + gradientsY;

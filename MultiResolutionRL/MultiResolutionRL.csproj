@@ -53,6 +53,7 @@
     <Compile Include="StateClass.cs" />
     <Compile Include="StateTree.cs" />
     <Compile Include="ValueCalculation\ActionClass.cs" />
+    <Compile Include="ValueCalculation\Approximator.cs" />
     <Compile Include="ValueCalculation\BaseClasses\ActionValue.cs" />
     <Compile Include="StateTransition.cs" />
     <Compile Include="ValueCalculation\BaseClasses\ModelBasedActionValue.cs" />

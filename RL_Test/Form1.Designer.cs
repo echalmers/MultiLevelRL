@@ -234,8 +234,7 @@
             "Mountain Car",
             "Taxi",
             "Stochastic",
-            "ProceduralWorld",
-            "ActionClass"});
+            "ProceduralWorld"});
             this.comboBox1.Location = new System.Drawing.Point(221, 14);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(75, 21);
@@ -324,7 +323,8 @@
             "Multi-resolution",
             "Context switcher",
             "Context switcher Generic",
-            "Load"});
+            "Load",
+            "ActionClass"});
             this.learnerTypeComboBox.Location = new System.Drawing.Point(326, 14);
             this.learnerTypeComboBox.Name = "learnerTypeComboBox";
             this.learnerTypeComboBox.Size = new System.Drawing.Size(121, 21);

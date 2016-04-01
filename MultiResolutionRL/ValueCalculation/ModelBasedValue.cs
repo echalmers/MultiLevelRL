@@ -9,15 +9,20 @@ namespace MultiResolutionRL.ValueCalculation
     [Serializable]
     public class ModelBasedValue<stateType, actionType> : ModelBasedActionValue<stateType, actionType>
     {
+
+        public stateType IDK; 
+
+
         public double defaultQ = 10, gamma = 0.9;
         int c = 1;
-        public int maxUpdates = 120;//1000;
+        public int maxUpdates = 1000;
         public SAStable<stateType, actionType, int> T;
         public SAStable<stateType, actionType, Histogram> R;
         public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
         public Func<stateType, IEnumerable<stateType>> stateUpdateSelector = null;
+  
 
         Dictionary<stateType, Dictionary<stateType, HashSet<actionType>>> predecessors;
         Dictionary<stateType, double> priority;
@@ -51,6 +56,11 @@ namespace MultiResolutionRL.ValueCalculation
 
             predecessors = new Dictionary<stateType, Dictionary<stateType, HashSet<actionType>>>(stateComparer);
             priority = new Dictionary<stateType, double>(stateComparer);
+
+            IDK = StartState;
+            StateTransition<stateType, actionType> dummyTran  = new StateTransition<stateType, actionType>(StartState,availableActions[0],0,IDK);
+
+            update(dummyTran,-1);
         }
 
 
@@ -142,18 +152,20 @@ namespace MultiResolutionRL.ValueCalculation
             return response;
         }
 
-        public override double update(StateTransition<stateType, actionType> transition)
+        public double update(StateTransition<stateType, actionType> transition,int thisCount)
         {
             double maxChange = double.NegativeInfinity;
 
             stats.cumulativeReward += transition.reward;
 
-            // retrieve current count and reward values
-            int thisCount = T.Get(transition.oldState, transition.action, transition.newState);
+            //// retrieve current count and reward values
+            thisCount += T.Get(transition.oldState, transition.action, transition.newState);
+            
+
             Histogram thisReward = R.Get(transition.oldState, transition.action, transition.newState);
 
             // update the model values for the given transition
-            T.Set(transition.oldState, transition.action, transition.newState, thisCount + 1);
+            T.Set(transition.oldState, transition.action, transition.newState, thisCount+1);
             //R.Set(transition.oldState, transition.action, transition.newState, thisReward + (transition.reward - thisReward) / thisCount);
             thisReward.Add(transition.reward);
             R.Set(transition.oldState, transition.action, transition.newState, thisReward);
@@ -217,6 +229,12 @@ namespace MultiResolutionRL.ValueCalculation
             }
             return i;
         }
+
+        public override double update(StateTransition<stateType, actionType> transition)
+        {
+            return update(transition, 0);
+        }
+
 
         private void updateQ(stateType state, actionType action)
         {
@@ -309,7 +327,7 @@ namespace MultiResolutionRL.ValueCalculation
             totalCounts++;
 
             // decide whether to recalculate average
-            if (Math.Abs(value - recentAverage) > 0.01)
+            if (Math.Abs(value - recentAverage) >= 0.01)
                 recentAverage = CalcAverage();
         }
                 

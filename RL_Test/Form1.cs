@@ -189,7 +189,7 @@ namespace RL_Test
         
         private void button1_Click_1(object sender, EventArgs e)
         {
-            ((stochasticRewardGridworld)world).ExportGradients();
+            ((GridWorld)world).ExportGradients();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -361,7 +361,11 @@ namespace RL_Test
                     //agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextChangeValueGeneric<,>));
                     break;
                 case "ActionClass":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ActionClass<,>));
+                    int[] temp2 = { 0, 0 };
+                    StateClass temp = new StateClass("GlobalLocation", temp2);
+                    temp.addState("Ego", temp2);
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ActionClass<,>),temp);
+                    break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
                     learnerTypeComboBox.Text = "Context switcher";

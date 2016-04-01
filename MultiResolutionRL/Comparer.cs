@@ -26,6 +26,8 @@ namespace MultiResolutionRL
             {
                 if (x.GetType() != y.GetType())
                     return false;
+                if (x == null || y == null)
+                    return false;
                 _x_Prime = x;
                 _y_Prime = y;
                 switch ((x.GetType()).ToString())
@@ -53,7 +55,7 @@ namespace MultiResolutionRL
 
             public int GetHashCode(object obj)
             {
-                throw new NotImplementedException();
+                return (obj.ToString()).GetHashCode();
             }
         }
         public class ByteArrayComparer : IEqualityComparer<Byte[]>
@@ -79,7 +81,8 @@ namespace MultiResolutionRL
             {
                 if (x.Length != y.Length)
                     return false;
-                foreach (int d in x)
+
+                for (int d=0;d<x.Length;d++)
                     if (x[d] != y[d])
                         return false;
                 return true;
@@ -152,7 +155,7 @@ namespace MultiResolutionRL
             public bool Equals(int[] x, int[] y)
             {
 
-                if (x == null || y == null)
+                if (x == null || y == null || y.Length != x.Length)
                     return false;
 
 
