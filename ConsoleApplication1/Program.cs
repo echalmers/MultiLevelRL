@@ -119,13 +119,11 @@ namespace ConsoleApplication1
 
 
 
-
-
-
-            // Lesion study
-            int runs = 8;
-            int goalCt = 25;
-            List<double>[] results = new List<double>[runs];
+            // stochastic reward study
+            int runs = 48;
+            int goalCt = 100;
+            List<double>[] stepsToGoal = new List<double>[runs];
+            List<double>[] cumModelUse = new List<double>[runs];
 
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
@@ -136,37 +134,41 @@ namespace ConsoleApplication1
             };
 
             Parallel.For(0, runs, op, (run) =>
-            //for (int run = 0; run < runs; run++)
             {
+                cumModelUse[run] = new List<double>();
+
                 // instantiate world
-                World thisWorld = new GridWorld();
+                World thisWorld = new StochasticRewardGridWorld();
 
                 // load map
-                thisWorld.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map3LargeMod.bmp");
+                thisWorld.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map4choiceB.bmp");
 
-                // load agent
+                // add agent
                 System.Threading.Thread.Sleep(run * 100); // staggered instantiation to avoid identical random number generators
-                //thisWorld.addAgent(typeof(SoftmaxPolicy<,>), typeof(MultiGridWorldModel<,>), 8, 4);
-                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 1, 0);
+
+                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+                //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
 
                 // run
                 PerformanceStats stats = new PerformanceStats();
                 while (stats.stepsToGoal.Count <= goalCt)
                 {
                     stats = thisWorld.stepAgent("");
+                    if (stats.stepsToGoal.Last() == 0)
+                    {
+                        cumModelUse[run].Add(stats.modelAccesses + stats.modelUpdates);
+                        Console.WriteLine("run " + run.ToString() + " goal count: " + stats.stepsToGoal.Count);
+                    }
                 }
-
-                results[run] = stats.stepsToGoal;
+                
+                stepsToGoal[run] = stats.stepsToGoal;
             });
 
-            sw.Stop();
-            Console.WriteLine(sw.Elapsed.TotalSeconds.ToString());
-
-            System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\data.csv");
-            for (int i = 0; i < goalCt; i++)
+            System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\stepsToGoalStochasticMBRL.csv");
+            for (int i = 0; i < stepsToGoal[0].Count; i++)
             {
                 List<string> line = new List<string>();
-                foreach (List<double> series in results)
+                foreach (List<double> series in stepsToGoal)
                 {
                     line.Add(series[i].ToString());
                 }
@@ -174,6 +176,73 @@ namespace ConsoleApplication1
             }
             writer.Flush();
             writer.Close();
+            writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\modelUseStochasticMBRL.csv");
+            for (int i = 0; i < cumModelUse[0].Count; i++)
+            {
+                List<string> line = new List<string>();
+                foreach (List<double> series in cumModelUse)
+                {
+                    line.Add(series[i].ToString());
+                }
+                writer.WriteLine(string.Join(",", line));
+            }
+            writer.Flush();
+            writer.Close();
+
+
+
+            //// Lesion study
+            //int runs = 8;
+            //int goalCt = 25;
+            //List<double>[] results = new List<double>[runs];
+
+            //System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
+
+            //ParallelOptions op = new ParallelOptions()
+            //{
+            //    MaxDegreeOfParallelism = 8
+            //};
+
+            //Parallel.For(0, runs, op, (run) =>
+            ////for (int run = 0; run < runs; run++)
+            //{
+            //    // instantiate world
+            //    World thisWorld = new GridWorld();
+
+            //    // load map
+            //    thisWorld.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map3LargeMod.bmp");
+
+            //    // load agent
+            //    System.Threading.Thread.Sleep(run * 100); // staggered instantiation to avoid identical random number generators
+            //    //thisWorld.addAgent(typeof(SoftmaxPolicy<,>), typeof(MultiGridWorldModel<,>), 8, 4);
+            //    thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 1, 0);
+
+            //    // run
+            //    PerformanceStats stats = new PerformanceStats();
+            //    while (stats.stepsToGoal.Count <= goalCt)
+            //    {
+            //        stats = thisWorld.stepAgent("");
+            //    }
+
+            //    results[run] = stats.stepsToGoal;
+            //});
+
+            //sw.Stop();
+            //Console.WriteLine(sw.Elapsed.TotalSeconds.ToString());
+
+            //System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\data.csv");
+            //for (int i = 0; i < goalCt; i++)
+            //{
+            //    List<string> line = new List<string>();
+            //    foreach (List<double> series in results)
+            //    {
+            //        line.Add(series[i].ToString());
+            //    }
+            //    writer.WriteLine(string.Join(",", line));
+            //}
+            //writer.Flush();
+            //writer.Close();
 
 
             //// Post-training Lesion study

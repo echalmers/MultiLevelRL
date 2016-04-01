@@ -109,6 +109,7 @@ namespace RL_Test
             try
             {
                 ((ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).resetHistory();
+                ((ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).currentModel = null;
             }
             catch { }
 
@@ -165,7 +166,7 @@ namespace RL_Test
         
         private void button1_Click_1(object sender, EventArgs e)
         {
-            //((stochasticRewardGridworld)world).ExportGradients();
+            //((StochasticRewardGridWorld)world).ExportGradients();
             ((GridWorld)world).ExportAdjacencies();
         }
 
@@ -188,7 +189,7 @@ namespace RL_Test
                     loadMapButton.PerformClick();
                     break;
                 case "Stochastic":
-                    world = new stochasticRewardGridworld();
+                    world = new StochasticRewardGridWorld();
                     loadMapButton.Enabled = true;
                     loadMapButton.PerformClick();
                     break;
@@ -290,9 +291,9 @@ namespace RL_Test
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            world = new GridWorld();
+            world = new StochasticRewardGridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map4choice.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
@@ -322,8 +323,11 @@ namespace RL_Test
                 case "Model based":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
                     break;
+                case "Tracking ModelBased":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>), true);
+                    break;
                 case "Multi-resolution":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 8);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 8);
                     break;
                 case "Context switcher (hierarchical)":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);

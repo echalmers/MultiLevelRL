@@ -17,7 +17,7 @@ namespace MultiResolutionRL
         Bitmap showState(int width, int height, bool showPath = false);
     }
 
-    public class stochasticRewardGridworld : World
+    public class StochasticRewardGridWorld : World
     {
         public Bitmap mapBmp;
         private int[,] map;
@@ -29,7 +29,7 @@ namespace MultiResolutionRL
         IntArrayComparer comparer = new IntArrayComparer();
         HashSet<int[]> rewardSites;
 
-        public stochasticRewardGridworld()
+        public StochasticRewardGridWorld()
         {
             availableActions = new List<int[]>();
             availableActions.Add(new int[2] { -1, 0 });
@@ -61,6 +61,7 @@ namespace MultiResolutionRL
 
         public void Load(string filename)
         {
+            rewardSites.Clear();
             mapBmp = new Bitmap(filename);
             map = new int[mapBmp.Width, mapBmp.Height];
 
@@ -91,7 +92,7 @@ namespace MultiResolutionRL
             }
             
             agent.state = startState;
-            currentRewardSite = rewardSites.ElementAt(rnd.Next(rewardSites.Count - 1));
+            currentRewardSite = rewardSites.ElementAt(2);//.ElementAt(rnd.Next(rewardSites.Count - 1));
         }
 
         public Bitmap showState(int width, int height, bool showPath = false)
@@ -152,14 +153,15 @@ namespace MultiResolutionRL
                     {
                         currentRewardSite = rewardSites.ElementAt(rnd.Next(rewardSites.Count));
                         reward = 10;
+                        newState = new int[2] { startState[0], startState[1] };
                         absorbingStateReached = true;
                     }
                     else
                     {
-                        //newState = new int[2] { state[0] + action[0], state[1] + action[1] };
+                        newState = new int[2] { state[0] + action[0], state[1] + action[1] };
                         reward = -0.01;
                     }
-                    newState = new int[2] { startState[0], startState[1] };
+                    
                     break;
             }
 
@@ -173,32 +175,44 @@ namespace MultiResolutionRL
             //Console.WriteLine(Math.Round(av.PredictReward(new int[2] { 9, 8 }, new int[2] { 0, 1 }, new int[2] { 9, 9 }), 2));
 
             agent.getStats().TallyStepsToGoal(reward > 0);
-            
+
+            ////***************************************************
+            //if (agent.getStats().stepsToGoal.Last() > 500)
+            //{
+            //    agent.getStats().TallyStepsToGoal(true);
+            //    newState = new int[2] { startState[0], startState[1] };
+            //    absorbingStateReached = true;
+            //    Console.WriteLine("trial terminated after 500 steps");
+            //}
+            ////***************************************************
+
             agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
             return agent.getStats();
         }
 
         public void ExportGradients()
         {
-            /*FilteredValue<int[], int[]>*/ ActionValue<int[],int[]> av = /*(FilteredValue<int[], int[]>)*/agent._actionValue;
-            StateManagement.intStateTree tree = new StateManagement.intStateTree();
-            
-            System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
-            for (int i = 0; i < map.GetLength(0); i++)
+            /*FilteredValue<int[], int[]>*/ ContextSwitchValue<int[],int[]> av = (ContextSwitchValue<int[], int[]>)agent._actionValue;
+
+            for (int mapNum = 0; mapNum < av.models.Count; mapNum++)
             {
-                double[] thisXLine = new double[map.GetLength(1)];
-                double[] thisYLine = new double[map.GetLength(1)];
-                double[] thisValLine = new double[map.GetLength(1)];
-                for (int j = 0; j < map.GetLength(1); j++)
+                System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Desktop\\gradientsVal" + mapNum + ".csv");
+                for (int i = 0; i < map.GetLength(0); i++)
                 {
-                    double[] actionVals = av.value(new int[2] { i, j }, availableActions);
-                    thisXLine[j] = actionVals[2] - actionVals[0];
-                    thisYLine[j] = actionVals[3] - actionVals[1];
-                    thisValLine[j] = actionVals.Max();
+                    double[] thisXLine = new double[map.GetLength(1)];
+                    double[] thisYLine = new double[map.GetLength(1)];
+                    double[] thisValLine = new double[map.GetLength(1)];
+                    for (int j = 0; j < map.GetLength(1); j++)
+                    {
+                        double[] actionVals = av.models[mapNum].models[0].value(new int[2] { i, j }, availableActions);
+                        thisXLine[j] = actionVals[2] - actionVals[0];
+                        thisYLine[j] = actionVals[3] - actionVals[1];
+                        thisValLine[j] = actionVals.Max();
+                    }
+                    valWriter.WriteLine(string.Join(",", thisValLine));
                 }
-                valWriter.WriteLine(string.Join(",", thisValLine));
+                valWriter.Flush(); valWriter.Close();
             }
-            valWriter.Flush(); valWriter.Close();
         }
     }
 

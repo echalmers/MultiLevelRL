@@ -52,6 +52,7 @@
     <Compile Include="ValueCalculation\ActionValue.cs" />
     <Compile Include="StateTransition.cs" />
     <Compile Include="ValueCalculation\ContextSwitchValue.cs" />
+    <Compile Include="ValueCalculation\EgoAllo.cs" />
     <Compile Include="ValueCalculation\FeudalValue.cs" />
     <Compile Include="ValueCalculation\LSValue.cs" />
     <Compile Include="ValueCalculation\ModelBasedAvgRwdValue.cs" />

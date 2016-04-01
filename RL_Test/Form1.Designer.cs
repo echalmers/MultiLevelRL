@@ -318,6 +318,7 @@
             this.learnerTypeComboBox.Items.AddRange(new object[] {
             "Q learning",
             "Model based",
+            "Tracking ModelBased",
             "Multi-resolution",
             "Context switcher (hierarchical)",
             "Context switcher",
