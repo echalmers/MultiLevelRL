@@ -437,5 +437,31 @@ namespace MultiResolutionRL.ValueCalculation
         }
     }
 
+    public class DoubleArrayComparer : IEqualityComparer<double[]>
+    {
+        public bool Equals(double[] x, double[] y)
+        {
+            if (x == null || y == null)
+                return false;
 
+            for (int i = 0; i < x.Length; i++)
+            {
+                if (x[i] != y[i])
+                    return false;
+            }
+            return true;
+        }
+
+        public int GetHashCode(double[] obj)
+        {
+            //return obj.Sum();
+            int hash = 0;
+            for (int i = 0; i < obj.Length; i++)
+            {
+                int shift = 5 * i;
+                hash += (int)obj[i] << shift;
+            }
+            return hash;
+        }
+    }
 }

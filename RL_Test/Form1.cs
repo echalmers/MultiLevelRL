@@ -43,7 +43,7 @@ namespace RL_Test
             {
                 stats = world.stepAgent(actionTextBox.Text);
 
-                trajWriter.WriteLine(string.Join(",", ((Agent<int[], int[]>)agent).state));
+                //trajWriter.WriteLine(string.Join(",", ((Agent<int[], int[]>)agent).state));
 
                 label1.Text = i.ToString();
                 label1.Refresh();
@@ -291,9 +291,9 @@ namespace RL_Test
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            world = new StochasticRewardGridWorld();
+            world = new EgoAlloGridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map4choice.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10a.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
@@ -334,6 +334,9 @@ namespace RL_Test
                     break;
                 case "Context switcher":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
+                    break;
+                case "EgoAllo":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(EgoAlloValue<,>));
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));

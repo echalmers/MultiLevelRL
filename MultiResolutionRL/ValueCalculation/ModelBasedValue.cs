@@ -123,7 +123,7 @@ namespace MultiResolutionRL.ValueCalculation
 
         public Histogram PredictReward(stateType state, actionType action)
         {
-            Histogram h = new Histogram(0);
+            Histogram h = new Histogram(defaultQ);
             foreach (stateType s2 in this.PredictNextStates(state, action).Keys)
             {
                 h.Add(R.Get(state, action, s2));
@@ -313,7 +313,7 @@ namespace MultiResolutionRL.ValueCalculation
     {
         Dictionary<double, double> counts = new Dictionary<double, double>();
         double defaultAverage;
-        double totalCounts = 0;
+        public double totalCounts = 0;
         double recentAverage;
 
         //public Histogram()
@@ -327,6 +327,7 @@ namespace MultiResolutionRL.ValueCalculation
         public Histogram(double DefaultAverage)
         {
             defaultAverage = DefaultAverage;
+            recentAverage = defaultAverage;
         }
 
         public void Add(double value)
@@ -339,7 +340,7 @@ namespace MultiResolutionRL.ValueCalculation
             totalCounts++;
 
             // decide whether to recalculate average
-            if (Math.Abs(value - recentAverage) > 0.01)
+            if (Math.Abs(value - recentAverage) > 0.001)
                 recentAverage = CalcAverage();
         }
 
@@ -353,7 +354,7 @@ namespace MultiResolutionRL.ValueCalculation
             totalCounts+= numberOfCounts;
 
             // decide whether to recalculate average
-            if (Math.Abs(value - recentAverage) > 0.01)
+            if (Math.Abs(value - recentAverage) > 0.001)
                 recentAverage = CalcAverage();
         }
 

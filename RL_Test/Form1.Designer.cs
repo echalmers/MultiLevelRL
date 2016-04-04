@@ -322,6 +322,7 @@
             "Multi-resolution",
             "Context switcher (hierarchical)",
             "Context switcher",
+            "EgoAllo",
             "Load"});
             this.learnerTypeComboBox.Location = new System.Drawing.Point(326, 14);
             this.learnerTypeComboBox.Name = "learnerTypeComboBox";
