@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace MultiResolutionRL
 {
+    [Serializable]
     public class StateTransition<stateType, actionType>
     {
         public stateType oldState;

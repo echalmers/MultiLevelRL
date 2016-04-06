@@ -12,12 +12,12 @@ namespace MultiResolutionRL.ValueCalculation
         public double defaultQ = 10, gamma = 0.9;
         int c = 1;
         public int maxUpdates = 120;//1000;
+        bool amnesia = false;
         public SAStable<stateType, actionType, int> T;
         public SAStable<stateType, actionType, Histogram> R;
         public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
-        public Func<stateType, IEnumerable<stateType>> stateUpdateSelector = null;
 
         Dictionary<stateType, Dictionary<stateType, HashSet<actionType>>> predecessors;
         Dictionary<stateType, double> priority;
@@ -27,6 +27,13 @@ namespace MultiResolutionRL.ValueCalculation
         Random rnd = new Random(1);
 
         List<actionType> availableActions;
+
+        //public ModelBasedValue(ModelBasedValue<stateType, actionType> toCopy)
+        //{
+        //    defaultQ = toCopy.defaultQ;
+        //    gamma = toCopy.gamma;
+
+        //}
 
         public ModelBasedValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters)
             : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
@@ -51,6 +58,8 @@ namespace MultiResolutionRL.ValueCalculation
 
             predecessors = new Dictionary<stateType, Dictionary<stateType, HashSet<actionType>>>(stateComparer);
             priority = new Dictionary<stateType, double>(stateComparer);
+
+            amnesia = parameters.Length == 1 ? (bool)parameters[0] : false;
         }
 
 
@@ -111,6 +120,16 @@ namespace MultiResolutionRL.ValueCalculation
             stats.modelAccesses++;
             return R.Get(state, action, newState).Average();
         }
+
+        public Histogram PredictReward(stateType state, actionType action)
+        {
+            Histogram h = new Histogram(defaultQ);
+            foreach (stateType s2 in this.PredictNextStates(state, action).Keys)
+            {
+                h.Add(R.Get(state, action, s2));
+            }
+            return h;
+        }
         
         public double value(stateType state, actionType action)
         {
@@ -152,11 +171,26 @@ namespace MultiResolutionRL.ValueCalculation
             int thisCount = T.Get(transition.oldState, transition.action, transition.newState);
             Histogram thisReward = R.Get(transition.oldState, transition.action, transition.newState);
 
-            // update the model values for the given transition
-            T.Set(transition.oldState, transition.action, transition.newState, thisCount + 1);
-            //R.Set(transition.oldState, transition.action, transition.newState, thisReward + (transition.reward - thisReward) / thisCount);
-            thisReward.Add(transition.reward);
-            R.Set(transition.oldState, transition.action, transition.newState, thisReward);
+            if (amnesia)
+            {
+                Dictionary<stateType, int> nextStates = T.GetStateValueTable(transition.oldState, transition.action);
+                foreach (stateType s in nextStates.Keys.ToList())
+                {
+                    T.Set(transition.oldState, transition.action, s, 0);
+                }
+                T.Set(transition.oldState, transition.action, transition.newState, 1);
+                thisReward.Clear();
+                thisReward.Add(transition.reward);
+                R.Set(transition.oldState, transition.action, transition.newState, thisReward);
+            }
+            else
+            {
+                // update the model values for the given transition
+                T.Set(transition.oldState, transition.action, transition.newState, thisCount + 1);
+                //R.Set(transition.oldState, transition.action, transition.newState, thisReward + (transition.reward - thisReward) / thisCount);
+                thisReward.Add(transition.reward);
+                R.Set(transition.oldState, transition.action, transition.newState, thisReward);
+            }
 
             // update predecessors list
             if (!predecessors.ContainsKey(transition.newState))
@@ -262,15 +296,24 @@ namespace MultiResolutionRL.ValueCalculation
             return stats;
         }
 
+        public void ResetStats()
+        {
+            stats = new PerformanceStats();
+        }
+
+        public override explorationMode getRecommendedExplorationMode()
+        {
+            return explorationMode.normal;
+        }
     }
 
     
-
+    [Serializable]
     public class Histogram
     {
         Dictionary<double, double> counts = new Dictionary<double, double>();
         double defaultAverage;
-        double totalCounts = 0;
+        public double totalCounts = 0;
         double recentAverage;
 
         //public Histogram()
@@ -284,6 +327,7 @@ namespace MultiResolutionRL.ValueCalculation
         public Histogram(double DefaultAverage)
         {
             defaultAverage = DefaultAverage;
+            recentAverage = defaultAverage;
         }
 
         public void Add(double value)
@@ -296,8 +340,30 @@ namespace MultiResolutionRL.ValueCalculation
             totalCounts++;
 
             // decide whether to recalculate average
-            if (Math.Abs(value - recentAverage) > 0.01)
+            if (Math.Abs(value - recentAverage) > 0.001)
                 recentAverage = CalcAverage();
+        }
+
+        public void Add(double value, double numberOfCounts)
+        {
+            if (!counts.ContainsKey(value))
+                counts.Add(value, numberOfCounts);
+            else
+                counts[value]+= numberOfCounts;
+
+            totalCounts+= numberOfCounts;
+
+            // decide whether to recalculate average
+            if (Math.Abs(value - recentAverage) > 0.001)
+                recentAverage = CalcAverage();
+        }
+
+        public void Add(Histogram otherHistogram)
+        {
+            foreach (double d in otherHistogram.counts.Keys)
+            {
+                this.Add(d, otherHistogram.counts[d]);
+            }
         }
                 
         public double P(double value, int priorCnt)
@@ -328,6 +394,13 @@ namespace MultiResolutionRL.ValueCalculation
             }
             avg = (double)avg / (double)sum;
             return avg;
+        }
+
+        public void Clear()
+        {
+            counts.Clear();
+            totalCounts = 0;
+            recentAverage = CalcAverage();
         }
     }
     

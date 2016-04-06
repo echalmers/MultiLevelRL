@@ -30,6 +30,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Accord.Math, Version=3.0.2.0, Culture=neutral, PublicKeyToken=fa1a88e29555ccf7, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Documents\Accord.NET-3.0.2-archive\Debug\Accord.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="Accord.Neuro">
+      <HintPath>..\..\..\..\Documents\Accord.NET-3.0.2-archive\Debug\Accord.Neuro.dll</HintPath>
+    </Reference>
+    <Reference Include="Accord.Statistics">
+      <HintPath>..\..\..\..\Documents\Accord.NET-3.0.2-archive\Debug\Accord.Statistics.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -52,7 +62,7 @@
     <Compile Include="ValueCalculation\ActionValue.cs" />
     <Compile Include="StateTransition.cs" />
     <Compile Include="ValueCalculation\ContextSwitchValue.cs" />
-    <Compile Include="ValueCalculation\FeudalValue.cs" />
+    <Compile Include="ValueCalculation\EgoAllo.cs" />
     <Compile Include="ValueCalculation\LSValue.cs" />
     <Compile Include="ValueCalculation\ModelBasedAvgRwdValue.cs" />
     <Compile Include="ValueCalculation\ModelBasedValue.cs" />

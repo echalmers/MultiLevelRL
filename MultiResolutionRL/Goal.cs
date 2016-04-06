@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace MultiResolutionRL
 {
+    [Serializable]
     public class Goal<stateType, actionType>
     {
         public int level;

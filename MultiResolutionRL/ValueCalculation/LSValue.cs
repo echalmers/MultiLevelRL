@@ -114,5 +114,10 @@ namespace MultiResolutionRL.ValueCalculation
         {
             return trueModel.value(state, action);
         }
+
+        public override explorationMode getRecommendedExplorationMode()
+        {
+            return explorationMode.normal;
+        }
     }
 }

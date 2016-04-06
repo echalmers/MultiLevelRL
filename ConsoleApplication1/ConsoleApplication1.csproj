@@ -48,6 +48,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\MultiResolutionRL\MultiResolutionRL.csproj">
       <Project>{a5c06884-6d62-4f15-8a14-7411a0569664}</Project>
       <Name>MultiResolutionRL</Name>

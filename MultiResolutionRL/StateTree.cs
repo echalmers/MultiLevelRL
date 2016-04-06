@@ -100,6 +100,7 @@ namespace MultiResolutionRL
             }
         }
 
+        [Serializable]
         public class intStateTree : StateTree<int[]>
         {        
             public void AddState(int[] state)

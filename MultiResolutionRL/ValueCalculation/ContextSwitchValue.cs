@@ -3,46 +3,83 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace MultiResolutionRL.ValueCalculation
 {
     [Serializable]
     public class ContextSwitchValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
+        Random rnd = new Random();
+
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
         List<actionType> availableActions;
         stateType startState;
         
-        List<ModelBasedValue<stateType, actionType>> models = new List<ModelBasedValue<stateType, actionType>>();
-        ModelBasedValue<stateType, actionType> currentModel;
+        public List<MultiResValue<stateType, actionType>> models = new List<MultiResValue<stateType, actionType>>();
+        public MultiResValue<stateType, actionType> currentModel;
+        MultiResValue<stateType, actionType> candidateModel;
 
         Queue<StateTransition<stateType, actionType>> transitionHistory = new Queue<StateTransition<stateType, actionType>>();
+
+        enum machineState {useCurrent, tryAdapt};
+        machineState currentMachineState;
+
+        PerformanceStats combinedStats = new PerformanceStats();
+        
+        double pThreshold = 0.05;
+        double vThreshold = 0.0001;
+
+        int layers = 8;
+        int maxUpdates = 120;
+        int priorCnts = 1;
+
+        double defaultQValue = 15;
 
         public ContextSwitchValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters)
             : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
         {
+            if (parameters.Length > 0)
+                layers = (int)parameters[0];
+            if (parameters.Length > 1)
+                maxUpdates = (int)parameters[1];
+
             stateComparer = StateComparer;
             actionComparer = ActionComparer;
             availableActions = AvailableActions;
             startState = StartState;
-            
-            models.Add(new ModelBasedValue<stateType, actionType>(StateComparer, ActionComparer, availableActions, StartState, parameters));
-            //models.Add(new ModelBasedValue<stateType, actionType>(StateComparer, ActionComparer, availableActions, StartState, parameters));
 
-            currentModel = models[0];
+            currentModel = newModel(defaultQValue);
+            models.Add(currentModel);
+
+            currentMachineState = machineState.useCurrent;
         }
 
         public override PerformanceStats getStats()
         {
-            PerformanceStats combinedStats = new PerformanceStats();
-            foreach (ModelBasedValue<stateType, actionType> m in models)
+            combinedStats.cumulativeReward = 0;
+            combinedStats.modelAccesses = 0;
+            combinedStats.modelUpdates = 0;
+
+            foreach (MultiResValue<stateType, actionType> m in models)
             {
                 PerformanceStats thisStats = m.getStats();
                 combinedStats.cumulativeReward += thisStats.cumulativeReward;
                 combinedStats.modelAccesses += thisStats.modelAccesses;
                 combinedStats.modelUpdates += thisStats.modelUpdates;
             }
+
+            if (!models.Contains(currentModel))
+            {
+                PerformanceStats thisStats = currentModel.getStats();
+                combinedStats.cumulativeReward += thisStats.cumulativeReward;
+                combinedStats.modelAccesses += thisStats.modelAccesses;
+                combinedStats.modelUpdates += thisStats.modelUpdates;
+            }
+
             return combinedStats;
         }
 
@@ -60,73 +97,371 @@ namespace MultiResolutionRL.ValueCalculation
         {
             throw new NotImplementedException();
         }
+        
+        public void resetHistory()
+        {
+            transitionHistory.Clear();
+        }
 
         public override double update(StateTransition<stateType, actionType> transition)
         {
             transitionHistory.Enqueue(transition);
-            while (transitionHistory.Count() > 5)
+            while (transitionHistory.Count() > 100)
                 transitionHistory.Dequeue();
-
-            //double[] ps = new double[models.Count];
-            //for (int i = 0; i < ps.Length; i++)
-            //{
-            //    ps[i] = Math.Round(Tprobability(transitionHistory, models[i]),2);
-            //}
-            //Console.WriteLine(string.Join(",", ps));
-
-
-            // select model
-            double bestP = EventProbability(transitionHistory, currentModel);
-            foreach (ModelBasedValue<stateType, actionType> m in models)
-            {
-                if (m == currentModel)
-                    continue;
-
-                double thisP = EventProbability(transitionHistory, m);
-
-                if (thisP > bestP)
-                {
-                    Console.WriteLine("switching to previously learned model: " + models.IndexOf(m) + " (p=" + thisP + ")");
-                    currentModel = m;
-                    bestP = thisP;
-                }
-            }
-
-            // create new model if necessary
-            if (bestP < 0.5)
-            {
-                Console.WriteLine("creating new model");
-                currentModel = new ModelBasedValue<stateType, actionType>(stateComparer, actionComparer, availableActions, startState);
-                models.Add(currentModel);
-            }
-
-            currentModel.update(transition);
             
+
+            switch (currentMachineState)
+            {
+                case machineState.useCurrent:
+
+                    //// switch to the model which best explains the recent transition history
+                    //double bestP = EventProbability(transitionHistory, currentModel, priorCnts);
+                    ////Console.WriteLine(bestP);
+                    //MultiResValue < stateType, actionType > bestModel = currentModel;
+
+                    //foreach (MultiResValue<stateType, actionType> m in models)
+                    //{
+                    //    if (m == currentModel)
+                    //        continue;
+
+                    //    double thisP = EventProbability(transitionHistory, m, priorCnts);
+
+                    //    if (thisP > (bestP + 0.05))
+                    //    {
+                    //        if (thisP >= pThreshold)
+                    //        {
+                    //            Console.WriteLine("Switching to previously learned model: " + models.IndexOf(m) + "(p = " + Math.Round(thisP, 2) + " vs " + Math.Round(bestP,2) + ")");
+                    //            currentModel = m;
+                    //        }
+                    //        bestP = thisP;
+                    //        bestModel = m;
+                    //    }
+                    //}
+                    ////Console.WriteLine(bestP);
+                    double[] pVals = new double[models.Count];
+                    double currentVal = double.NaN;
+                    for (int i=0; i<models.Count; i++)
+                    {
+                        pVals[i] = EventProbability(transitionHistory, models[i], priorCnts);
+                        if (models[i] == currentModel)
+                            currentVal = pVals[i];
+                    }
+                    int bestModelIndex = softmax(pVals);
+
+                    if (pVals[bestModelIndex] > (currentVal + 0.05))
+                    {
+                        softmax(pVals);
+                        currentModel = models[bestModelIndex];
+                        Console.WriteLine("Switching to previously learned model: " + bestModelIndex + "(p = " + Math.Round(pVals[bestModelIndex], 2) + ")");
+                    }
+                    
+
+                    if (pVals.Max() < pThreshold) // if none explain it well
+                    {
+                        //// find the model with the best value from the current state
+                        //double bestVal = currentModel.models[0].value((int[])((object)transition.newState), availableActions).Max();
+                        //bestModel = currentModel;
+
+                        //foreach (MultiResValue<stateType, actionType> m in models)
+                        //{
+                        //    double thisVal = m.models[0].value((int[])((object)transition.newState), availableActions).Max();
+                        //    if (thisVal > bestVal)
+                        //    {
+                        //        bestVal = thisVal;
+                        //        bestModel = m;
+                        //    }
+                        //}
+
+                        // does the unexpected event relate to reward?
+                        double rProb = currentModel.models[0].PredictReward((int[])(object)transition.oldState, transition.action).P(transition.reward, 1);
+                        //Console.WriteLine(rProb);
+                        bool rewardRelatedError =  rProb < pThreshold;
+
+
+                        if (layers > 1 && !rewardRelatedError)
+                        {
+                            // copy the best model for adaptation
+                            Console.WriteLine("Adapting model " + bestModelIndex + " (p = " + pVals[bestModelIndex] + ")");// + ", bestVal = " + bestVal + ")");
+                            currentModel = copyModel(models[bestModelIndex]);
+                            //models.Add(currentModel); //??????????????????? if not here then move to adaptation successful
+                            candidateModel = newModel(0.001);
+                            currentMachineState = machineState.tryAdapt;
+                        }
+                        else
+                        {
+                            currentModel = newModel(defaultQValue);
+                            resetHistory();
+                            models.Add(currentModel);
+                            Console.WriteLine("Starting new model (p = " + pVals[bestModelIndex] + ")(" + models.Count + ")");
+                        }
+                    }
+
+                    break;
+
+                case machineState.tryAdapt:
+                    
+                    // let the candidate model see the state transition
+                    candidateModel.update((StateTransition<int[], actionType>)((object)transition));
+
+                    // if goal has been found, assume model is adapted successfully
+                    
+                    if (transition.reward > 0)
+                    {
+                        currentMachineState = machineState.useCurrent;
+                        currentModel = candidateModel;
+                        models.Add(candidateModel);
+                        //models.Add(currentModel);
+                        Console.WriteLine("Adaptation successful");
+                        break;
+                    }
+
+                    //// switch to the model which best explains the recent transition history
+                    //bestP = EventProbability(transitionHistory, currentModel, 1);
+                    //bestModel = currentModel;
+                    //foreach (MultiResValue<stateType, actionType> m in models)
+                    //{
+                    //    if (m == currentModel)
+                    //        continue;
+
+                    //    double thisP = EventProbability(transitionHistory, m, 1);
+                    //    if (thisP > (bestP + 0.05))
+                    //    {
+                    //        bestP = thisP;
+                    //        bestModel = m;
+
+                    //        if (thisP >= pThreshold)
+                    //        {
+                    //            Console.WriteLine("Adaptation aborted. Switching to previously learned model: " + models.IndexOf(m) + "(p = " + Math.Round(thisP, 2) + ")");
+                    //            currentModel = m;
+                    //            candidateModel = null;
+                    //            currentMachineState = machineState.useCurrent;
+                    //        }
+                    //    }
+                    //}
+
+                    // if value gradient flattens, assume model cannot be adapted
+                    double currentValue = currentModel.models[0].value((int[])((object)transition.newState), availableActions).Max();
+                    if (currentValue < vThreshold)
+                    {
+                        //currentModel = newModel(15);
+                        //models.Add(currentModel);
+                        //candidateModel = null;
+
+                        currentModel = candidateModel;
+                        candidateModel = null;
+                        models.Add(currentModel);
+                        currentModel.models[0].defaultQ = 15;
+
+                        currentMachineState = machineState.useCurrent;
+                        Console.WriteLine("Adaptation failed. Starting new model  (" + models.Count + ")");
+
+                        //// switch to the model which best explains the recent transition history
+                        //bestP = 0;
+                        //bestModel = currentModel;
+                        //foreach (MultiResValue<stateType, actionType> m in models)
+                        //{
+                        //    if (m == currentModel)
+                        //        continue;
+
+                        //    double thisP = EventProbability(transitionHistory, m, priorCnts);
+                        //    Console.WriteLine(thisP);
+                        //    if (thisP > (bestP + 0.05))
+                        //    {
+                        //        bestP = thisP;
+                        //        bestModel = m;
+
+                        //        if (thisP >= pThreshold)
+                        //        {
+                        //            Console.WriteLine("Switching to previously learned model: " + models.IndexOf(m) + "(p = " + Math.Round(thisP, 2) + ")");
+                        //            currentModel = m;
+                        //        }
+                        //    }
+                        //}
+
+                        //if (bestP < pThreshold) // if none explain it well
+                        //{
+                        //    currentModel = newModel(15);
+                        //    models.Add(currentModel);
+                        //    Console.WriteLine("Starting new model (p = " + bestP + ")");
+                        //}
+                        //currentMachineState = machineState.useCurrent;
+                    }
+                    break;
+            }
+
+            
+            currentModel.update((StateTransition<int[], actionType>)((object)transition));
+            if (transition.absorbingStateReached)
+                resetHistory();
+
             return 0;
+        }
+        
+        private int softmax(double[] values)
+        {
+            double T = 0.1;
+
+            double[] p = new double[values.Length];
+            p[0] = Math.Exp(values[0] / T);
+            for (int i = 1; i < values.Length; i++)
+            {
+                p[i] = p[i - 1] + Math.Exp(values[i] / T);
+            }
+
+            double threshold = rnd.NextDouble() * p.Last();
+            for (int i = 0; i < p.Length; i++)
+            {
+                if (p[i] > threshold)
+                    return i;
+            }
+            return p.Length-1;
+        }
+
+        public override explorationMode getRecommendedExplorationMode()
+        {
+            if (currentMachineState == machineState.tryAdapt)
+                return explorationMode.suspendExploration;
+            else
+                return explorationMode.normal;
         }
 
         public override double[] value(stateType state, List<actionType> actions)
         {
-            return currentModel.value(state, actions);
+            if (currentModel == null)
+            {
+                double bestValue = double.NegativeInfinity;
+                foreach(MultiResValue<stateType, actionType> m in models)
+                {
+                    double thisValue = m.models[0].value((int[])(object)state, actions).Max();
+                    if (thisValue > bestValue)
+                    {
+                        bestValue = thisValue;
+                        currentModel = m;
+                    }
+                }
+                Console.WriteLine("starting with model " + models.IndexOf(currentModel));
+            }
+
+            if (currentMachineState == machineState.tryAdapt)
+            { 
+                try
+                {
+                    return currentModel.value((int[])((object)state), actions);
+                }
+                catch (ApplicationException ex)
+                {
+                    //candidateModel = null;
+                    //currentModel = newModel(15);
+                    //models.Add(currentModel);
+
+                    currentModel = candidateModel;
+                    candidateModel = null;
+                    models.Add(currentModel);
+                    currentModel.models[0].defaultQ = 15;
+
+                    currentMachineState = machineState.useCurrent;
+                    Console.WriteLine("Starting new model (" + models.Count + ")");
+                    return currentModel.value((int[])((object)state), actions);
+                }
+            }
+            else if (currentMachineState == machineState.useCurrent)
+            {
+                return currentModel.models[0].value((int[])((object)state), actions);
+            }
+
+            return null;
+
+                //    // switch to the model which best explains the recent transition history
+                //    double bestP = 0;
+                //    MultiResValue<stateType, actionType> bestModel = currentModel;
+                //    foreach (MultiResValue<stateType, actionType> m in models)
+                //    {
+                //        if (m == currentModel)
+                //            continue;
+
+                //        double thisP = EventProbability(transitionHistory, m, priorCnts);
+                //Console.WriteLine(thisP);
+                //if (thisP > (bestP + 0.05))
+                //        {
+                //            bestP = thisP;
+                //            bestModel = m;
+
+                //            if (thisP >= pThreshold)
+                //            {
+                //                Console.WriteLine("Switching to previously learned model: " + models.IndexOf(m) + "(p = " + Math.Round(thisP, 2) + ")");
+                //                currentModel = m;
+                //            }
+                //        }
+                //    }
+
+                //    if (bestP < pThreshold) // if none explain it well
+                //    {
+                //        currentModel = newModel(15);
+                //        models.Add(currentModel);
+                //        Console.WriteLine("Starting new model (p = " + bestP + ")");
+                //    }
+                //    currentMachineState = machineState.useCurrent;
+                //    return currentModel.value((int[])((object)state), actions);
+            //}
+            //        break;
+            //}
+
+            //return null;
         }
-        
-        double EventProbability(IEnumerable<StateTransition<stateType, actionType>> transitions, ModelBasedValue<stateType, actionType> model)
+
+        MultiResValue<stateType, actionType> newModel(double defaultQ)
+        {
+            MultiResValue<stateType, actionType> newmodel = new MultiResValue<stateType, actionType>((IEqualityComparer<int[]>)stateComparer, actionComparer, availableActions, (int[])((object)startState), layers);
+            foreach (ModelBasedValue<int[], actionType> m in newmodel.models)
+            {
+                m.maxUpdates = maxUpdates;
+            }
+            newmodel.models[0].defaultQ = defaultQ;
+
+            //foreach(StateTransition<stateType, actionType> t in transitionHistory)
+            //{
+            //    newmodel.update((StateTransition<int[], actionType>)(object)t);
+            //}
+
+            return newmodel;
+        }
+
+        double EventProbability(IEnumerable<StateTransition<stateType, actionType>> transitions, MultiResValue<stateType, actionType> model, int priorCnt)
         {
             double p = 1;
             foreach (StateTransition<stateType, actionType> transition in transitions)
             {
-                Dictionary<stateType, int> s2Counts = model.T.GetStateValueTable(transition.oldState, transition.action);
-                double thisS2Counts = 1;
-                if (s2Counts.ContainsKey(transition.newState))
-                    thisS2Counts = (double)s2Counts[transition.newState] + 1;
-                double total = (double)s2Counts.Values.Sum() + 1;
+                Dictionary<int[], int> s2Counts = model.models[0].T.GetStateValueTable((int[])((object)transition.oldState), transition.action);
+                double thisS2Counts = priorCnt;
+                if (s2Counts.ContainsKey((int[])((object)transition.newState)))
+                    thisS2Counts = (double)s2Counts[(int[])((object)transition.newState)] + priorCnt;
+                double total = (double)s2Counts.Values.Sum() + priorCnt;
                 
                 p *= (thisS2Counts / total);
 
-                p *= model.R.Get(transition.oldState, transition.action, transition.newState).P(transition.reward, 1);
+                double thisP_R = model.models[0].R.Get((int[])((object)transition.oldState), transition.action, (int[])((object)transition.newState)).P(transition.reward, priorCnt);
+                p *= thisP_R;
             }
             return p;
         }
-        
+
+        MultiResValue<stateType, actionType> copyModel(MultiResValue<stateType, actionType> toCopy)
+        {
+            string filename = rnd.Next().ToString() + ".bin";
+
+            IFormatter formatter = new BinaryFormatter();
+            Stream stream = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.None);
+            formatter.Serialize(stream, toCopy);
+            stream.Close();
+
+            formatter = new BinaryFormatter();
+            stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+            MultiResValue < stateType, actionType > copied = (MultiResValue<stateType, actionType>)formatter.Deserialize(stream);
+            stream.Close();
+
+            copied.ResetStats();
+
+            return copied;
+        }
     }
 }

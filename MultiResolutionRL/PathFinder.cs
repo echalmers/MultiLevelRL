@@ -7,10 +7,11 @@ using MultiResolutionRL.ValueCalculation;
 
 namespace MultiResolutionRL
 {
+    [Serializable]
     public class PathFinder<stateType, actionType>
     {
         IEqualityComparer<stateType> stateComparer;
-
+        
         public PathFinder(IEqualityComparer<stateType> StateComparer)
         {
             stateComparer = StateComparer;
@@ -204,7 +205,7 @@ namespace MultiResolutionRL
 
     }
 
-
+    [Serializable]
     class PriorityQueue<P, V>
     {
         private SortedDictionary<P, Queue<V>> list = new SortedDictionary<P, Queue<V>>();

@@ -11,7 +11,6 @@ using MultiResolutionRL;
 using MultiResolutionRL.ValueCalculation;
 using System.Threading;
 using System.Collections;
-using feudalRL_Library;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -107,6 +106,13 @@ namespace RL_Test
 
         private void loadMapButton_Click(object sender, EventArgs e)
         {
+            try
+            {
+                ((ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).resetHistory();
+                ((ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).currentModel = null;
+            }
+            catch { }
+
             OpenFileDialog of = new OpenFileDialog();
             of.Title = "Load map";
             of.ShowDialog();
@@ -120,7 +126,7 @@ namespace RL_Test
             {
                 trajWriter.Flush(); trajWriter.Close();
             }
-            trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\trajectory" + of.SafeFileName + ".csv");
+            trajWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Desktop\\trajectory" + of.SafeFileName + ".csv");
         }
 
         
@@ -160,7 +166,8 @@ namespace RL_Test
         
         private void button1_Click_1(object sender, EventArgs e)
         {
-            ((stochasticRewardGridworld)world).ExportGradients();
+            //((StochasticRewardGridWorld)world).ExportGradients();
+            ((GridWorld)world).ExportAdjacencies();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -182,7 +189,7 @@ namespace RL_Test
                     loadMapButton.PerformClick();
                     break;
                 case "Stochastic":
-                    world = new stochasticRewardGridworld();
+                    world = new StochasticRewardGridWorld();
                     loadMapButton.Enabled = true;
                     loadMapButton.PerformClick();
                     break;
@@ -257,13 +264,6 @@ namespace RL_Test
 
         private void button2_Click(object sender, EventArgs e)
         {
-            world.addAgent(typeof(OptimalPolicy<,>), typeof(FeudalValue<,>));
-            chart1.Series.Add("Feudal" + chart1.Series.Count);
-            chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart2.Series.Add("Feudal" + chart2.Series.Count);
-            chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chart3.Series.Add("Feudal" + chart3.Series.Count);
-            chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
 
             //int wS = 48;    //WorldSize p[0]
             //bool RL = true;    //RLMethod p[1];  'F' for QL, 'T' For MB
@@ -284,9 +284,9 @@ namespace RL_Test
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            world = new GridWorld();
+            world = new EgoAlloGridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10a.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
@@ -314,13 +314,22 @@ namespace RL_Test
                     world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
                     break;
                 case "Model based":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelBasedValue<,>));
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+                    break;
+                case "Tracking ModelBased":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>), true);
                     break;
                 case "Multi-resolution":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 8);
                     break;
+                case "Context switcher (hierarchical)":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
+                    break;
                 case "Context switcher":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ContextSwitchValue<,>));
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
+                    break;
+                case "EgoAllo":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(EgoAlloValue<,>));
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
