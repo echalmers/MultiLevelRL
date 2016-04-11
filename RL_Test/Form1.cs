@@ -320,7 +320,7 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>), true);
                     break;
                 case "Multi-resolution":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 8);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 10);
                     break;
                 case "Context switcher (hierarchical)":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
@@ -328,8 +328,11 @@ namespace RL_Test
                 case "Context switcher":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
                     break;
-                case "EgoAllo":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(EgoAlloValue<,>));
+                case "EgoAllo(initialValue)":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(EgoAlloValue<,>), false);
+                    break;
+                case "EgoAllo(fullPrediction)":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(EgoAlloValue<,>), true);
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));

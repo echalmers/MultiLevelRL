@@ -8,10 +8,10 @@ namespace MultiResolutionRL.ValueCalculation
 {
     public class ModelFreeValue<stateType, actionType> : ActionValue<stateType, actionType>
     {
-        double alpha = 0.2;
+        public double alpha = 0.2;
         public double gamma = 0.9;
-        double defaultQ = 10;
-        Dictionary<stateType, Dictionary<actionType, double>> table;
+        public double defaultQ = 10;
+        public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         public List<actionType> availableActions;
         PerformanceStats stats = new PerformanceStats();
@@ -19,7 +19,7 @@ namespace MultiResolutionRL.ValueCalculation
         public ModelFreeValue(IEqualityComparer<stateType> stateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters)
             : base(stateComparer, ActionComparer, AvailableActions, StartState, parameters)
         {
-            table = new Dictionary<stateType, Dictionary<actionType, double>>(stateComparer);
+            Qtable = new Dictionary<stateType, Dictionary<actionType, double>>(stateComparer);
             actionComparer = ActionComparer;
             availableActions = AvailableActions;
         }
@@ -32,8 +32,8 @@ namespace MultiResolutionRL.ValueCalculation
                 // retrieve the table of q values for this state
                 Dictionary<actionType, double> stateTable = new Dictionary<actionType, double>();
 
-                if (table.ContainsKey(state))
-                    stateTable = table[state];
+                if (Qtable.ContainsKey(state))
+                    stateTable = Qtable[state];
                 else
                 {
                     response[i] = defaultQ;
@@ -48,7 +48,7 @@ namespace MultiResolutionRL.ValueCalculation
             return response;
         }
 
-        private double value(stateType state, actionType action)
+        public double value(stateType state, actionType action)
         {
             List<actionType> dummy = new List<actionType>();
             dummy.Add(action);
@@ -61,26 +61,26 @@ namespace MultiResolutionRL.ValueCalculation
 
             double q_s_a = value(transition.oldState, transition.action);
 
-            if (!table.ContainsKey(transition.newState))
+            if (!Qtable.ContainsKey(transition.newState))
             {
-                table.Add(transition.newState, new Dictionary<actionType, double>(actionComparer));
+                Qtable.Add(transition.newState, new Dictionary<actionType, double>(actionComparer));
                 foreach (actionType act in availableActions)
                 {
-                    table[transition.newState].Add(act, defaultQ);
+                    Qtable[transition.newState].Add(act, defaultQ);
                 }
             }
-            if (!table.ContainsKey(transition.oldState))
+            if (!Qtable.ContainsKey(transition.oldState))
             {
-                table.Add(transition.oldState, new Dictionary<actionType, double>(actionComparer));
+                Qtable.Add(transition.oldState, new Dictionary<actionType, double>(actionComparer));
                 foreach (actionType act in availableActions)
                 {
-                    table[transition.oldState].Add(act, defaultQ);
+                    Qtable[transition.oldState].Add(act, defaultQ);
                 }
             }
-            double maxNewQ = table[transition.newState].Values.Max();
+            double maxNewQ = Qtable[transition.newState].Values.Max();
             
-            table[transition.oldState][transition.action] = q_s_a + alpha * (transition.reward + gamma * maxNewQ - q_s_a);
-            double newVal = table[transition.oldState][transition.action];
+            Qtable[transition.oldState][transition.action] = q_s_a + alpha * (transition.reward + gamma * maxNewQ - q_s_a);
+            double newVal = Qtable[transition.oldState][transition.action];
             return Math.Abs(newVal - q_s_a);
         }
 

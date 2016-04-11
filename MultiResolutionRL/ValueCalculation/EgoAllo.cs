@@ -18,8 +18,10 @@ namespace MultiResolutionRL.ValueCalculation
     public class EgoAlloValue<stateType, actionType> : ActionValue<int[], int[]>
     {
         int errors = 0, correct = 0;
+        bool fullPredictionMode = false;
         
         ModelBasedValue<int[], int[]> alloModel;
+        ModelFreeValue<int[], int[]> egoModel;
         IEqualityComparer<int[]> actionComparer;
         IEqualityComparer<int[]> stateComparer;
         List<int[]> availableActions;
@@ -36,6 +38,9 @@ namespace MultiResolutionRL.ValueCalculation
         public EgoAlloValue(IEqualityComparer<int[]> StateComparer, IEqualityComparer<int[]> ActionComparer, List<int[]> AvailableActions, int[] StartState, params object[] parameters)
            : base(StateComparer, ActionComparer, AvailableActions, StartState, parameters)
         {
+            if (parameters.Length > 0)
+                fullPredictionMode = (bool)parameters[0];
+
             stateComparer = StateComparer;
             actionComparer = ActionComparer;
             availableActions = AvailableActions;
@@ -43,6 +48,10 @@ namespace MultiResolutionRL.ValueCalculation
             alloModel = new ModelBasedValue<int[], int[]>(StateComparer, ActionComparer, availableActions, StartState, true)
             {
                 defaultQ = 10.3
+            };
+            egoModel = new ModelFreeValue<int[], int[]>(StateComparer, actionComparer, availableActions, StartState)
+            {
+                alpha = 0.9
             };
 
             network = new ActivationNetwork(new BipolarSigmoidFunction(2), 10, 10, 3);
@@ -127,7 +136,7 @@ namespace MultiResolutionRL.ValueCalculation
             //}
 
             // run regression
-            if (saHistory.Count > 50)
+            if (saHistory.Count > 50 && fullPredictionMode)
             {
                 double error;
                 for (int epoch = 1; epoch < 10; epoch++)
@@ -138,6 +147,7 @@ namespace MultiResolutionRL.ValueCalculation
             
             // update models with the current transition
             alloModel.update(new StateTransition<int[], int[]>(alloOldState, transition.action, transition.reward, alloNewState));
+            egoModel.update(new StateTransition<int[], int[]>(egoOldState, transition.action, transition.reward, egoNewState));
 
             // transfer info from ego to allo models
             Console.WriteLine("current state: " + alloNewState[0] + "," + alloNewState[1]);
@@ -163,8 +173,13 @@ namespace MultiResolutionRL.ValueCalculation
                     double[] matchingSample;
                     //if (inSample(sa, out matchingSample))
                     //{
-                        if (alloModel.value(alloNewState, a)==alloModel.defaultQ)
+                    if (alloModel.value(alloNewState, a) == alloModel.defaultQ)
+                    {
+                        if (fullPredictionMode)
                             alloModel.update(new StateTransition<int[], int[]>(alloNewState, a, reward, predictedAlo));
+                        else
+                            alloModel.Qtable[alloNewState][a] = egoModel.value(egoNewState, a);
+                    }
                     //}
                 }
             }

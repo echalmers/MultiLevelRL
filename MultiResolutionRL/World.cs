@@ -321,15 +321,16 @@ namespace MultiResolutionRL
             }
             
             agent.getStats().TallyStepsToGoal(reward > 0);
-            //***************************************************
-            if (agent.getStats().stepsToGoal.Last() > 5000)
-            {
-                agent.getStats().TallyStepsToGoal(true);
-                newState = new int[2] { startState[0], startState[1] };
-                absorbingStateReached = true;
-                Console.WriteLine("trial terminated after 5000 steps");
-            }
-            //***************************************************
+
+            // remove ********************************
+            //if (agent.getStats().stepsToGoal.Last() > 5000)
+            //{
+            //    agent.getStats().TallyStepsToGoal(true);
+            //    newState = new int[2] { startState[0], startState[1] };
+            //    absorbingStateReached = true;
+            //    Console.WriteLine("trial terminated after 5000 steps");
+            //}
+
             agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
             return agent.getStats();
         }
@@ -349,54 +350,54 @@ namespace MultiResolutionRL
 
         public Bitmap showState(int width, int height, bool showPath = false)
         {
-            width = 144; height = 48;
-            //Bitmap modMap = new Bitmap(mapBmp);
+            //width = 144; height = 48;
+            Bitmap modMap = new Bitmap(mapBmp);
 
-            //foreach (int[] state in visitedStates)
-            //{
-            //    modMap.SetPixel(state[0], state[1], Color.FromArgb(mapBmp.GetPixel(state[0], state[1]).R * 3 / 4, mapBmp.GetPixel(state[0], state[1]).G * 3 / 4, mapBmp.GetPixel(state[0], state[1]).B * 3 / 4));
-            //}
-
-            Bitmap modMap = new Bitmap(map.GetLength(0), map.GetLength(1));
-
-            for (int i = 1; i < map.GetLength(0) - 1; i++)
+            foreach (int[] state in visitedStates)
             {
-                for (int j = 1; j < map.GetLength(1) - 1; j++)
-                {
-                    double avg = Math.Min(255,agent._actionValue.value(new int[] { i, j }, availableActions).Max() / 12 * 255);
-                    modMap.SetPixel(i, j, Color.FromArgb((int)avg, (int)avg, (int)avg));
-                }
+                modMap.SetPixel(state[0], state[1], Color.FromArgb(mapBmp.GetPixel(state[0], state[1]).R * 3 / 4, mapBmp.GetPixel(state[0], state[1]).G * 3 / 4, mapBmp.GetPixel(state[0], state[1]).B * 3 / 4));
             }
+
+            //Bitmap modMap = new Bitmap(map.GetLength(0), map.GetLength(1));
+
+            //for (int i = 1; i < map.GetLength(0) - 1; i++)
+            //{
+            //    for (int j = 1; j < map.GetLength(1) - 1; j++)
+            //    {
+            //        double avg = Math.Max(0, Math.Min(255, agent._actionValue.value(new int[] { i, j }, availableActions).Max() / 12 * 255));
+            //        modMap.SetPixel(i, j, Color.FromArgb((int)avg, (int)avg, (int)avg));
+            //    }
+            //}
 
             //if (showPath)
             //{
-            //    System.IO.StreamReader reader = new System.IO.StreamReader("log.txt");
-            //    string text;
-            //    while ((text = reader.ReadLine()) != null)
-            //    {
-            //        string[] s = text.Split(',');
-            //        int x = Convert.ToInt32(s[0]);
-            //        int y = Convert.ToInt32(s[1]);
-            //        if (x >= mapBmp.Width || y >= mapBmp.Height)
-            //            continue;
+            System.IO.StreamReader reader = new System.IO.StreamReader("log.txt");
+            string text;
+            while ((text = reader.ReadLine()) != null)
+            {
+                string[] s = text.Split(',');
+                int x = Convert.ToInt32(s[0]);
+                int y = Convert.ToInt32(s[1]);
+                if (x >= mapBmp.Width || y >= mapBmp.Height)
+                    continue;
 
-            //        int r = mapBmp.GetPixel(x,y).R;
-            //        int b = mapBmp.GetPixel(x,y).B;
-            //        int g = mapBmp.GetPixel(x,y).G;
-            //        if (s[2] == "p")
-            //        {
-            //            b = Math.Max(0, b - 50);
-            //            g = Math.Max(0, g - 50);
-            //        }
-            //        else if (s[2] == "g")
-            //        {
-            //            b = Math.Max(0, b - 100);
-            //            g = Math.Max(0, g - 100);
-            //        }
-            //        Color c = Color.FromArgb(r, g, b);
-            //        modMap.SetPixel(x, y, c);
-            //    }
-            //    reader.Close();
+                int r = mapBmp.GetPixel(x, y).R;
+                int b = mapBmp.GetPixel(x, y).B;
+                int g = mapBmp.GetPixel(x, y).G;
+                if (s[2] == "p")
+                {
+                    b = Math.Max(0, b - 50);
+                    g = Math.Max(0, g - 50);
+                }
+                else if (s[2] == "g")
+                {
+                    b = Math.Max(0, b - 100);
+                    g = Math.Max(0, g - 100);
+                }
+                Color c = Color.FromArgb(r, g, b);
+                modMap.SetPixel(x, y, c);
+            }
+            reader.Close();
             //}
             modMap.SetPixel(agent.state[0], agent.state[1], Color.Blue);
 
@@ -656,13 +657,13 @@ namespace MultiResolutionRL
 
             agent.getStats().TallyStepsToGoal(reward > 0);
             //***************************************************
-            if (agent.getStats().stepsToGoal.Last() > 5000)
-            {
-                agent.getStats().TallyStepsToGoal(true);
-                newState = new int[2] { startState[0], startState[1] };
-                absorbingStateReached = true;
-                Console.WriteLine("trial terminated after 5000 steps");
-            }
+            //if (agent.getStats().stepsToGoal.Last() > 5000)
+            //{
+            //    agent.getStats().TallyStepsToGoal(true);
+            //    newState = new int[2] { startState[0], startState[1] };
+            //    absorbingStateReached = true;
+            //    Console.WriteLine("trial terminated after 5000 steps");
+            //}
             //***************************************************
             agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
             return agent.getStats();

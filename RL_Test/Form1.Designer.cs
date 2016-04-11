@@ -70,6 +70,8 @@
             // 
             // pictureBox1
             // 
+            this.pictureBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox1.ContextMenuStrip = this.imageContextMenu;
             this.pictureBox1.Location = new System.Drawing.Point(12, 12);
             this.pictureBox1.Name = "pictureBox1";
@@ -102,6 +104,7 @@
             // 
             // RunButton
             // 
+            this.RunButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.RunButton.Location = new System.Drawing.Point(293, 187);
             this.RunButton.Name = "RunButton";
             this.RunButton.Size = new System.Drawing.Size(75, 23);
@@ -112,6 +115,7 @@
             // 
             // label1
             // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(218, 199);
             this.label1.Name = "label1";
@@ -121,6 +125,7 @@
             // 
             // stepsUpDown
             // 
+            this.stepsUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.stepsUpDown.Increment = new decimal(new int[] {
             100,
             0,
@@ -143,6 +148,7 @@
             // 
             // label2
             // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(232, 140);
             this.label2.Name = "label2";
@@ -152,6 +158,7 @@
             // 
             // displayCheckBox
             // 
+            this.displayCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.displayCheckBox.AutoSize = true;
             this.displayCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.displayCheckBox.Location = new System.Drawing.Point(235, 164);
@@ -200,6 +207,7 @@
             // 
             // loadMapButton
             // 
+            this.loadMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.loadMapButton.Location = new System.Drawing.Point(221, 41);
             this.loadMapButton.Name = "loadMapButton";
             this.loadMapButton.Size = new System.Drawing.Size(75, 23);
@@ -210,6 +218,7 @@
             // 
             // button1
             // 
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button1.Location = new System.Drawing.Point(218, 70);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
@@ -220,6 +229,7 @@
             // 
             // actionTextBox
             // 
+            this.actionTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.actionTextBox.Location = new System.Drawing.Point(375, 187);
             this.actionTextBox.Name = "actionTextBox";
             this.actionTextBox.Size = new System.Drawing.Size(71, 20);
@@ -227,6 +237,7 @@
             // 
             // comboBox1
             // 
+            this.comboBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Items.AddRange(new object[] {
             "GridWorld",
@@ -284,6 +295,7 @@
             // 
             // button2
             // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button2.Location = new System.Drawing.Point(218, 99);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
@@ -294,6 +306,7 @@
             // 
             // exportButton
             // 
+            this.exportButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.exportButton.Location = new System.Drawing.Point(481, 70);
             this.exportButton.Name = "exportButton";
             this.exportButton.Size = new System.Drawing.Size(75, 23);
@@ -304,6 +317,7 @@
             // 
             // fromMdlButton
             // 
+            this.fromMdlButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.fromMdlButton.Location = new System.Drawing.Point(481, 99);
             this.fromMdlButton.Name = "fromMdlButton";
             this.fromMdlButton.Size = new System.Drawing.Size(75, 23);
@@ -314,6 +328,7 @@
             // 
             // learnerTypeComboBox
             // 
+            this.learnerTypeComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.learnerTypeComboBox.FormattingEnabled = true;
             this.learnerTypeComboBox.Items.AddRange(new object[] {
             "Q learning",
@@ -322,7 +337,8 @@
             "Multi-resolution",
             "Context switcher (hierarchical)",
             "Context switcher",
-            "EgoAllo",
+            "EgoAllo(initialValue)",
+            "EgoAllo(fullPrediction)",
             "Load"});
             this.learnerTypeComboBox.Location = new System.Drawing.Point(326, 14);
             this.learnerTypeComboBox.Name = "learnerTypeComboBox";
@@ -332,6 +348,7 @@
             // 
             // saveButton
             // 
+            this.saveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.saveButton.Location = new System.Drawing.Point(479, 12);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(75, 23);

@@ -81,7 +81,7 @@ namespace MultiResolutionRL.ValueCalculation
             {
                 if (values[0][i] > newGoal.value || newGoal == null)
                 {
-                    int[] goalState = models[0].PredictNextState(state, availableActions.ElementAt(i)); ///***************************** might need to find best possible next state instead
+                    int[] goalState = models[0].PredictNextState(state, availableActions.ElementAt(i)); /// might need to find best possible next state instead
                     newGoal = new Goal<int[], actionType>(0, state, availableActions.ElementAt(i), goalState, values[0][i], stateComparer, actionComparer);
 
                 }
@@ -112,7 +112,7 @@ namespace MultiResolutionRL.ValueCalculation
 
                     if (candidateGoal.value > newGoal.value)
                     {
-                        if (l > 0 && values[l][i] <= 0)//***************************
+                        if (l > 0 && values[l][i] <= 0)//
                             continue;
                         newGoal = candidateGoal;
                     }
@@ -168,28 +168,28 @@ namespace MultiResolutionRL.ValueCalculation
                         int[] thisOldState = subgoals[l+1][0].startState;
                         actionType thisAction = subgoals[l + 1][0].action; 
                         int[] thisNewState = subgoals[l + 1][0].goalState;
-                        StateTransition<int[], actionType> t = new StateTransition<int[], actionType>(thisOldState, thisAction, -10, thisNewState); //*********************** size of negative reward?
+                        StateTransition<int[], actionType> t = new StateTransition<int[], actionType>(thisOldState, thisAction, -10, thisNewState); // size of negative reward?
                         models[l + 1].update(t);
                     }
                 }
 
-                //System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
-                ////w.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState));
-                //for (int k = 0; k <= currentGoal.level; k++)
-                //{
-                //    foreach (Goal<int[], actionType> step in subgoals[k])
-                //    {
-                //        if (step.goalState != null)
-                //        {
-                //            foreach (int[] s in stateTree.GetLevel0Children(step.goalState, k))
-                //            {
-                //                w.WriteLine(string.Join(",", s) + "," + (k == currentGoal.level ? "g" : "p"));
-                //            }
-                //            //w.WriteLine("Goal: Level " + Math.Max(0, l) + ", at " + String.Join(",", step.goalState));
-                //        }
-                //    }
-                //}
-                //w.Flush(); w.Close();
+                System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
+                //w.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState));
+                for (int k = 0; k <= currentGoal.level; k++)
+                {
+                    foreach (Goal<int[], actionType> step in subgoals[k])
+                    {
+                        if (step.goalState != null)
+                        {
+                            foreach (int[] s in stateTree.GetLevel0Children(step.goalState, k))
+                            {
+                                w.WriteLine(string.Join(",", s) + "," + (k == currentGoal.level ? "g" : "p"));
+                            }
+                            //w.WriteLine("Goal: Level " + Math.Max(0, l) + ", at " + String.Join(",", step.goalState));
+                        }
+                    }
+                }
+                w.Flush(); w.Close();
             }
 
             if (minLevel > 0) // for simulating dH lesion
