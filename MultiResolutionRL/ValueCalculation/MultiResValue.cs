@@ -56,7 +56,7 @@ namespace MultiResolutionRL.ValueCalculation
                     gamma = i==0 ? 0.9 : 0.4
                 };
                 
-                transitions[i] = new StateTransition<int[], actionType>(null, default(actionType), 0, null);
+                transitions[i] = new StateTransition<int[], actionType>(null, default(actionType), double.NegativeInfinity, null);
                 subgoals[i] = new List<Goal<int[], actionType>>();
             }
 
@@ -173,23 +173,23 @@ namespace MultiResolutionRL.ValueCalculation
                     }
                 }
 
-                System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
-                //w.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState));
-                for (int k = 0; k <= currentGoal.level; k++)
-                {
-                    foreach (Goal<int[], actionType> step in subgoals[k])
-                    {
-                        if (step.goalState != null)
-                        {
-                            foreach (int[] s in stateTree.GetLevel0Children(step.goalState, k))
-                            {
-                                w.WriteLine(string.Join(",", s) + "," + (k == currentGoal.level ? "g" : "p"));
-                            }
-                            //w.WriteLine("Goal: Level " + Math.Max(0, l) + ", at " + String.Join(",", step.goalState));
-                        }
-                    }
-                }
-                w.Flush(); w.Close();
+                //System.IO.StreamWriter w = new System.IO.StreamWriter("log.txt", false);
+                ////w.WriteLine("Goal: Level " + currentGoal.level + ", at " + String.Join(",", currentGoal.goalState));
+                //for (int k = 0; k <= currentGoal.level; k++)
+                //{
+                //    foreach (Goal<int[], actionType> step in subgoals[k])
+                //    {
+                //        if (step.goalState != null)
+                //        {
+                //            foreach (int[] s in stateTree.GetLevel0Children(step.goalState, k))
+                //            {
+                //                w.WriteLine(string.Join(",", s) + "," + (k == currentGoal.level ? "g" : "p"));
+                //            }
+                //            //w.WriteLine("Goal: Level " + Math.Max(0, l) + ", at " + String.Join(",", step.goalState));
+                //        }
+                //    }
+                //}
+                //w.Flush(); w.Close();
             }
 
             if (minLevel > 0) // for simulating dH lesion
@@ -267,9 +267,10 @@ namespace MultiResolutionRL.ValueCalculation
                 {
                     if (transitions[i].oldState != null)
                     {
-                        transitions[i].reward += transition.reward;
+                        //transitions[i].reward += transition.reward;
+                        transitions[i].reward = Math.Max(transitions[i].reward, transition.reward);
                         models[i].update(transitions[i]);
-                        transitions[i] = new StateTransition<int[], actionType>(null, default(actionType), 0, null);
+                        transitions[i] = new StateTransition<int[], actionType>(null, default(actionType), double.NegativeInfinity, null);
                     }
                 }
 
@@ -302,7 +303,8 @@ namespace MultiResolutionRL.ValueCalculation
                     else
                     {
                         // accumulate the reward
-                        transitions[i].reward += transition.reward;
+                        //transitions[i].reward += transition.reward;
+                        transitions[i].reward = Math.Max(transitions[i].reward, transition.reward);
                     }
                 }
             }

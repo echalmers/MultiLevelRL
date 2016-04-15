@@ -69,6 +69,7 @@
     <Compile Include="ValueCalculation\ModelFreeValue.cs" />
     <Compile Include="ValueCalculation\MultiResValue.cs" />
     <Compile Include="ValueCalculation\SAStable.cs" />
+    <Compile Include="ValueCalculation\TileCodingTest.cs" />
     <Compile Include="World.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

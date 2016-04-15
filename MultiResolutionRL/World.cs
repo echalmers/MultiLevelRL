@@ -371,33 +371,33 @@ namespace MultiResolutionRL
 
             //if (showPath)
             //{
-            System.IO.StreamReader reader = new System.IO.StreamReader("log.txt");
-            string text;
-            while ((text = reader.ReadLine()) != null)
-            {
-                string[] s = text.Split(',');
-                int x = Convert.ToInt32(s[0]);
-                int y = Convert.ToInt32(s[1]);
-                if (x >= mapBmp.Width || y >= mapBmp.Height)
-                    continue;
+            //System.IO.StreamReader reader = new System.IO.StreamReader("log.txt");
+            //string text;
+            //while ((text = reader.ReadLine()) != null)
+            //{
+            //    string[] s = text.Split(',');
+            //    int x = Convert.ToInt32(s[0]);
+            //    int y = Convert.ToInt32(s[1]);
+            //    if (x >= mapBmp.Width || y >= mapBmp.Height)
+            //        continue;
 
-                int r = mapBmp.GetPixel(x, y).R;
-                int b = mapBmp.GetPixel(x, y).B;
-                int g = mapBmp.GetPixel(x, y).G;
-                if (s[2] == "p")
-                {
-                    b = Math.Max(0, b - 50);
-                    g = Math.Max(0, g - 50);
-                }
-                else if (s[2] == "g")
-                {
-                    b = Math.Max(0, b - 100);
-                    g = Math.Max(0, g - 100);
-                }
-                Color c = Color.FromArgb(r, g, b);
-                modMap.SetPixel(x, y, c);
-            }
-            reader.Close();
+            //    int r = mapBmp.GetPixel(x, y).R;
+            //    int b = mapBmp.GetPixel(x, y).B;
+            //    int g = mapBmp.GetPixel(x, y).G;
+            //    if (s[2] == "p")
+            //    {
+            //        b = Math.Max(0, b - 50);
+            //        g = Math.Max(0, g - 50);
+            //    }
+            //    else if (s[2] == "g")
+            //    {
+            //        b = Math.Max(0, b - 100);
+            //        g = Math.Max(0, g - 100);
+            //    }
+            //    Color c = Color.FromArgb(r, g, b);
+            //    modMap.SetPixel(x, y, c);
+            //}
+            //reader.Close();
             //}
             modMap.SetPixel(agent.state[0], agent.state[1], Color.Blue);
 
@@ -411,7 +411,7 @@ namespace MultiResolutionRL
             return resized;
         }
 
-        public void ExportGradients()
+        public void ExportGradients(int level)
         {
             MultiResValue<int[], int[]> av = (MultiResValue<int[], int[]>)agent._actionValue;
             StateManagement.intStateTree tree = new StateManagement.intStateTree();
@@ -428,7 +428,7 @@ namespace MultiResolutionRL
                 for (int j = 0; j < map.GetLength(1); j++)
                 {
                     int[] thisState = tree.GetParentState(new int[2] { i, j }, 0);
-                    double[] actionVals = av.models[0].value(thisState, availableActions);
+                    double[] actionVals = av.models[level].value(thisState, availableActions);
                     thisXLine[j] = actionVals[2] - actionVals[0];
                     thisYLine[j] = actionVals[3] - actionVals[1];
                     thisValLine[j] = actionVals.Max();

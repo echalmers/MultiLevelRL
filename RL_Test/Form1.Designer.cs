@@ -339,6 +339,7 @@
             "Context switcher",
             "EgoAllo(initialValue)",
             "EgoAllo(fullPrediction)",
+            "tileCodingTest",
             "Load"});
             this.learnerTypeComboBox.Location = new System.Drawing.Point(326, 14);
             this.learnerTypeComboBox.Name = "learnerTypeComboBox";

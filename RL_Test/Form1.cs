@@ -167,7 +167,7 @@ namespace RL_Test
         private void button1_Click_1(object sender, EventArgs e)
         {
             //((StochasticRewardGridWorld)world).ExportGradients();
-            ((GridWorld)world).ExportAdjacencies();
+            ((GridWorld)world).ExportGradients(0);
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -264,7 +264,7 @@ namespace RL_Test
 
         private void button2_Click(object sender, EventArgs e)
         {
-
+            ((GridWorld)world).ExportGradients(4);
             //int wS = 48;    //WorldSize p[0]
             //bool RL = true;    //RLMethod p[1];  'F' for QL, 'T' For MB
             //double a = 0.1; //alpha p[2];
@@ -286,7 +286,7 @@ namespace RL_Test
         {
             world = new EgoAlloGridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10a.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map3a.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
@@ -314,13 +314,13 @@ namespace RL_Test
                     world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
                     break;
                 case "Model based":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelBasedValue<,>));
                     break;
                 case "Tracking ModelBased":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>), true);
                     break;
                 case "Multi-resolution":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 10);
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 10);
                     break;
                 case "Context switcher (hierarchical)":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
@@ -333,6 +333,9 @@ namespace RL_Test
                     break;
                 case "EgoAllo(fullPrediction)":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(EgoAlloValue<,>), true);
+                    break;
+                case "tileCodingTest":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(TileCodingTest<,>));
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));

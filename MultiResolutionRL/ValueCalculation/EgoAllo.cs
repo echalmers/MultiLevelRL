@@ -20,7 +20,7 @@ namespace MultiResolutionRL.ValueCalculation
         int errors = 0, correct = 0;
         bool fullPredictionMode = false;
         
-        ModelBasedValue<int[], int[]> alloModel;
+        ModelFreeValue<int[], int[]> alloModel;
         ModelFreeValue<int[], int[]> egoModel;
         IEqualityComparer<int[]> actionComparer;
         IEqualityComparer<int[]> stateComparer;
@@ -45,7 +45,7 @@ namespace MultiResolutionRL.ValueCalculation
             actionComparer = ActionComparer;
             availableActions = AvailableActions;
             
-            alloModel = new ModelBasedValue<int[], int[]>(StateComparer, ActionComparer, availableActions, StartState, true)
+            alloModel = new ModelFreeValue<int[], int[]>(StateComparer, ActionComparer, availableActions, StartState, true)
             {
                 defaultQ = 10.3
             };
@@ -139,7 +139,7 @@ namespace MultiResolutionRL.ValueCalculation
             if (saHistory.Count > 50 && fullPredictionMode)
             {
                 double error;
-                for (int epoch = 1; epoch < 10; epoch++)
+                for (int epoch = 1; epoch < 2; epoch++)
                 {
                     error = teacher.RunEpoch(saHistory.ToArray(), sPrimeHistory.ToArray()) / saHistory.Count;
                 }
