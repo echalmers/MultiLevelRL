@@ -15,9 +15,9 @@ namespace MultiResolutionRL.ValueCalculation
         DoubleArrayComparer doubleArrayComparer = new DoubleArrayComparer();
         PerformanceStats stats = new PerformanceStats();
 
-        double[][] weights;
-        double gamma = 0.9, alpha = 0.5;
-        
+        double gamma = 0.9;
+        OnlineLinearRegression[] models;
+
         OptimalPolicy<int[], int[]> optimalPolicy = new OptimalPolicy<int[], int[]>();
 
         int[] worldSize = new int[2] { 21, 21 };
@@ -30,12 +30,12 @@ namespace MultiResolutionRL.ValueCalculation
             actionComparer = ActionComparer;
             availableActions = AvailableActions;
 
-            weights = new double[AvailableActions.Count][];
-            for (int i=0; i<weights.Length;i++)
+            models = new OnlineLinearRegression[availableActions.Count];
+            for (int i = 0; i < models.Length; i++)
             {
-                weights[i] = new double[worldSize[0] * worldSize[1] + 1];
+                models[i] = new OnlineLinearRegression(worldSize[0] * worldSize[1], false);
             }
-    
+
         }
 
         public override explorationMode getRecommendedExplorationMode()
@@ -73,16 +73,8 @@ namespace MultiResolutionRL.ValueCalculation
             tileState[transition.oldState[0] * worldSize[0] + transition.oldState[1]] = 1;
 
             double[] newVals = value(transition.newState, availableActions);
-            double delta = transition.reward + gamma*newVals.Max() - value(transition.oldState, transition.action);
-
-            // tune constant
-            weights[actionIndex][0] += alpha * delta;
-
-            // tune weights
-            for (int i = 0; i < tileState.Length; i++)
-            {
-                weights[actionIndex][i + 1] += alpha * delta * tileState[i];
-            }
+           
+            models[actionIndex].Train(tileState, transition.reward + gamma * newVals.Max());
 
             return 0;
         }
@@ -104,12 +96,49 @@ namespace MultiResolutionRL.ValueCalculation
             double[] tileState = new double[worldSize[0] * worldSize[1]];
             tileState[state[0] * worldSize[0] + state[1]] = 1;
 
-            double val = 0;
-            for (int i=0; i<weights[actionIndex].Length-1; i++)
-            {
-                val += weights[actionIndex][i+1] * tileState[i];
-            }
+            double val = models[actionIndex].Compute(tileState);
             return val;
+        }
+    }
+
+
+
+
+    class OnlineLinearRegression
+    {
+        double[] weights;
+        public double alpha = 0.5;
+        bool constantTerm = true;
+
+        public OnlineLinearRegression(int inputs, bool ConstantTerm)
+        {
+            constantTerm = ConstantTerm;
+            weights = new double[inputs + 1];
+        }
+
+        public void Train(double[] input, double output)
+        {
+            double delta = output - Compute(input);
+
+            // tune constant
+            if (constantTerm)
+                weights[0] += alpha * delta;
+
+            // tune weights
+            for (int i = 0; i < input.Length; i++)
+            {
+                weights[i + 1] += alpha * delta * input[i];
+            }
+        }
+
+        public double Compute(double[] input)
+        {
+            double result = constantTerm ? weights[0] : 0;
+            for (int i = 0; i < input.Length; i++)
+            {
+                result += weights[i + 1] * input[i];
+            }
+            return result;
         }
     }
 }
