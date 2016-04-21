@@ -80,6 +80,8 @@ namespace MultiResolutionRL.ValueCalculation
                 alloModel = new ModelBasedValue<int[], int[]>(stateComparer, actionComparer, availableActions, null, true);
             else
                 alloModel = new ModelFreeValue<int[], int[]>(stateComparer, actionComparer, availableActions, null, true);
+
+            stats.cumulativeReward = 0;
         }
 
         public override double[] value(int[] state, List<int[]> actions)
@@ -177,8 +179,8 @@ namespace MultiResolutionRL.ValueCalculation
             egoModel.update(new StateTransition<int[], int[]>(Array.ConvertAll(egoOldState, x => (int)x), transition.action, transition.reward, Array.ConvertAll(egoNewState, x => (int)x)));
 
             // transfer info from ego to allo models
-            Console.WriteLine("current state: " + alloNewState[0] + "," + alloNewState[1]);
-            Console.WriteLine("ego. state: " + string.Join(",", egoNewState));
+            //Console.WriteLine("current state: " + alloNewState[0] + "," + alloNewState[1]);
+            //Console.WriteLine("ego. state: " + string.Join(",", egoNewState));
             
 
             for (int i = 0; i < availableActions.Count; i++)
@@ -202,7 +204,7 @@ namespace MultiResolutionRL.ValueCalculation
 
                     handCodedPrediction(Array.ConvertAll(egoNewState, x => (int)x), availableActions[i], out reward, alloNewState, out predictedAlo, 0.05);
 
-                    Console.WriteLine("action " + availableActions[i][0] + "," + availableActions[i][1] + " -> " + predictedAlo[0] + "," + predictedAlo[1] + " reward: " + reward);
+                    //Console.WriteLine("action " + availableActions[i][0] + "," + availableActions[i][1] + " -> " + predictedAlo[0] + "," + predictedAlo[1] + " reward: " + reward);
 
                     //double[] matchingSample;
                     //if (inSample(sa, out matchingSample))
