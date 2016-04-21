@@ -15,7 +15,7 @@ namespace MultiResolutionRL.ValueCalculation
         bool amnesia = false;
         public SAStable<stateType, actionType, int> T;
         public SAStable<stateType, actionType, Histogram> R;
-        public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
+        //public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         IEqualityComparer<stateType> stateComparer;
 

@@ -264,29 +264,14 @@ namespace RL_Test
 
         private void button2_Click(object sender, EventArgs e)
         {
-            ((GridWorld)world).ExportGradients(4);
-            //int wS = 48;    //WorldSize p[0]
-            //bool RL = true;    //RLMethod p[1];  'F' for QL, 'T' For MB
-            //double a = 0.1; //alpha p[2];
-            //double g = 0.8; //Gamma p[3];
-            //int tO = wS;     //timeOut p[4];
-            //double mR = 10; //Manager Rewards p[5];
-            //Policy<int[], int[]> cP = new EGreedyPolicy<int[], int[]>(); //chosen Policy p[6]
-
-            //world.addAgent(typeof(EGreedyPolicy<,>), typeof(feudalRL_Library.Boss<,>), wS, RL, a, g, tO, mR, cP);
-            //chart1.Series.Add("Feudal" + chart1.Series.Count);
-            //chart1.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            //chart2.Series.Add("Feudal" + chart2.Series.Count);
-            //chart2.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            //chart3.Series.Add("Feudal" + chart3.Series.Count);
-            //chart3.Series.Last().ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            ((LinearEgoAlloValue<int[], int[]>)((Agent<int[],int[]>)agent)._actionValue).ResetAllocentric(false);
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             world = new EgoAlloGridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map3a.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10a.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
@@ -314,13 +299,13 @@ namespace RL_Test
                     world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
                     break;
                 case "Model based":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelBasedValue<,>));
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
                     break;
                 case "Tracking ModelBased":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>), true);
                     break;
                 case "Multi-resolution":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 10);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 10);
                     break;
                 case "Context switcher (hierarchical)":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
@@ -329,13 +314,13 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
                     break;
                 case "EgoAllo(initialValue)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(EgoAlloValue<,>), false);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, false);
                     break;
                 case "EgoAllo(fullPrediction)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(EgoAlloValue<,>), true);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1000, false);
                     break;
-                case "tileCodingTest":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(TileCodingTest<,>));
+                case "LinearFA":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearFAValue<,>));
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));

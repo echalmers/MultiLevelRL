@@ -20,7 +20,7 @@ namespace MultiResolutionRL.ValueCalculation
         int errors = 0, correct = 0;
         bool fullPredictionMode = false;
         
-        ModelFreeValue<int[], int[]> alloModel;
+        ModelBasedValue<int[], int[]> alloModel;
         ModelFreeValue<int[], int[]> egoModel;
         IEqualityComparer<int[]> actionComparer;
         IEqualityComparer<int[]> stateComparer;
@@ -45,7 +45,7 @@ namespace MultiResolutionRL.ValueCalculation
             actionComparer = ActionComparer;
             availableActions = AvailableActions;
             
-            alloModel = new ModelFreeValue<int[], int[]>(StateComparer, ActionComparer, availableActions, StartState, true)
+            alloModel = new ModelBasedValue<int[], int[]>(StateComparer, ActionComparer, availableActions, StartState, true)
             {
                 defaultQ = 10.3
             };

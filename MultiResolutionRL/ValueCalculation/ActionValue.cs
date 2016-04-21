@@ -12,6 +12,7 @@ namespace MultiResolutionRL
         public abstract class ActionValue<stateType, actionType>
         {
             public List<actionType> availableActions;
+            public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
 
             protected ActionValue(IEqualityComparer<stateType> StateComparer, IEqualityComparer<actionType> ActionComparer, List<actionType> AvailableActions, stateType StartState, params object[] parameters) { }
             abstract public double[] value(stateType state, List<actionType> actions);
@@ -23,6 +24,8 @@ namespace MultiResolutionRL
             //abstract public stateType PredictBestNextState(stateType state, actionType action);
             abstract public Dictionary<stateType, double> PredictNextStates(stateType state, actionType action);
             abstract public double PredictReward(stateType state, actionType action, stateType newState);
+
+            
         }
 
         public enum explorationMode { normal, suspendExploration};

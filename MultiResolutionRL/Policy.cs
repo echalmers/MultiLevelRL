@@ -13,7 +13,7 @@ namespace MultiResolutionRL
 
     public class SoftmaxPolicy<stateType, actionType> : Policy<stateType, actionType>
     {
-        public double defaultT = 0.1;
+        public double defaultT = 1;
 
         Random rnd = new Random();
 
@@ -42,7 +42,7 @@ namespace MultiResolutionRL
 
     public class EGreedyPolicy<stateType, actionType> : Policy<stateType, actionType>
     {
-        double defaultE = 0.9;// double.PositiveInfinity;
+        double defaultE = 0.95;// double.PositiveInfinity;
         Random rnd = new Random();
         
         public actionType selectAction(List<actionType> availableActions, List<double> values, params double[] parameters)

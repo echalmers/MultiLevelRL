@@ -548,7 +548,7 @@ namespace MultiResolutionRL
             //availableActions.Add(new int[2] { 1, 1 });
 
             // set the default agent
-            startState = new int[10] { 1, 1, 0,0,0,0,0,0,0,0};
+            startState = new int[14] { 1, 1, 0,0,0,0,0,0,0,0, 0,0,0,0};
 
             Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
             ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
@@ -593,22 +593,25 @@ namespace MultiResolutionRL
 
         private int[] getState(int[] allo)
         {
-            int[] state = new int[10];
+            int[] state = new int[14];
             state[0] = allo[0];
             state[1] = allo[1];
-            state[2] = map[allo[0] - 1, allo[1] - 1];
-            state[3] = map[allo[0] - 1, allo[1]];
-            state[4] = map[allo[0] - 1, allo[1] + 1];
-            state[5] = map[allo[0], allo[1] - 1];
-            state[6] = map[allo[0], allo[1] + 1];
-            state[7] = map[allo[0] + 1, allo[1] - 1];
-            state[8] = map[allo[0] + 1, allo[1]];
-            state[9] = map[allo[0] + 1, allo[1] + 1];
 
-            for(int i=2; i<10; i++)
-            {
-                state[i] = state[i] == 0 ? 0 : 1;
-            }
+            state[2] = map[allo[0] - 1, allo[1]] == 1 ? 1 : 0;
+            state[3] = map[allo[0], allo[1]-1] == 1 ? 1 : 0;
+            state[4] = map[allo[0] + 1, allo[1]] == 1 ? 1 : 0;
+            state[5] = map[allo[0], allo[1] + 1] == 1 ? 1 : 0;
+
+            state[6] = map[allo[0] - 1, allo[1]] == 3 ? 1 : 0;
+            state[7] = map[allo[0], allo[1] - 1] == 3 ? 1 : 0;
+            state[8] = map[allo[0] + 1, allo[1]] == 3 ? 1 : 0;
+            state[9] = map[allo[0], allo[1] + 1] == 3 ? 1 : 0;
+
+            state[10] = map[allo[0] - 1, allo[1]] == 2 ? 1 : 0;
+            state[11] = map[allo[0], allo[1] - 1] == 2 ? 1 : 0;
+            state[12] = map[allo[0] + 1, allo[1]] == 2 ? 1 : 0;
+            state[13] = map[allo[0], allo[1] + 1] == 2 ? 1 : 0;
+
             return state;
         }
 
@@ -646,7 +649,7 @@ namespace MultiResolutionRL
                     break;
                 case 2: // lava
                     newState = getState(new int[2] { state[0] + action[0], state[1] + action[1] });
-                    reward = -0.5;
+                    reward = -1;
                     break;
                 case 3: // goal
                     newState = startState;
@@ -692,7 +695,7 @@ namespace MultiResolutionRL
                 for (int j=1; j< map.GetLength(1) - 1; j++)
                 {
                     int[] thisState = getState(new int[] { i, j });
-                    double avg = Math.Min(255,(agent._actionValue.value(thisState, availableActions).Max()+1) / 12 * 255);
+                    double avg = Math.Max(0, Math.Min(255,(agent._actionValue.value(thisState, availableActions).Max()+1) / 12 * 255));
                     modMap.SetPixel(i,j, Color.FromArgb((int)avg, (int)avg, (int)avg));
                 }
             }

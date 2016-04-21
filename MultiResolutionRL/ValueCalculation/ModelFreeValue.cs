@@ -11,7 +11,7 @@ namespace MultiResolutionRL.ValueCalculation
         public double alpha = 0.5;
         public double gamma = 0.9;
         public double defaultQ = 10;
-        public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
+        //public Dictionary<stateType, Dictionary<actionType, double>> Qtable;
         IEqualityComparer<actionType> actionComparer;
         public List<actionType> availableActions;
         PerformanceStats stats = new PerformanceStats();
