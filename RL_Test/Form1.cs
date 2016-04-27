@@ -264,7 +264,7 @@ namespace RL_Test
 
         private void button2_Click(object sender, EventArgs e)
         {
-            ((LinearEgoAlloValue<int[], int[]>)((Agent<int[],int[]>)agent)._actionValue).ResetAllocentric(false);
+            ((LinearEgoAlloValue<int[], int[]>)((Agent<int[],int[]>)agent)._actionValue).ResetAllocentric(true);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -314,13 +314,16 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
                     break;
                 case "EgoAllo(initialValue)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, false);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, true);
                     break;
                 case "EgoAllo(fullPrediction)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1000, false);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 10, true);
                     break;
                 case "LinearFA":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearFAValue<,>));
+                    break;
+                case "LinearEgoAlloFA":
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloFAValue<,>));
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));

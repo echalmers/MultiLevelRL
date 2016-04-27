@@ -38,9 +38,9 @@ namespace MultiResolutionRL.ValueCalculation
             if (parameters.Length > 2)
             {
                 if ((bool)parameters[2])
-                    alloModel = new ModelBasedValue<int[], int[]>(StateComparer, ActionComparer, availableActions, null, true);
+                    alloModel = new ModelBasedValue<int[], int[]>(StateComparer, ActionComparer, AvailableActions, null, true);
                 else
-                    alloModel = new ModelFreeValue<int[], int[]>(StateComparer, ActionComparer, availableActions, null, true);
+                    alloModel = new ModelFreeValue<int[], int[]>(StateComparer, ActionComparer, AvailableActions, null, true);
             }
                 
 
@@ -48,7 +48,7 @@ namespace MultiResolutionRL.ValueCalculation
             actionComparer = ActionComparer;
             availableActions = AvailableActions;
 
-            alloModel = new ModelFreeValue<int[], int[]>(StateComparer, ActionComparer, availableActions, null, true);
+            //alloModel = new ModelFreeValue<int[], int[]>(StateComparer, ActionComparer, availableActions, null, true);
             //{
             //    defaultQ = 10.3
             //};
@@ -181,7 +181,7 @@ namespace MultiResolutionRL.ValueCalculation
             // transfer info from ego to allo models
             //Console.WriteLine("current state: " + alloNewState[0] + "," + alloNewState[1]);
             //Console.WriteLine("ego. state: " + string.Join(",", egoNewState));
-            
+
 
             for (int i = 0; i < availableActions.Count; i++)
             {
@@ -212,15 +212,17 @@ namespace MultiResolutionRL.ValueCalculation
                     //if (alloModel.value(alloNewState, availableActions[i]) == alloModel.defaultQ)
                     //{
                     if (fullPredictionMode)
+                    {
                         alloModel.update(new StateTransition<int[], int[]>(alloNewState, availableActions[i], reward, predictedAlo));
+                    }
                     else
                     {
                         double setQvalue = egoModel.value(Array.ConvertAll(egoNewState, x => (int)x), availableActions[i]);
                         alloModel.Qtable[alloNewState][availableActions[i]] = setQvalue;
                     }
-                        //}
-                        //}
-                    }
+                    //}
+                    //}
+                }
             }
 
 
