@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Accord.Statistics.Models.Regression.Linear;
+//using Accord.Statistics.Models.Regression.Linear;
 
 namespace MultiResolutionRL.ValueCalculation
 {

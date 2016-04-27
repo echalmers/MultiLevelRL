@@ -318,7 +318,7 @@ namespace ConsoleApplication1
             int testTypeCount = 6;
             int qStepCount = 25000;
             int mBStepCount = 5000;
-            string testmap = "HallwayTest.bmp";
+            string testmap = "mapEgoAlloTest.bmp";
             string trainmap = "mapEgoAlloTrain.bmp";
 
 
