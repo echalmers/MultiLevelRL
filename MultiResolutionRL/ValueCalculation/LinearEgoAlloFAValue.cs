@@ -34,7 +34,7 @@ namespace MultiResolutionRL.ValueCalculation
             models = new OnlineLinearRegression[availableActions.Count];
             for (int i = 0; i < models.Length; i++)
             {
-                models[i] = new OnlineLinearRegression(worldSize[0] * worldSize[1] + 8, 0.1, false, defaultQ);
+                models[i] = new OnlineLinearRegression(worldSize[0] * worldSize[1] + 12, 0.1, true, defaultQ);
             }
 
         }
