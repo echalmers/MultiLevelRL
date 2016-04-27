@@ -17,7 +17,7 @@ namespace MultiResolutionRL.ValueCalculation
 
         public double defaultQ = 10;
         double gamma = 0.9;
-        OnlineLinearRegression[] models;
+        //OnlineLinearRegression[] models;
 
         OptimalPolicy<int[], int[]> optimalPolicy = new OptimalPolicy<int[], int[]>();
 

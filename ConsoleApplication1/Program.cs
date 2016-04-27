@@ -11,6 +11,8 @@ namespace ConsoleApplication1
     
     class Program
     {
+        enum testTypes { InitQ = 0, OurQ, StandardQ, InitMB, OurMB, StandardMB };
+
         static void Main(string[] args)
         {
 

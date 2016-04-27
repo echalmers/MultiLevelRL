@@ -62,7 +62,6 @@
     <Compile Include="ValueCalculation\ActionValue.cs" />
     <Compile Include="StateTransition.cs" />
     <Compile Include="ValueCalculation\ContextSwitchValue.cs" />
-    <Compile Include="ValueCalculation\EgoAllo.cs" />
     <Compile Include="ValueCalculation\LinearEgoAlloFAValue.cs" />
     <Compile Include="ValueCalculation\LinearEgoAlloValue.cs" />
     <Compile Include="ValueCalculation\LSValue.cs" />
@@ -71,7 +70,6 @@
     <Compile Include="ValueCalculation\ModelFreeValue.cs" />
     <Compile Include="ValueCalculation\MultiResValue.cs" />
     <Compile Include="ValueCalculation\SAStable.cs" />
-    <Compile Include="ValueCalculation\LinearFAValue.cs" />
     <Compile Include="World.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
