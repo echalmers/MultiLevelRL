@@ -119,75 +119,75 @@ namespace ConsoleApplication1
 
 
 
-            // stochastic reward study
-            int runs = 48;
-            int goalCt = 100;
-            List<double>[] stepsToGoal = new List<double>[runs];
-            List<double>[] cumModelUse = new List<double>[runs];
+            //// stochastic reward study
+            //int runs = 48;
+            //int goalCt = 100;
+            //List<double>[] stepsToGoal = new List<double>[runs];
+            //List<double>[] cumModelUse = new List<double>[runs];
 
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
+            //System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
 
-            ParallelOptions op = new ParallelOptions()
-            {
-                MaxDegreeOfParallelism = 8
-            };
+            //ParallelOptions op = new ParallelOptions()
+            //{
+            //    MaxDegreeOfParallelism = 8
+            //};
 
-            Parallel.For(0, runs, op, (run) =>
-            {
-                cumModelUse[run] = new List<double>();
+            //Parallel.For(0, runs, op, (run) =>
+            //{
+            //    cumModelUse[run] = new List<double>();
 
-                // instantiate world
-                World thisWorld = new StochasticRewardGridWorld();
+            //    // instantiate world
+            //    World thisWorld = new StochasticRewardGridWorld();
 
-                // load map
-                thisWorld.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map4choiceB.bmp");
+            //    // load map
+            //    thisWorld.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map4choiceB.bmp");
 
-                // add agent
-                System.Threading.Thread.Sleep(run * 100); // staggered instantiation to avoid identical random number generators
+            //    // add agent
+            //    System.Threading.Thread.Sleep(run * 100); // staggered instantiation to avoid identical random number generators
 
-                thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
-                //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
+            //    thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+            //    //thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
 
-                // run
-                PerformanceStats stats = new PerformanceStats();
-                while (stats.stepsToGoal.Count <= goalCt)
-                {
-                    stats = thisWorld.stepAgent("");
-                    if (stats.stepsToGoal.Last() == 0)
-                    {
-                        cumModelUse[run].Add(stats.modelAccesses + stats.modelUpdates);
-                        Console.WriteLine("run " + run.ToString() + " goal count: " + stats.stepsToGoal.Count);
-                    }
-                }
+            //    // run
+            //    PerformanceStats stats = new PerformanceStats();
+            //    while (stats.stepsToGoal.Count <= goalCt)
+            //    {
+            //        stats = thisWorld.stepAgent("");
+            //        if (stats.stepsToGoal.Last() == 0)
+            //        {
+            //            cumModelUse[run].Add(stats.modelAccesses + stats.modelUpdates);
+            //            Console.WriteLine("run " + run.ToString() + " goal count: " + stats.stepsToGoal.Count);
+            //        }
+            //    }
                 
-                stepsToGoal[run] = stats.stepsToGoal;
-            });
+            //    stepsToGoal[run] = stats.stepsToGoal;
+            //});
 
-            System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\stepsToGoalStochasticMBRL.csv");
-            for (int i = 0; i < stepsToGoal[0].Count; i++)
-            {
-                List<string> line = new List<string>();
-                foreach (List<double> series in stepsToGoal)
-                {
-                    line.Add(series[i].ToString());
-                }
-                writer.WriteLine(string.Join(",", line));
-            }
-            writer.Flush();
-            writer.Close();
-            writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\modelUseStochasticMBRL.csv");
-            for (int i = 0; i < cumModelUse[0].Count; i++)
-            {
-                List<string> line = new List<string>();
-                foreach (List<double> series in cumModelUse)
-                {
-                    line.Add(series[i].ToString());
-                }
-                writer.WriteLine(string.Join(",", line));
-            }
-            writer.Flush();
-            writer.Close();
+            //System.IO.StreamWriter writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\stepsToGoalStochasticMBRL.csv");
+            //for (int i = 0; i < stepsToGoal[0].Count; i++)
+            //{
+            //    List<string> line = new List<string>();
+            //    foreach (List<double> series in stepsToGoal)
+            //    {
+            //        line.Add(series[i].ToString());
+            //    }
+            //    writer.WriteLine(string.Join(",", line));
+            //}
+            //writer.Flush();
+            //writer.Close();
+            //writer = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\modelUseStochasticMBRL.csv");
+            //for (int i = 0; i < cumModelUse[0].Count; i++)
+            //{
+            //    List<string> line = new List<string>();
+            //    foreach (List<double> series in cumModelUse)
+            //    {
+            //        line.Add(series[i].ToString());
+            //    }
+            //    writer.WriteLine(string.Join(",", line));
+            //}
+            //writer.Flush();
+            //writer.Close();
 
 
 
@@ -308,6 +308,9 @@ namespace ConsoleApplication1
             ///********TESTING FOR EGOALO***********///
             /// 
             //Set up the world.
+
+            string testResultsLocation = "C:/Users/User/Desktop/MultiLevelRL/TestData/";
+            string mapLocation = "C:/Users/User/Desktop/MultiLevelRL/TestMaps/EgoAloTest/";
 
             int runs = 10;
             int testTypeCount = 6;
