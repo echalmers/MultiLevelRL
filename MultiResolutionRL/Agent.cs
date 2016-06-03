@@ -42,6 +42,10 @@ namespace MultiResolutionRL
             state = transition.newState;
             _actionValue.update(transition);
         }
+        public void logAltEvent(StateTransition<stateType, actionType> transition)
+        {
+            _actionValue.update(transition);
+        }
 
         public PerformanceStats getStats()
         {

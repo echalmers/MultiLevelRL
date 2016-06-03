@@ -76,32 +76,7 @@ namespace RL_Test
             label1.Text = Math.Round(sw.Elapsed.TotalSeconds,1) + "s";
 
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height, true);
-            //System.IO.StreamReader r = new System.IO.StreamReader("log.txt");
-            //string text = r.ReadLine();
-            //if (text==null || (text.IndexOf("null")!=-1))
-            //    pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
-            //else
-            //{
-            //    int start = text.IndexOf("Level ") + 6;
-            //    string goalLevelString = text.Substring(start, 1);
-            //    int goalLevel = Convert.ToInt32(goalLevelString);
-            //    start = text.IndexOf("at ") + 3;
-            //    string[] goalString = text.Substring(start).Split(',');
-            //    int[] goal = new int[2];
-            //    goal[0] = Convert.ToInt32(goalString[0]);
-            //    goal[1] = Convert.ToInt32(goalString[1]);
-            //    pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height, true);
-            //}
-            //r.Close();
-
-            // chart cumulative reward
-            //chart1.Series.Last().Points.Clear();
-            //for (int i = 0; i < world.agent.cumulativeReward.Count; i++)
-            //{
-            //    chart1.Series.Last().Points.AddXY(i, world.agent.cumulativeReward[i]);
-            //}
-            //writer.Flush();
-            //writer.Close();
+           
         }
 
         private void loadMapButton_Click(object sender, EventArgs e)
@@ -174,6 +149,13 @@ namespace RL_Test
         {
             switch(comboBox1.Text)
             {
+
+                case "EgoAlloGridWorldMulti":
+                    world = new EgoAlloGridWorldMulti();
+                    loadMapButton.Enabled = true;
+                    loadMapButton.PerformClick();
+                    break;
+
                 case "GridWorld":
                     world = new GridWorld();
                     loadMapButton.Enabled = true;
@@ -269,7 +251,7 @@ namespace RL_Test
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            world = new EgoAlloGridWorld();
+            //world = new EgoAlloGridWorld();
             loadMapButton.Enabled = true;
             world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10a.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
@@ -314,17 +296,17 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
                     break;
                 case "EgoAllo(initialValue)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, true);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1000, false);
                     break;
                 case "EgoAllo(fullPrediction)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 10, true);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 10, false);//True = MB , false = MF
                     break;
                 case "LinearFA":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearFAValue<,>));
                     break;
-                case "LinearEgoAlloFA":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloFAValue<,>));
-                    break;
+                //case "LinearEgoAlloFA":
+                  //  agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloFAValue<,>));
+                   // break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
                     learnerTypeComboBox.Text = "Context switcher";

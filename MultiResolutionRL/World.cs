@@ -532,7 +532,8 @@ namespace MultiResolutionRL
         public Agent<int[], int[]> agent;
         List<int[]> availableActions;
 
-        List<int[]> visitedStates = new List<int[]>();
+        Dictionary<int[], int> visitedStates = new Dictionary<int[], int>();
+
         int[] goalState;
 
         public EgoAlloGridWorld()
@@ -552,7 +553,8 @@ namespace MultiResolutionRL
 
             Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
             ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
-            agent = new Agent<int[], int[]>(startState, policy, value, availableActions);
+            
+            //agent = new Agent<int[], int[]>(startState, policy, value, availableActions);
         }
 
         public void Load(string bmpFilename)
@@ -618,8 +620,15 @@ namespace MultiResolutionRL
         public PerformanceStats stepAgent(string userAction = "")
         {
             int[] state = agent.state;
-            if (!visitedStates.Contains(agent.state, new IntArrayComparer()))
-                visitedStates.Add(agent.state);
+            if (visitedStates.ContainsKey(state))
+                visitedStates[state]++;
+            else
+                visitedStates.Add(state, 1);
+
+                //if (!visitedStates.Contains(agent.state, new IntArrayComparer()))
+                //(
+                //    visitedStates.Add(agent.state);
+                //)
             int[] action;
             if (userAction == "")
                 action = agent.selectAction();
@@ -690,16 +699,29 @@ namespace MultiResolutionRL
             width = 144; height = 48;
             Bitmap modMap = new Bitmap(map.GetLength(0), map.GetLength(1));
 
-            for (int i=1;i< map.GetLength(0) - 1; i++)
-            {
-                for (int j=1; j< map.GetLength(1) - 1; j++)
-                {
-                    int[] thisState = getState(new int[] { i, j });
-                    double avg = Math.Max(0, Math.Min(255,(agent._actionValue.value(thisState, availableActions).Max()+1) / 12 * 255));
-                    modMap.SetPixel(i,j, Color.FromArgb((int)avg, (int)avg, (int)avg));
-                }
-            }
+           // for (int i=1;i< map.GetLength(0) - 1; i++)
+           // {
+              //  for (int j=1; j< map.GetLength(1) - 1; j++)
+             //   {
+                   // int[] thisState = getState(new int[] { i, j });
+                    //Runs system based on visits to a position?
+                    foreach (KeyValuePair<int[],int> state in visitedStates)
+                    {
+                int sx = state.Key[0];
+                int sy = state.Key[1];
+                int c = state.Value;
+
+                int r = mapBmp.GetPixel(sx, sy).R * 3/ (4 + c);
+                int g = mapBmp.GetPixel(sx, sy).G * 3 / (4 + c);
+                int b = mapBmp.GetPixel(sx, sy).B * 3 / (4 + c);
+                modMap.SetPixel(sx, sy, Color.FromArgb(r, g, b));
+                    }
+                   // double avg = Math.Max(0, Math.Min(255,(agent._actionValue.value(thisState, availableActions).Max()+1) / 12 * 255));
+                   // modMap.SetPixel(i,j, Color.FromArgb((int)avg, (int)avg, (int)avg));
+              //  }
+            //}
             
+           
             modMap.SetPixel(agent.state[0], agent.state[1], Color.Red);
             modMap.SetPixel(goalState[0], goalState[1], Color.Green);
 
@@ -1108,6 +1130,267 @@ namespace MultiResolutionRL
         }
     }
 
+    public class EgoAlloGridWorldMulti : World
+    {
+        int numAgents = 40;
+        public Bitmap mapBmp;
+        private int[,] map;
+        private int[] startState;
+        List<Agent<int[], int[]>> Agents = new List<Agent<int[], int[]>>();
+        List<int[]> availableActions;
 
-    
+        Dictionary<int[], int> visitedStates = new Dictionary<int[], int>();
+
+        int[] goalState;
+
+        public EgoAlloGridWorldMulti()
+        {
+            availableActions = new List<int[]>();
+            availableActions.Add(new int[2] { -1, 0 });
+            availableActions.Add(new int[2] { 0, -1 });
+            availableActions.Add(new int[2] { 1, 0 });
+            availableActions.Add(new int[2] { 0, 1 });
+            //availableActions.Add(new int[2] { -1, -1 });
+            //availableActions.Add(new int[2] { 1, -1 });
+            //availableActions.Add(new int[2] { -1, 1 });
+            //availableActions.Add(new int[2] { 1, 1 });
+
+            // set the default agent
+            for (int i = 0; i < numAgents; i++)
+
+            {
+                startState = new int[14] { i, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+            Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
+            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
+
+            
+            Agents.Add(new Agent<int[], int[]>(startState, policy, value, availableActions)); }
+        }
+
+        public void Load(string bmpFilename)
+        {
+            mapBmp = new Bitmap(bmpFilename);
+            map = new int[mapBmp.Width, mapBmp.Height];
+            int[] startCoords = new int[2];
+
+            for (int i = 0; i < mapBmp.Width; i++)
+            {
+                for (int j = 0; j < mapBmp.Height; j++)
+                {
+                    Color thisPixel = mapBmp.GetPixel(i, j);
+                    if (thisPixel == Color.FromArgb(0, 0, 0))
+                    {
+                        startCoords = new int[2] { i, j };
+                        mapBmp.SetPixel(i, j, Color.White);
+                    }
+
+                    if (thisPixel == Color.FromArgb(0, 0, 255))
+                        map[i, j] = 1;
+                    else if (thisPixel == Color.FromArgb(255, 0, 0))
+                        map[i, j] = 2;
+                    else if (thisPixel == Color.FromArgb(0, 255, 0))
+                    {
+                        map[i, j] = 3;
+                        goalState = new int[2] { i, j };
+                    }
+                    else
+                        map[i, j] = 0;
+                }
+            }
+
+            visitedStates.Clear();
+            startState = getState(startCoords);
+
+            foreach(Agent<int[],int[]> a in Agents)
+                a.state = startState;
+        }
+
+        private int[] getState(int[] allo)
+        {
+            int[] state = new int[14];
+            state[0] = allo[0];
+            state[1] = allo[1];
+
+            state[2] = map[allo[0] - 1, allo[1]] == 1 ? 1 : 0;
+            state[3] = map[allo[0], allo[1] - 1] == 1 ? 1 : 0;
+            state[4] = map[allo[0] + 1, allo[1]] == 1 ? 1 : 0;
+            state[5] = map[allo[0], allo[1] + 1] == 1 ? 1 : 0;
+
+            state[6] = map[allo[0] - 1, allo[1]] == 3 ? 1 : 0;
+            state[7] = map[allo[0], allo[1] - 1] == 3 ? 1 : 0;
+            state[8] = map[allo[0] + 1, allo[1]] == 3 ? 1 : 0;
+            state[9] = map[allo[0], allo[1] + 1] == 3 ? 1 : 0;
+
+            state[10] = map[allo[0] - 1, allo[1]] == 2 ? 1 : 0;
+            state[11] = map[allo[0], allo[1] - 1] == 2 ? 1 : 0;
+            state[12] = map[allo[0] + 1, allo[1]] == 2 ? 1 : 0;
+            state[13] = map[allo[0], allo[1] + 1] == 2 ? 1 : 0;
+
+            return state;
+        }
+
+        public PerformanceStats stepAgent(string userAction = "")
+        {
+            List<StateTransition<int[], int[]>> transs = new List<StateTransition<int[], int[]>>();
+            foreach(Agent<int[],int[]> agent in Agents)
+             {
+                 int[] state = agent.state;
+                 if (visitedStates.ContainsKey(state))
+                     visitedStates[state]++;
+                 else
+                     visitedStates.Add(state, 1);
+
+                 int[] action;
+                 if (userAction == "")
+                     action = agent.selectAction();
+                 else
+                 {
+                     string[] act = userAction.Split(',');
+                     action = new int[2];
+                     action[0] = Convert.ToInt32(act[0]);
+                     action[1] = Convert.ToInt32(act[1]);
+                 }
+
+                 int[] newState = new int[10];
+                 double reward = 0;
+                 bool absorbingStateReached = false;
+
+                // get the type of the new location
+                int newStateType = map[state[0] + action[0], state[1] + action[1]];
+                 switch (newStateType)
+                 {
+                     case 0: // open space
+                        newState = getState(new int[2] { state[0] + action[0], state[1] + action[1] });
+                         reward = -0.01;
+                         break;
+                     case 1: // wall
+                        newState = getState(new int[2] { state[0], state[1] });
+                         reward = -0.1;
+                         break;
+                     case 2: // lava
+                        newState = getState(new int[2] { state[0] + action[0], state[1] + action[1] });
+                         reward = -1;
+                         break;
+                     case 3: // goal
+                        newState = startState;
+                         reward = 10;
+                         absorbingStateReached = true;
+                         break;
+                 }
+
+                 agent.getStats().TallyStepsToGoal(reward > 0);
+               
+                agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
+                 transs.Add(new StateTransition<int[], int[]>(state, action, reward / numAgents, newState, absorbingStateReached));
+             }
+
+            Parallel.ForEach(Agents, a =>
+            {
+                foreach (StateTransition<int[], int[]> s in transs)
+                    a.logAltEvent(s);
+            });
+                return Agents.First().getStats();
+        }
+
+        public object addAgent(Type policyType, Type actionValueType, params object[] actionValueParameters)
+        {
+            Agents = new List<Agent<int[], int[]>>();
+            actionValueType = actionValueType.MakeGenericType(typeof(int[]), typeof(int[]));
+            policyType = policyType.MakeGenericType(typeof(int[]), typeof(int[]));
+               
+
+                Policy<int[], int[]> newPolicy = (Policy<int[], int[]>)Activator.CreateInstance(policyType);
+               
+            for (int i = 0; i < numAgents; i++)
+            {
+               // startState[0] = startState[0] + 1;
+                ActionValue<int[], int[]> newActionValue = (ActionValue<int[], int[]>)Activator.CreateInstance(actionValueType, new IntArrayComparer(), new IntArrayComparer(), availableActions, startState, actionValueParameters);
+
+                Agents.Add(new Agent<int[], int[]>(startState, newPolicy, newActionValue, availableActions));
+            }
+
+            return Agents;
+        }
+
+
+        public Bitmap showState(int width, int height, bool showPath = false)
+        {
+            width = 144; height = 48;
+            Bitmap modMap = new Bitmap(map.GetLength(0), map.GetLength(1));
+
+            // for (int i=1;i< map.GetLength(0) - 1; i++)
+            // {
+            //  for (int j=1; j< map.GetLength(1) - 1; j++)
+            //   {
+            // int[] thisState = getState(new int[] { i, j });
+            //Runs system based on visits to a position?
+            foreach (KeyValuePair<int[], int> state in visitedStates)
+            {
+                int sx = state.Key[0];
+                int sy = state.Key[1];
+                int c = state.Value;
+
+                int r = mapBmp.GetPixel(sx, sy).R * 3 / (4 + c);
+                int g = mapBmp.GetPixel(sx, sy).G * 3 / (4 + c);
+                int b = mapBmp.GetPixel(sx, sy).B * 3 / (4 + c);
+                modMap.SetPixel(sx, sy, Color.FromArgb(r, g, b));
+            }
+            // double avg = Math.Max(0, Math.Min(255,(agent._actionValue.value(thisState, availableActions).Max()+1) / 12 * 255));
+            // modMap.SetPixel(i,j, Color.FromArgb((int)avg, (int)avg, (int)avg));
+            //  }
+            //}
+
+            foreach(Agent<int[],int[]> agent in Agents)
+            modMap.SetPixel(agent.state[0], agent.state[1], Color.Red);
+
+            modMap.SetPixel(goalState[0], goalState[1], Color.Green);
+
+
+            Bitmap resized = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(resized))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                g.DrawImage(modMap, 0, 0, width, height);
+            }
+            return resized;
+        }
+
+        public void ExportGradients()
+        {
+            foreach (Agent<int[], int[]> agent in Agents)
+            {
+                MultiResValue<int[], int[]> av = (MultiResValue<int[], int[]>)agent._actionValue;
+                StateManagement.intStateTree tree = new StateManagement.intStateTree();
+
+
+                System.IO.StreamWriter xWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsX.csv");
+                System.IO.StreamWriter yWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsY.csv");
+                System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
+                for (int i = 0; i < map.GetLength(0); i++)
+                {
+                    double[] thisXLine = new double[map.GetLength(1)];
+                    double[] thisYLine = new double[map.GetLength(1)];
+                    double[] thisValLine = new double[map.GetLength(1)];
+                    for (int j = 0; j < map.GetLength(1); j++)
+                    {
+                        int[] thisState = tree.GetParentState(new int[2] { i, j }, 0);
+                        double[] actionVals = av.models[0].value(thisState, availableActions);
+                        thisXLine[j] = actionVals[2] - actionVals[0];
+                        thisYLine[j] = actionVals[3] - actionVals[1];
+                        thisValLine[j] = actionVals.Max();
+                    }
+                    xWriter.WriteLine(string.Join(",", thisXLine));
+                    yWriter.WriteLine(string.Join(",", thisYLine));
+                    valWriter.WriteLine(string.Join(",", thisValLine));
+                }
+                xWriter.Flush(); xWriter.Close();
+                yWriter.Flush(); yWriter.Close();
+                valWriter.Flush(); valWriter.Close();
+            }
+        }
+
+    }
+
 }

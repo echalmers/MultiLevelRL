@@ -243,7 +243,8 @@
             "GridWorld",
             "Mountain Car",
             "Taxi",
-            "Stochastic"});
+            "Stochastic",
+            "EgoAlloGridWorldMulti"});
             this.comboBox1.Location = new System.Drawing.Point(221, 14);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(75, 21);

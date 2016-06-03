@@ -314,252 +314,254 @@ namespace ConsoleApplication1
             string testResultsLocation = "C:/Users/User/Desktop/MultiLevelRL/TestData/";
             string mapLocation = "C:/Users/User/Desktop/MultiLevelRL/TestMaps/EgoAloTest/";
 
-            int runs = 10;
+            int runs = 5;
             int testTypeCount = 6;
-            int qStepCount = 25000;
-            int mBStepCount = 5000;
-            string testmap = "mapEgoAlloTest.bmp";
-            string trainmap = "mapEgoAlloTrain.bmp";
+            int qStepCount = 400;
+            int mBStepCount = 1;
+            //string[] testmaps = { "HallwayTest.bmp", "HallwayLavaDotTest.bmp", "LavaCrossTest.bmp", "LavaHallwayTest.bmp", "mapEgoAlloTest.bmp", "mapEgoAlloTest2.bmp", "OpenTest.bmp" };
+            string[] testmaps = { "HallwayLavaDotTest.bmp", "LavaCrossTest.bmp", "mapEgoAlloTest.bmp" };
+          string trainmap = "mapEgoAlloTrain.bmp";
+            string noise = "990";
 
-
-            List<double>[] cumRwrd = new List<double>[testTypeCount];
-            for (int i = 0; i < testTypeCount; i++)
+            foreach (string testmap in testmaps)
             {
-                if (i > 2)
+                List<double>[] cumRwrd = new List<double>[testTypeCount];
+                for (int i = 0; i < testTypeCount; i++)
                 {
-                    cumRwrd[i] = new List<double>(mBStepCount * runs + 1);
-                    for (int j = 0; j <= mBStepCount * runs; j++)
-                        cumRwrd[i].Add(0);
+                    if (i > 2)
+                    {
+                        cumRwrd[i] = new List<double>(mBStepCount * runs + 1);
+                        for (int j = 0; j <= mBStepCount * runs; j++)
+                            cumRwrd[i].Add(0);
+                    }
+                    else
+                    {
+                        cumRwrd[i] = new List<double>(qStepCount * runs + 1);
+                        for (int j = 0; j <= qStepCount * runs; j++)
+                            cumRwrd[i].Add(0);
+                    }
+
                 }
-                else
+
+
+                ParallelOptions op = new ParallelOptions();
                 {
-                    cumRwrd[i] = new List<double>(qStepCount * runs + 1);
-                    for (int j = 0; j <= qStepCount * runs; j++)
-                        cumRwrd[i].Add(0);
-                }
+                    op.MaxDegreeOfParallelism = testTypeCount;
+                };
 
-            }
-
-
-            ParallelOptions op = new ParallelOptions();
-            {
-                op.MaxDegreeOfParallelism = testTypeCount;
-            };
-
-            ParallelOptions op2 = new ParallelOptions();
-            {
-                op2.MaxDegreeOfParallelism = 8;
-            };
+                ParallelOptions op2 = new ParallelOptions();
+                {
+                    op2.MaxDegreeOfParallelism = 8;
+                };
 
 
-            //Testing the in parallel each test type
-            Parallel.For(0, testTypeCount, op, (testtype) =>
-            {
-                System.Threading.Thread.Sleep(testtype * 100); // staggered instantiation to avoid identical random number generators
+                //Testing the in parallel each test type
+                Parallel.For(0, testTypeCount, op, (testtype) =>
+                {
+                    System.Threading.Thread.Sleep(testtype * 100); // staggered instantiation to avoid identical random number generators
                 switch ((testTypes)testtype)
-                {
-                    case testTypes.InitQ://Use Q-learning that is initilized with ego information
+                    {
+                        case testTypes.InitQ://Use Q-learning that is initilized with ego information
                         {
-                            Parallel.For(0, runs, op2, (run) =>
-                            {
-                                World thisWorld = new EgoAlloGridWorld();
-                                Agent<int[], int[]> agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, false);
-                                System.Threading.Thread.Sleep(run * 100);
+                                Parallel.For(0, runs, op2, (run) =>
+                                {
+                                    World thisWorld = new EgoAlloGridWorld();
+                                    Agent<int[], int[]> agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, false);
+                                    System.Threading.Thread.Sleep(run * 100);
                                 //run the training map
                                 PerformanceStats stats = new PerformanceStats();
-                                thisWorld.Load(mapLocation + trainmap);
-                                int iterator = 0;
-                                while (iterator++ <= qStepCount)
-                                    thisWorld.stepAgent("");
+                                    thisWorld.Load(mapLocation + trainmap);
+                                    int iterator = 0;
+                                    while (iterator++ <= qStepCount)
+                                        thisWorld.stepAgent("");
 
-                                LinearEgoAlloValue<int[], int[]> temp = (LinearEgoAlloValue<int[], int[]>)(agent._actionValue);
-                                temp.ResetAllocentric(false);
+                                    LinearEgoAlloValue<int[], int[]> temp = (LinearEgoAlloValue<int[], int[]>)(agent._actionValue);
+                                    temp.ResetAllocentric(false);
 
                                 //run the Testing Map
                                 iterator = 0;
-                                thisWorld.Load(mapLocation + testmap);
-                                while (iterator < qStepCount)
-                                {
-                                    cumRwrd[testtype][run * qStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
-                                    iterator++;
-                                }
+                                    thisWorld.Load(mapLocation + testmap);
+                                    while (iterator < qStepCount)
+                                    {
+                                        cumRwrd[testtype][run * qStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
+                                        iterator++;
+                                    }
 
-                                Console.Write((testTypes)testtype);
-                                Console.Write(" runs " + run + " ");
-                                Console.WriteLine(stats.cumulativeReward);
 
-                            });//end inner loop
+                                });//end inner loop
                             break;
-                        } //q-table initilization method case
+                            } //q-table initilization method case
 
                     case testTypes.OurQ:
-                        {
-                            Parallel.For(0, runs, op2, (run) =>
                             {
-                                World thisWorld = new EgoAlloGridWorld();
-                                Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1000, false);
-                                System.Threading.Thread.Sleep(run * 100);
+                                Parallel.For(0, runs, op2, (run) =>
+                                {
+                                    World thisWorld = new EgoAlloGridWorld();
+                                    Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1000, false);
+                                    System.Threading.Thread.Sleep(run * 100);
                                 //run the training map
 
                                 PerformanceStats stats = new PerformanceStats();
-                                thisWorld.Load(mapLocation + trainmap);
-                                int iterator = 0;
-                                while (iterator++ <= qStepCount)
-                                    thisWorld.stepAgent("");
+                                    thisWorld.Load(mapLocation + trainmap);
+                                    int iterator = 0;
+                                    while (iterator++ <= qStepCount)
+                                        thisWorld.stepAgent("");
 
-                                LinearEgoAlloValue<int[], int[]> temp = (LinearEgoAlloValue<int[], int[]>)(agent._actionValue);
-                                temp.ResetAllocentric(false);
+                                    LinearEgoAlloValue<int[], int[]> temp = (LinearEgoAlloValue<int[], int[]>)(agent._actionValue);
+                                    temp.ResetAllocentric(false);
 
                                 //run the Testing Map
                                 thisWorld.Load(mapLocation + testmap);
-                                iterator = 0;
-                                while (iterator < qStepCount)
-                                {
-                                    cumRwrd[testtype][run * qStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
-                                    iterator++;
-                                }
+                                    iterator = 0;
+                                    while (iterator < qStepCount)
+                                    {
+                                        cumRwrd[testtype][run * qStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
+                                        iterator++;
+                                    }
 
-                            });//end inner loop
+                                });//end inner loop
                             Console.WriteLine((testTypes)testtype + " is Complete");
-                            break;
+                                break;
 
-                        } //q-table our prediction method
+                            } //q-table our prediction method
                     case
-                        testTypes.StandardQ:
-                        {
-                            Parallel.For(0, runs, op2, (run) =>
+                            testTypes.StandardQ:
                             {
-                                World thisWorld = new EgoAlloGridWorld();
-                                Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
-                                System.Threading.Thread.Sleep(run * 100);
+                                Parallel.For(0, runs, op2, (run) =>
+                                {
+                                    World thisWorld = new EgoAlloGridWorld();
+                                    Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
+                                    System.Threading.Thread.Sleep(run * 100);
 
-                                PerformanceStats stats = new PerformanceStats();
+                                    PerformanceStats stats = new PerformanceStats();
                                 //run the Testing Map
                                 thisWorld.Load(mapLocation + testmap);
-                                int iterator = 0;
-                                while (iterator < qStepCount)
-                                {
-                                    cumRwrd[testtype][run * qStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
-                                    iterator++;
-                                }
+                                    int iterator = 0;
+                                    while (iterator < qStepCount)
+                                    {
+                                        cumRwrd[testtype][run * qStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
+                                        iterator++;
+                                    }
 
-                            });//end inner loop
+                                });//end inner loop
                             Console.WriteLine((testTypes)testtype + " is Complete");
-                            break;
-                        } // Standard q learning
+                                break;
+                            } // Standard q learning
 
                     case testTypes.InitMB:
-                        {
-                            Parallel.For(0, runs, op2, (run) =>
                             {
-                                World thisWorld = new EgoAlloGridWorld();
-                                Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, true);
-                                System.Threading.Thread.Sleep(run * 100);
+                                Parallel.For(0, runs, op2, (run) =>
+                                {
+                                    World thisWorld = new EgoAlloGridWorld();
+                                    Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, true);
+                                    System.Threading.Thread.Sleep(run * 100);
 
                                 //run the training map
                                 thisWorld.Load(mapLocation + trainmap);
-                                int iterator = 0;
-                                while (iterator++ <= mBStepCount)
-                                    thisWorld.stepAgent("");
+                                    int iterator = 0;
+                                    while (iterator++ <= mBStepCount)
+                                        thisWorld.stepAgent("");
 
-                                LinearEgoAlloValue<int[], int[]> temp = (LinearEgoAlloValue<int[], int[]>)(agent._actionValue);
-                                temp.ResetAllocentric(true);
+                                    LinearEgoAlloValue<int[], int[]> temp = (LinearEgoAlloValue<int[], int[]>)(agent._actionValue);
+                                    temp.ResetAllocentric(true);
 
                                 //run the Testing Map
                                 PerformanceStats stats = new PerformanceStats();
-                                thisWorld.Load(mapLocation + testmap);
-                                iterator = 0;
-                                while (iterator < mBStepCount)
-                                {
-                                    cumRwrd[testtype][run * mBStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
-                                    iterator++;
-                                }
+                                    thisWorld.Load(mapLocation + testmap);
+                                    iterator = 0;
+                                    while (iterator < mBStepCount)
+                                    {
+                                        cumRwrd[testtype][run * mBStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
+                                        iterator++;
+                                    }
 
-                                if (stats.cumulativeReward == 0)
-                                    Console.WriteLine((testTypes)testtype + " on thread: " + run + " reward is: " + stats.cumulativeReward);
+                                   // if (stats.cumulativeReward == 0)
+                                     //   Console.WriteLine((testTypes)testtype + " on thread: " + run + " reward is: " + stats.cumulativeReward);
 
 
-                            });//end inner loop
+                                });//end inner loop
                             Console.WriteLine((testTypes)testtype + " is Complete");
-                            break;
-                        }//Model-Based with initilization 
+                                break;
+                            }//Model-Based with initilization 
 
                     case testTypes.OurMB:
-                        {
-                            Parallel.For(0, runs, op2, (run) =>
                             {
-                                World thisWorld = new EgoAlloGridWorld();
-                                Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 10, true);
-                                System.Threading.Thread.Sleep(run * 100);
+                                Parallel.For(0, runs, op2, (run) =>
+                                {
+                                    World thisWorld = new EgoAlloGridWorld();
+                                    Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 10, true);
+                                    System.Threading.Thread.Sleep(run * 100);
 
                                 //run the training map
                                 thisWorld.Load(mapLocation + trainmap);
-                                int iterator = 0;
-                                while (iterator++ <= mBStepCount)
-                                    thisWorld.stepAgent("");
+                                    int iterator = 0;
+                                    while (iterator++ <= mBStepCount)
+                                        thisWorld.stepAgent("");
 
-                                LinearEgoAlloValue<int[], int[]> temp = (LinearEgoAlloValue<int[], int[]>)(agent._actionValue);
-                                temp.ResetAllocentric(true);
+                                    LinearEgoAlloValue<int[], int[]> temp = (LinearEgoAlloValue<int[], int[]>)(agent._actionValue);
+                                    temp.ResetAllocentric(true);
 
                                 //run the Testing Map
                                 PerformanceStats stats = new PerformanceStats();
-                                thisWorld.Load(mapLocation + testmap);
-                                iterator = 0;
-                                while (iterator < mBStepCount)
-                                {
-                                    cumRwrd[testtype][run * mBStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
-                                    iterator++;
-                                }
+                                    thisWorld.Load(mapLocation + testmap);
+                                    iterator = 0;
+                                    while (iterator < mBStepCount)
+                                    {
+                                        cumRwrd[testtype][run * mBStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
+                                        iterator++;
+                                    }
 
-                            });//end inner loop
+                                });//end inner loop
                             Console.WriteLine((testTypes)testtype + " is Complete");
-                            break;
-                        }//Model-Based with full predicition method
+                                break;
+                            }//Model-Based with full predicition method
 
                     case testTypes.StandardMB:
-                        {
-                            Parallel.For(0, runs, op2, (run) =>
                             {
-                                World thisWorld = new EgoAlloGridWorld();
-                                Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
-                                System.Threading.Thread.Sleep(run * 100);
+                                Parallel.For(0, runs, op2, (run) =>
+                                {
+                                    World thisWorld = new EgoAlloGridWorld();
+                                    Agent<int[], int[]> agent = agent = (Agent<int[], int[]>)thisWorld.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+                                    System.Threading.Thread.Sleep(run * 100);
 
 
-                                PerformanceStats stats = new PerformanceStats();
+                                    PerformanceStats stats = new PerformanceStats();
                                 //run the Testing Map
                                 thisWorld.Load(mapLocation + testmap);
-                                int iterator = 0;
-                                while (iterator < mBStepCount)
-                                {
-                                    cumRwrd[testtype][run * mBStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
-                                    iterator++;
-                                }
+                                    int iterator = 0;
+                                    while (iterator < mBStepCount)
+                                    {
+                                        cumRwrd[testtype][run * mBStepCount + iterator] = (thisWorld.stepAgent("")).cumulativeReward;
+                                        iterator++;
+                                    }
 
-                            });//end inner loop
+                                });//end inner loop
                             Console.WriteLine((testTypes)testtype + " is Complete");
-                            break;
-                        }//standard Model-Based without transfer
+                                break;
+                            }//standard Model-Based without transfer
 
                 }//END SWITCH
             }); //end outer-For loop
 
-            //Write everything to output csv
+                //Write everything to output csv
 
-            for (int testtype = 0; testtype < testTypeCount; testtype++)
-            {
-                System.IO.StreamWriter writer;
-                writer = new System.IO.StreamWriter(testResultsLocation + (testTypes)testtype + "cumReward.csv");
-                if (testtype <= 2)
-                    for (int i = 0; i < runs * qStepCount; i++)
-                    {
-                        writer.WriteLine(cumRwrd[testtype][i].ToString());
-                    }
-                else
-                    for (int i = 0; i < runs * mBStepCount; i++)
-                        writer.WriteLine(cumRwrd[testtype][i].ToString());
+                for (int testtype = 0; testtype < testTypeCount; testtype++)
+                {
+                    System.IO.StreamWriter writer;
+                    string str = testmap.Remove(testmap.Length - 4);
+                    writer = new System.IO.StreamWriter(testResultsLocation + noise +  str + "_" +(testTypes)testtype + "cumReward.csv");
+                    if (testtype <= 2)
+                        for (int i = 0; i < runs * qStepCount; i++)
+                        {
+                            writer.WriteLine(cumRwrd[testtype][i].ToString());
+                        }
+                    else
+                        for (int i = 0; i < runs * mBStepCount; i++)
+                            writer.WriteLine(cumRwrd[testtype][i].ToString());
 
-                writer.Flush();
-                writer.Close();
+                    writer.Flush();
+                    writer.Close();
+                }
             }
 
         }
