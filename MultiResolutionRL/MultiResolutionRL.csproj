@@ -66,13 +66,15 @@
     <Compile Include="ValueCalculation\LinearEgoAlloFAValue.cs" />
     <Compile Include="ValueCalculation\LinearEgoAlloValue.cs" />
     <Compile Include="ValueCalculation\LSValue.cs" />
-    <Compile Include="ValueCalculation\ModelBasedAvgRwdValue.cs" />
     <Compile Include="ValueCalculation\ModelBasedValue.cs" />
     <Compile Include="ValueCalculation\ModelFreeValue.cs" />
     <Compile Include="ValueCalculation\MultiResValue.cs" />
     <Compile Include="ValueCalculation\SAStable.cs" />
     <Compile Include="ValueCalculation\LinearFAValue.cs" />
     <Compile Include="World.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram2.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

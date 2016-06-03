@@ -127,7 +127,11 @@ namespace MultiResolutionRL.ValueCalculation
             if (currentGoal.goalState == null)
             {
                 currentGoal = selectGoal(state, models.Length - 1, actions);
-                subgoals[currentGoal.level].Clear();
+                //subgoals[currentGoal.level].Clear();
+                for (int i = 0; i < subgoals.Length; i++)
+                {
+                    subgoals[i].Clear();
+                }
                 subgoals[currentGoal.level].Add(currentGoal);
             }
 

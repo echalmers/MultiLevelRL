@@ -597,17 +597,17 @@ namespace MultiResolutionRL
             state[0] = allo[0];
             state[1] = allo[1];
 
-            state[2] = map[allo[0] - 1, allo[1]] == 1 ? 1 : 0;
+            state[2] = map[allo[0] - 1, allo[1]] == 1 ? 1 : 0; // walls
             state[3] = map[allo[0], allo[1]-1] == 1 ? 1 : 0;
             state[4] = map[allo[0] + 1, allo[1]] == 1 ? 1 : 0;
             state[5] = map[allo[0], allo[1] + 1] == 1 ? 1 : 0;
 
-            state[6] = map[allo[0] - 1, allo[1]] == 3 ? 1 : 0;
+            state[6] = map[allo[0] - 1, allo[1]] == 3 ? 1 : 0; // goal
             state[7] = map[allo[0], allo[1] - 1] == 3 ? 1 : 0;
             state[8] = map[allo[0] + 1, allo[1]] == 3 ? 1 : 0;
             state[9] = map[allo[0], allo[1] + 1] == 3 ? 1 : 0;
 
-            state[10] = map[allo[0] - 1, allo[1]] == 2 ? 1 : 0;
+            state[10] = map[allo[0] - 1, allo[1]] == 2 ? 1 : 0; // lava
             state[11] = map[allo[0], allo[1] - 1] == 2 ? 1 : 0;
             state[12] = map[allo[0] + 1, allo[1]] == 2 ? 1 : 0;
             state[13] = map[allo[0], allo[1] + 1] == 2 ? 1 : 0;
@@ -716,13 +716,10 @@ namespace MultiResolutionRL
 
         public void ExportGradients()
         {
-            MultiResValue<int[], int[]> av = (MultiResValue<int[], int[]>)agent._actionValue;
-            StateManagement.intStateTree tree = new StateManagement.intStateTree();
+            ActionValue<int[], int[]> av = (ActionValue<int[], int[]>)agent._actionValue;
 
-
-            System.IO.StreamWriter xWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsX.csv");
-            System.IO.StreamWriter yWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsY.csv");
-            System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\gradientsVal.csv");
+            
+            System.IO.StreamWriter valWriter = new System.IO.StreamWriter("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\Paper\\new one\\actionVals.csv");
             for (int i = 0; i < map.GetLength(0); i++)
             {
                 double[] thisXLine = new double[map.GetLength(1)];
@@ -730,18 +727,13 @@ namespace MultiResolutionRL
                 double[] thisValLine = new double[map.GetLength(1)];
                 for (int j = 0; j < map.GetLength(1); j++)
                 {
-                    int[] thisState = tree.GetParentState(new int[2] { i, j }, 0);
-                    double[] actionVals = av.models[0].value(thisState, availableActions);
+                    double[] actionVals = av.value(new int[2] { i, j }, availableActions);
                     thisXLine[j] = actionVals[2] - actionVals[0];
                     thisYLine[j] = actionVals[3] - actionVals[1];
-                    thisValLine[j] = actionVals.Max();
+                    thisValLine[j] = actionVals.Average();
                 }
-                xWriter.WriteLine(string.Join(",", thisXLine));
-                yWriter.WriteLine(string.Join(",", thisYLine));
                 valWriter.WriteLine(string.Join(",", thisValLine));
             }
-            xWriter.Flush(); xWriter.Close();
-            yWriter.Flush(); yWriter.Close();
             valWriter.Flush(); valWriter.Close();
         }
 

@@ -167,7 +167,13 @@ namespace RL_Test
         private void button1_Click_1(object sender, EventArgs e)
         {
             //((StochasticRewardGridWorld)world).ExportGradients();
-            ((GridWorld)world).ExportGradients(0);
+            try
+            { ((GridWorld)world).ExportGradients(0); }
+            catch { }
+            try
+            { ((EgoAlloGridWorld)world).ExportGradients(); }
+            catch { }
+
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -264,14 +270,14 @@ namespace RL_Test
 
         private void button2_Click(object sender, EventArgs e)
         {
-            ((LinearEgoAlloValue<int[], int[]>)((Agent<int[],int[]>)agent)._actionValue).ResetAllocentric(true);
+            ((LinearEgoAlloValue<int[], int[]>)((Agent<int[],int[]>)agent)._actionValue).ResetAllocentric(false);
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             world = new EgoAlloGridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10a.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\mapEgoAlloTest.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
@@ -296,16 +302,16 @@ namespace RL_Test
             switch (learnerTypeComboBox.Text)
             {
                 case "Q learning":
-                    world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelFreeValue<,>));
                     break;
                 case "Model based":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(ModelBasedValue<,>));
                     break;
                 case "Tracking ModelBased":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>), true);
                     break;
                 case "Multi-resolution":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 10);
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 10);
                     break;
                 case "Context switcher (hierarchical)":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
@@ -314,10 +320,10 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
                     break;
                 case "EgoAllo(initialValue)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, true);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, false);
                     break;
                 case "EgoAllo(fullPrediction)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 10, true);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1000, false);
                     break;
                 case "LinearFA":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearFAValue<,>));
@@ -352,6 +358,16 @@ namespace RL_Test
             Stream stream = new FileStream("savedModel.mdl", FileMode.Create, FileAccess.Write, FileShare.None);
             formatter.Serialize(stream, mdl);
             stream.Close();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            try
+            {
+                trajWriter.Flush(); trajWriter.Close();
+            }
+            catch
+            { }
         }
     }
 }

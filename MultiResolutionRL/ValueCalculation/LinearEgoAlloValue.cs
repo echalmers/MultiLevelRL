@@ -75,6 +75,12 @@ namespace MultiResolutionRL.ValueCalculation
 
         public void ResetAllocentric(bool useModelBased)
         {
+            visitedStates = new Dictionary<int[], int>[4];
+            for (int i = 0; i < availableActions.Count; i++)
+            {
+                visitedStates[i] = new Dictionary<int[], int>(stateComparer);
+            }
+
             if (useModelBased)
                 alloLearner = new ModelBasedValue<int[], int[]>(stateComparer, actionComparer, availableActions, null, true);
             else
@@ -90,23 +96,36 @@ namespace MultiResolutionRL.ValueCalculation
 
         private void handCodedPrediction(int[] oldEgoState, int[] action, out double reward, int[] oldAlloState, out int[] newAlloState, double noise)
         {
-            if (rnd.Next() < noise)
+            Console.WriteLine("hand coded prediction with noise = " + noise);
+
+            // generate a random prediction at the rate specified by the noise parameter
+            if (rnd.NextDouble() < noise)
             {
-                newAlloState = oldAlloState;
-                reward = rnd.Next() * 0.1 - 0.1;
+                Console.WriteLine("false prediction");
+                newAlloState = new int[2] { oldAlloState[0] + rnd.Next(-1, 1), oldAlloState[1] + rnd.Next(-1, 1) };
+                reward = rnd.NextDouble() * 0.1 - 0.1;
             }
-            else
+            else // otherwise generate a hand-coded (correct) prediction
             {
+                // case for navigation into a wall
                 if ((action[0] == -1 && oldEgoState[0] == 1) || (action[0] == 1 && oldEgoState[2] == 1) || (action[1] == -1 && oldEgoState[1] == 1) || (action[1] == 1 && oldEgoState[3] == 1))
                 {
                     reward = -0.1;
                     newAlloState = oldAlloState;
                 }
+                // case for navigation into a goal state
                 else if ((action[0] == -1 && oldEgoState[4] == 1) || (action[0] == 1 && oldEgoState[6] == 1) || (action[1] == -1 && oldEgoState[5] == 1) || (action[1] == 1 && oldEgoState[7] == 1))
                 {
                     reward = 10;
                     newAlloState = oldAlloState;
                 }
+                // case for navigation into lava
+                else if ((action[0] == -1 && oldEgoState[8] == 1) || (action[0] == 1 && oldEgoState[10] == 1) || (action[1] == -1 && oldEgoState[9] == 1) || (action[1] == 1 && oldEgoState[11] == 1))
+                {
+                    reward = -1;
+                    newAlloState = new int[2] { oldAlloState[0] + action[0], oldAlloState[1] + action[1] };
+                }
+                // case for navigation through open areas
                 else
                 {
                     reward = -0.01;
@@ -174,7 +193,7 @@ namespace MultiResolutionRL.ValueCalculation
             egoLearner.update(new StateTransition<int[], int[]>(Array.ConvertAll(egoOldState, x => (int)x), transition.action, transition.reward, Array.ConvertAll(egoNewState, x => (int)x)));
 
             // transfer info from ego to allo models
-            //Console.WriteLine("current state: " + alloNewState[0] + "," + alloNewState[1]);
+            Console.WriteLine("current state: " + alloNewState[0] + "," + alloNewState[1]);
             //Console.WriteLine("ego. state: " + string.Join(",", egoNewState));
 
 
@@ -193,7 +212,7 @@ namespace MultiResolutionRL.ValueCalculation
                     int[] predictedAlo = { (int)Math.Round(d0 + alloNewState[0]), (int)Math.Round(d1 + alloNewState[1]) };
                     
 
-                    //handCodedPrediction(Array.ConvertAll(egoNewState, x => (int)x), availableActions[i], out reward, alloNewState, out predictedAlo, 0.05);
+                    //handCodedPrediction(Array.ConvertAll(egoNewState, x => (int)x), availableActions[i], out predictedReward, alloNewState, out predictedAlo, 0.01);
 
                     Console.WriteLine("action " + availableActions[i][0] + "," + availableActions[i][1] + " -> " + predictedAlo[0] + "," + predictedAlo[1] + " reward: " + predictedReward);
 

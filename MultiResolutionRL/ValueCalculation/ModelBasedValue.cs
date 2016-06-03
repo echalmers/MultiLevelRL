@@ -11,7 +11,7 @@ namespace MultiResolutionRL.ValueCalculation
     {
         public double defaultQ = 10, gamma = 0.9;
         int c = 1;
-        public int maxUpdates = 200;//1000;
+        public int maxUpdates = 120;//1000;
         bool amnesia = false;
         public SAStable<stateType, actionType, int> T;
         public SAStable<stateType, actionType, Histogram> R;
