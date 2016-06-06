@@ -246,9 +246,8 @@ namespace MultiResolutionRL
             agent = new Agent<int[], int[]>(startState, policy, value, availableActions);
         }
 
-        public void Load(string bmpFilename)
+        public void Load(Bitmap mapBmp)
         {
-            mapBmp = new Bitmap(bmpFilename);
             map = new int[mapBmp.Width, mapBmp.Height];
 
             for (int i = 0; i < mapBmp.Width; i++)
@@ -275,6 +274,12 @@ namespace MultiResolutionRL
 
             visitedStates.Clear();
             agent.state = startState;
+        }
+
+        public void Load(string bmpFilename)
+        {
+            mapBmp = new Bitmap(bmpFilename);
+            Load(mapBmp);
         }
                 
         public PerformanceStats stepAgent(string userAction="")
@@ -1132,7 +1137,7 @@ namespace MultiResolutionRL
 
     public class EgoAlloGridWorldMulti : World
     {
-        int numAgents = 40;
+        int numAgents;
         public Bitmap mapBmp;
         private int[,] map;
         private int[] startState;
@@ -1143,8 +1148,10 @@ namespace MultiResolutionRL
 
         int[] goalState;
 
-        public EgoAlloGridWorldMulti()
+        public EgoAlloGridWorldMulti(int NumAgents)
         {
+            numAgents = NumAgents;
+
             availableActions = new List<int[]>();
             availableActions.Add(new int[2] { -1, 0 });
             availableActions.Add(new int[2] { 0, -1 });
@@ -1161,11 +1168,12 @@ namespace MultiResolutionRL
             {
                 startState = new int[14] { i, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-            Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
-            ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
+                Policy<int[], int[]> policy = new EGreedyPolicy<int[], int[]>();
+                ActionValue<int[], int[]> value = new ModelFreeValue<int[], int[]>(new IntArrayComparer(), new IntArrayComparer(), availableActions, startState);
 
             
-            Agents.Add(new Agent<int[], int[]>(startState, policy, value, availableActions)); }
+                Agents.Add(new Agent<int[], int[]>(startState, policy, value, availableActions));
+            }
         }
 
         public void Load(string bmpFilename)
@@ -1232,7 +1240,6 @@ namespace MultiResolutionRL
 
         public PerformanceStats stepAgent(string userAction = "")
         {
-            List<StateTransition<int[], int[]>> transs = new List<StateTransition<int[], int[]>>();
             foreach(Agent<int[],int[]> agent in Agents)
              {
                  int[] state = agent.state;
@@ -1280,16 +1287,17 @@ namespace MultiResolutionRL
                  }
 
                  agent.getStats().TallyStepsToGoal(reward > 0);
-               
-                agent.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
-                 transs.Add(new StateTransition<int[], int[]>(state, action, reward / numAgents, newState, absorbingStateReached));
+
+                Parallel.ForEach(Agents, a =>
+                {
+                    if (a==agent)
+                        a.logEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
+                    else
+                        a.logAltEvent(new StateTransition<int[], int[]>(state, action, reward, newState, absorbingStateReached));
+                });
              }
 
-            Parallel.ForEach(Agents, a =>
-            {
-                foreach (StateTransition<int[], int[]> s in transs)
-                    a.logAltEvent(s);
-            });
+            
                 return Agents.First().getStats();
         }
 
@@ -1319,33 +1327,21 @@ namespace MultiResolutionRL
             width = 144; height = 48;
             Bitmap modMap = new Bitmap(map.GetLength(0), map.GetLength(1));
 
-            // for (int i=1;i< map.GetLength(0) - 1; i++)
-            // {
-            //  for (int j=1; j< map.GetLength(1) - 1; j++)
-            //   {
-            // int[] thisState = getState(new int[] { i, j });
-            //Runs system based on visits to a position?
-            foreach (KeyValuePair<int[], int> state in visitedStates)
+            for (int i = 1; i < map.GetLength(0) - 1; i++)
             {
-                int sx = state.Key[0];
-                int sy = state.Key[1];
-                int c = state.Value;
-
-                int r = mapBmp.GetPixel(sx, sy).R * 3 / (4 + c);
-                int g = mapBmp.GetPixel(sx, sy).G * 3 / (4 + c);
-                int b = mapBmp.GetPixel(sx, sy).B * 3 / (4 + c);
-                modMap.SetPixel(sx, sy, Color.FromArgb(r, g, b));
+                for (int j = 1; j < map.GetLength(1) - 1; j++)
+                {
+                    int[] thisState = getState(new int[] { i, j });
+            
+                    double avg = Math.Max(0, Math.Min(255, (Agents[0]._actionValue.value(thisState, availableActions).Max() + 1) / 12 * 255));
+                    modMap.SetPixel(i, j, Color.FromArgb((int)avg, (int)avg, (int)avg));
+                }
             }
-            // double avg = Math.Max(0, Math.Min(255,(agent._actionValue.value(thisState, availableActions).Max()+1) / 12 * 255));
-            // modMap.SetPixel(i,j, Color.FromArgb((int)avg, (int)avg, (int)avg));
-            //  }
-            //}
 
-            foreach(Agent<int[],int[]> agent in Agents)
-            modMap.SetPixel(agent.state[0], agent.state[1], Color.Red);
-
+            foreach (Agent<int[], int[]> agent in Agents)
+                modMap.SetPixel(agent.state[0], agent.state[1], Color.Red);
             modMap.SetPixel(goalState[0], goalState[1], Color.Green);
-
+            
 
             Bitmap resized = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(resized))

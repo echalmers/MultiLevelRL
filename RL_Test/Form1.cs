@@ -142,7 +142,9 @@ namespace RL_Test
         private void button1_Click_1(object sender, EventArgs e)
         {
             //((StochasticRewardGridWorld)world).ExportGradients();
-            ((GridWorld)world).ExportGradients(0);
+            //((GridWorld)world).ExportGradients(0);
+            world = new EgoAlloGridWorldMulti(Convert.ToInt32(actionTextBox.Text));
+            actionTextBox.Clear();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -151,7 +153,7 @@ namespace RL_Test
             {
 
                 case "EgoAlloGridWorldMulti":
-                    world = new EgoAlloGridWorldMulti();
+                    world = new EgoAlloGridWorldMulti(1);
                     loadMapButton.Enabled = true;
                     loadMapButton.PerformClick();
                     break;
@@ -251,9 +253,9 @@ namespace RL_Test
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //world = new EgoAlloGridWorld();
+            world = new EgoAlloGridWorldMulti(1);
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10a.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\map10.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
@@ -287,7 +289,7 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>), true);
                     break;
                 case "Multi-resolution":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 10);
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 10);
                     break;
                 case "Context switcher (hierarchical)":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
@@ -296,10 +298,10 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
                     break;
                 case "EgoAllo(initialValue)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1000, false);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, true);
                     break;
                 case "EgoAllo(fullPrediction)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 10, false);//True = MB , false = MF
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1, true);//True = MB , false = MF
                     break;
                 case "LinearFA":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearFAValue<,>));

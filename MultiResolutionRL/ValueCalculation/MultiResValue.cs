@@ -127,7 +127,10 @@ namespace MultiResolutionRL.ValueCalculation
             if (currentGoal.goalState == null)
             {
                 currentGoal = selectGoal(state, models.Length - 1, actions);
-                subgoals[currentGoal.level].Clear();
+                for (int i = 0; i < subgoals.Length; i++)
+                {
+                    subgoals[i].Clear();
+                }
                 subgoals[currentGoal.level].Add(currentGoal);
             }
 
@@ -147,7 +150,8 @@ namespace MultiResolutionRL.ValueCalculation
                         int[] currentGoalLevelState = stateTree.GetParentState(state, currentGoal.level);
                         Console.WriteLine("couldn't find a path to level " + currentGoal.level + ": " + String.Join(",",currentGoal.goalState) + " at level " + l);
 
-                        throw new ApplicationException("Pathfinding failed");
+                        //throw new ApplicationException("Pathfinding failed");
+                        Console.WriteLine("****************pathfinding failed");
                         
                         currentGoal.goalState = null;
                         for (int i = 0; i < subgoals.Length; i++)

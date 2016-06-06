@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "Cons
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HierarchicalContextSwitchTest", "HierarchicalContextSwitchTest\HierarchicalContextSwitchTest.csproj", "{A3DFD2FC-FCA7-4746-8987-CBBDB581FFBA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LargeProblemTest", "LargeProblemTest\LargeProblemTest.csproj", "{6046AB06-04A6-4E0D-A1DA-C4B8DFEB6C18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{A3DFD2FC-FCA7-4746-8987-CBBDB581FFBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A3DFD2FC-FCA7-4746-8987-CBBDB581FFBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3DFD2FC-FCA7-4746-8987-CBBDB581FFBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6046AB06-04A6-4E0D-A1DA-C4B8DFEB6C18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6046AB06-04A6-4E0D-A1DA-C4B8DFEB6C18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6046AB06-04A6-4E0D-A1DA-C4B8DFEB6C18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6046AB06-04A6-4E0D-A1DA-C4B8DFEB6C18}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
