@@ -199,6 +199,16 @@ namespace RL_Test
                     loadMapButton.Enabled = true;
                     loadMapButton.PerformClick();
                     break;
+                case "EgoAlloGridWorld":
+                    world = new EgoAlloGridWorld();
+                    loadMapButton.Enabled = true;
+                    loadMapButton.PerformClick();
+                    break;
+                case "MultiEgoAlloGridWorld":
+                    world = new EgoAlloGridWorldMulti() { numAgents = 2 };
+                    loadMapButton.Enabled = true;
+                    loadMapButton.PerformClick();
+                    break;
             }
         }
 
@@ -312,6 +322,12 @@ namespace RL_Test
                     break;
                 case "Multi-resolution":
                     agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 10);
+                    break;
+                case "Multi-Res vH Lesion":
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 1);
+                    break;
+                case "Multi-Res dH Lesion":
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 10, 5);
                     break;
                 case "Context switcher (hierarchical)":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 8, 100);
