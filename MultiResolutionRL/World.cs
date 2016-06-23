@@ -924,21 +924,22 @@ namespace MultiResolutionRL
         public Bitmap showState(int width, int height, bool showPath = false)
         {
             width = 144; height = 48;
-            Bitmap modMap = new Bitmap(map.GetLength(0), map.GetLength(1));
+            Bitmap modMap = new Bitmap(mapBmp);
 
-            for (int i = 1; i < map.GetLength(0) - 1; i++)
-            {
-                for (int j = 1; j < map.GetLength(1) - 1; j++)
-                {
-                    int[] thisState = getState(new int[] { i, j });
-                    double avg = Math.Max(0, Math.Min(255, (agents[0]._actionValue.value(thisState, availableActions).Max() + 1) / 12 * 255));
-                    modMap.SetPixel(i, j, Color.FromArgb((int)avg, (int)avg, (int)avg));
-                }
-            }
+            //Bitmap modMap = new Bitmap(map.GetLength(0), map.GetLength(1));
+            //for (int i = 1; i < map.GetLength(0) - 1; i++)
+            //{
+            //    for (int j = 1; j < map.GetLength(1) - 1; j++)
+            //    {
+            //        int[] thisState = getState(new int[] { i, j });
+            //        double avg = Math.Max(0, Math.Min(255, (agents[0]._actionValue.value(thisState, availableActions).Max() + 1) / 12 * 255));
+            //        modMap.SetPixel(i, j, Color.FromArgb((int)avg, (int)avg, (int)avg));
+            //    }
+            //}
 
             foreach (Agent<int[], int[]> a in agents)
             {
-                modMap.SetPixel(a.state[0], a.state[1], Color.Red);
+                modMap.SetPixel(a.state[0], a.state[1], Color.Black);
             }
 
             modMap.SetPixel(goalState[0], goalState[1], Color.Green);

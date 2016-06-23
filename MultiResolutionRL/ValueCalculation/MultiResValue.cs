@@ -51,7 +51,7 @@ namespace MultiResolutionRL.ValueCalculation
             {
                 models[i] = new ModelBasedValue<int[], actionType>(stateComparer, actionComparer, availableActions, StartState) 
                 { 
-                    maxUpdates = i==0 ? (minLevel>0 ? 20 : 20) : 20, 
+                    maxUpdates = i==0 ? (minLevel>0 ? 20 : 1) : 20, 
                     defaultQ = i==0 ? 15 : 0,
                     gamma = i==0 ? 0.9 : 0.4
                 };

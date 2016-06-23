@@ -205,7 +205,7 @@ namespace RL_Test
                     loadMapButton.PerformClick();
                     break;
                 case "MultiEgoAlloGridWorld":
-                    world = new EgoAlloGridWorldMulti() { numAgents = 2 };
+                    world = new EgoAlloGridWorldMulti() { numAgents = 8 };
                     loadMapButton.Enabled = true;
                     loadMapButton.PerformClick();
                     break;
@@ -280,12 +280,22 @@ namespace RL_Test
 
         private void button2_Click(object sender, EventArgs e)
         {
-            ((LinearEgoAlloValue<int[], int[]>)((Agent<int[],int[]>)agent)._actionValue).ResetAllocentric(true);
+            try
+            {
+                ((LinearEgoAlloValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).ResetAllocentric(true);
+            }
+            catch { }
+            try
+            {
+                foreach (Agent<int[],int[]> a in (List<Agent<int[],int[]>>)agent)
+                    ((LinearEgoAlloValue<int[], int[]>)((Agent<int[], int[]>)a)._actionValue).ResetAllocentric(true);
+            }
+            catch { }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            world = new EgoAlloGridWorld();
+            world = new EgoAlloGridWorldMulti();
             loadMapButton.Enabled = true;
             world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\mapEgoAlloTest.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
@@ -339,7 +349,7 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, true);
                     break;
                 case "EgoAllo(fullPrediction)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1, true);
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1, true);
                     break;
                 case "LinearFA":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearFAValue<,>));

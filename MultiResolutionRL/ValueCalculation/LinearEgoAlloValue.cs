@@ -193,7 +193,7 @@ namespace MultiResolutionRL.ValueCalculation
             egoLearner.update(new StateTransition<int[], int[]>(Array.ConvertAll(egoOldState, x => (int)x), transition.action, transition.reward, Array.ConvertAll(egoNewState, x => (int)x)));
 
             // transfer info from ego to allo models
-            Console.WriteLine("current state: " + alloNewState[0] + "," + alloNewState[1]);
+            //Console.WriteLine("current state: " + alloNewState[0] + "," + alloNewState[1]);
             //Console.WriteLine("ego. state: " + string.Join(",", egoNewState));
 
 
@@ -214,7 +214,7 @@ namespace MultiResolutionRL.ValueCalculation
 
                     //handCodedPrediction(Array.ConvertAll(egoNewState, x => (int)x), availableActions[i], out predictedReward, alloNewState, out predictedAlo, 0.01);
 
-                    Console.WriteLine("action " + availableActions[i][0] + "," + availableActions[i][1] + " -> " + predictedAlo[0] + "," + predictedAlo[1] + " reward: " + predictedReward);
+                    //Console.WriteLine("action " + availableActions[i][0] + "," + availableActions[i][1] + " -> " + predictedAlo[0] + "," + predictedAlo[1] + " reward: " + predictedReward);
 
                     //double[] matchingSample;
                     //if (inSample(sa, out matchingSample))
