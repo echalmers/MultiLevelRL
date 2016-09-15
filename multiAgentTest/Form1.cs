@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using MultiResolutionRL;
 using MultiResolutionRL.ValueCalculation;
 
+
 namespace multiAgentTest
 {
     public partial class Form1 : Form
@@ -62,37 +63,84 @@ namespace multiAgentTest
 
         private void button2_Click(object sender, EventArgs e)
         {
-            GridWorld world = new GridWorld();
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\waterMazeSim\\Open.bmp");
-            world.addAgent(typeof(OptimalPolicy<,>), typeof(MultiResValue<,>), 10, 5);
+            int runs = 64;
+            int trials = 50;
+            int stepCap = 200;
+            double[][] results = new double[trials * 2][];
+            for (int i = 0; i < (trials * 2); i++)
+                results[i] = new double[runs];
 
-            PerformanceStats stats = new PerformanceStats();
-            while(stats.stepsToGoal.Count < 6)
+            int scale = 2;
+
+            Bitmap map = new Bitmap("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\waterMazeSim\\Open.bmp");
+            Bitmap resized = new Bitmap(map.Width * 3, map.Height * 3);
+            using (Graphics g = Graphics.FromImage(resized))
             {
-                stats = world.stepAgent();
-                pictureBox1.Image = world.showState(100, 100);
-                pictureBox1.Refresh();
-                System.Threading.Thread.Sleep(10);
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                g.DrawImage(map, 0, 0, map.Width * scale, map.Height * scale);
             }
+            resized.Save("temp.bmp");
 
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\waterMazeSim\\Third.bmp");
-            while (stats.stepsToGoal.Count < 11)
+            map = new Bitmap("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\waterMazeSim\\Third.bmp");
+            resized = new Bitmap(map.Width * 3, map.Height * 3);
+            using (Graphics g = Graphics.FromImage(resized))
             {
-                stats = world.stepAgent();
-                pictureBox1.Image = world.showState(100, 100);
-                pictureBox1.Refresh();
-                System.Threading.Thread.Sleep(10);
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                g.DrawImage(map, 0, 0, map.Width * scale, map.Height * scale);
+            }
+            resized.Save("temp2.bmp");
 
-                if (stats.stepsToGoal.Last() >= 500)
+
+
+            Parallel.For(0, runs, run =>  // for (int run = 0; run < runs; run++)
+            {
+                GridWorld world = new GridWorld();
+                
+                world.Load("temp.bmp");
+                world.addAgent(typeof(EGreedyPolicy<,>), typeof(MultiResValue<,>), 1, 0);
+
+                PerformanceStats stats = new PerformanceStats();
+                while (stats.stepsToGoal.Count < (trials + 1))
                 {
-                    stats.TallyStepsToGoal(true);
-                    world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\waterMazeSim\\Third.bmp");
-                }
-            }
+                    stats = world.stepAgent();
+                    //pictureBox1.Image = world.showState(300, 300);
+                    //pictureBox1.Refresh();
+                    //System.Threading.Thread.Sleep(1);
 
-            foreach (double d in stats.stepsToGoal)
+                    if (stats.stepsToGoal.Last() >= stepCap)
+                    {
+                        stats.TallyStepsToGoal(true);
+                        world.Load("temp.bmp");
+                    }
+                }
+
+                
+                world.Load("temp2.bmp");
+                while (stats.stepsToGoal.Count < (trials * 2 + 1))
+                {
+                    stats = world.stepAgent();
+                    //pictureBox1.Image = world.showState(300, 300);
+                    //pictureBox1.Refresh();
+                    //System.Threading.Thread.Sleep(1);
+
+                    if (stats.stepsToGoal.Last() >= stepCap)
+                    {
+                        stats.TallyStepsToGoal(true);
+                        world.Load("temp2.bmp");
+                    }
+                }
+
+                for (int i = 0; i < trials * 2; i++)
+                {
+                    results[i][run] = stats.stepsToGoal[i];
+                }
+            });
+
+            for (int i = 0; i < trials * 2; i++)
             {
-                textBox1.AppendText(d + Environment.NewLine);
+                textBox1.AppendText(results[i].Average() + Environment.NewLine);
             }
         }
     }

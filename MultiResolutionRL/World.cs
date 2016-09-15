@@ -694,9 +694,9 @@ namespace MultiResolutionRL
             {
                 for (int j=1; j< map.GetLength(1) - 1; j++)
                 {
-                    int[] thisState = getState(new int[] { i, j });
-                    double avg = Math.Max(0, Math.Min(255,(agent._actionValue.value(thisState, availableActions).Max()+1) / 12 * 255));
-                    modMap.SetPixel(i,j, Color.FromArgb((int)avg, (int)avg, (int)avg));
+                    //int[] thisState = getState(new int[] { i, j });
+                    //double avg = Math.Max(0, Math.Min(255,(agent._actionValue.value(thisState, availableActions).Max()+1) / 12 * 255));
+                    modMap.SetPixel(i, j, mapBmp.GetPixel(i, j));// Color.FromArgb((int)avg, (int)avg, (int)avg));
                 }
             }
             

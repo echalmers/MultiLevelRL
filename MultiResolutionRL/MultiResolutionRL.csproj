@@ -63,6 +63,7 @@
     <Compile Include="StateTransition.cs" />
     <Compile Include="ValueCalculation\ContextSwitchValue.cs" />
     <Compile Include="ValueCalculation\EgoAllo.cs" />
+    <Compile Include="ValueCalculation\FreireValue.cs" />
     <Compile Include="ValueCalculation\LinearEgoAlloFAValue.cs" />
     <Compile Include="ValueCalculation\LinearEgoAlloValue.cs" />
     <Compile Include="ValueCalculation\LSValue.cs" />

@@ -49,16 +49,18 @@ namespace MultiResolutionRL.ValueCalculation
 
             for (int i = 0; i < models.Length; i++)
             {
-                models[i] = new ModelBasedValue<int[], actionType>(stateComparer, actionComparer, availableActions, StartState) 
-                { 
-                    maxUpdates = i==0 ? (minLevel>0 ? 20 : 1) : 20, 
-                    defaultQ = i==0 ? 15 : 0,
-                    gamma = i==0 ? 0.9 : 0.4
+                models[i] = new ModelBasedValue<int[], actionType>(stateComparer, actionComparer, availableActions, StartState)
+                {
+                    maxUpdates = i == 0 ? (minLevel > 0 ? 1 : 20) : 20,
+                    defaultQ = i == 0 ? 15 : 0,
+                    gamma = i == 0 ? 0.9 : 0.4,
+                    amnesia = true
                 };
                 
                 transitions[i] = new StateTransition<int[], actionType>(null, default(actionType), double.NegativeInfinity, null);
                 subgoals[i] = new List<Goal<int[], actionType>>();
             }
+            
 
             currentGoal = new Goal<int[], actionType>(0, null, default(actionType), null, 0, stateComparer, actionComparer);
 
@@ -199,13 +201,15 @@ namespace MultiResolutionRL.ValueCalculation
             if (minLevel > 0) // for simulating dH lesion
             {
                 double[] vals = new double[availableActions.Count];
+                double[] lowLevelVals = models[0].value(state, availableActions);
                 if (currentGoal.level >= minLevel)
                 {
-                    vals[availableActions.IndexOf(currentGoal.action)] = 1;
+                    int actionIndex = availableActions.IndexOf(currentGoal.action);
+                    vals[actionIndex] = 1;
                 }
                 else
                 {
-                    return models[0].value(state, availableActions);
+                    return lowLevelVals;
                 }
                 return vals;
             }
@@ -262,7 +266,9 @@ namespace MultiResolutionRL.ValueCalculation
             stateTree.AddState(transition.newState);
 
             // perform model updates
+            double temp = models[0].value(transition.oldState, transition.action);
             double returnValue = models[0].update(transition);
+            temp = models[0].value(transition.oldState, transition.action);
 
 
             if (transition.absorbingStateReached) // if this was the end of the simulation // ****** do we need this?

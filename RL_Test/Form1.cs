@@ -106,12 +106,19 @@ namespace RL_Test
 
         private void loadMapButton_Click(object sender, EventArgs e)
         {
-            try
+            try // if using contextSwitchValue, notify of new task
             {
                 ((ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).resetHistory();
                 ((ContextSwitchValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).currentModel = null;
             }
             catch { }
+
+            try // if using Freire's method, notify of new task
+            {
+                ((FreireValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).changeTask();
+            }
+            catch { }
+
 
             OpenFileDialog of = new OpenFileDialog();
             of.Title = "Load map";
@@ -282,22 +289,22 @@ namespace RL_Test
         {
             try
             {
-                ((LinearEgoAlloValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).ResetAllocentric(true);
+                ((LinearEgoAlloValue<int[], int[]>)((Agent<int[], int[]>)agent)._actionValue).ResetAllocentric(false);
             }
             catch { }
             try
             {
                 foreach (Agent<int[],int[]> a in (List<Agent<int[],int[]>>)agent)
-                    ((LinearEgoAlloValue<int[], int[]>)((Agent<int[], int[]>)a)._actionValue).ResetAllocentric(true);
+                    ((LinearEgoAlloValue<int[], int[]>)((Agent<int[], int[]>)a)._actionValue).ResetAllocentric(false);
             }
             catch { }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            world = new EgoAlloGridWorldMulti();
+            world = new EgoAlloGridWorld();
             loadMapButton.Enabled = true;
-            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\mapEgoAlloTest.bmp");
+            world.Load("C:\\Users\\Eric\\Google Drive\\Lethbridge Projects\\mapEgoAlloTrain.bmp");
             pictureBox1.Image = world.showState(pictureBox1.Width, pictureBox1.Height);
         }
 
@@ -346,16 +353,19 @@ namespace RL_Test
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ContextSwitchValue<,>), 1, 100);
                     break;
                 case "EgoAllo(initialValue)":
-                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1, true);
+                    agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloValue<,>), false, 1000, false);
                     break;
                 case "EgoAllo(fullPrediction)":
-                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1, true);
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(LinearEgoAlloValue<,>), true, 1000, false);
                     break;
                 case "LinearFA":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearFAValue<,>));
                     break;
                 case "LinearEgoAlloFA":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(LinearEgoAlloFAValue<,>));
+                    break;
+                case "Freire'sMethod":
+                    agent = world.addAgent(typeof(OptimalPolicy<,>), typeof(FreireValue<,>));
                     break;
                 case "Load":
                     agent = world.addAgent(typeof(EGreedyPolicy<,>), typeof(ModelBasedValue<,>));
