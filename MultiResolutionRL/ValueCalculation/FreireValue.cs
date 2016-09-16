@@ -10,7 +10,7 @@ namespace MultiResolutionRL.ValueCalculation
     {
         int currentTaskNumber = 0;
         int stepNumber = 0;
-        public int tau = 10000;
+        public int tau = 1000;
         IEqualityComparer<int[]> actionComparer;
         IEqualityComparer<int[]> stateComparer;
         PerformanceStats stats = new PerformanceStats();
@@ -31,7 +31,7 @@ namespace MultiResolutionRL.ValueCalculation
             availableActions = AvailableActions;
 
             baseLearner = new ModelFreeValue<int[], int[]>(StateComparer, ActionComparer, availableActions, StartState);
-            ((ModelFreeValue<int[],int[]>)baseLearner).defaultQ = 1;
+            ((ModelFreeValue<int[],int[]>)baseLearner).defaultQ = 0;
             abstractToConcreteMap = new Dictionary<int[], HashSet<int[]>>(stateComparer);
         }
 
